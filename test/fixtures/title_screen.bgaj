@@ -1,0 +1,120 @@
+{
+  "version": 2,
+  "layers": [
+    {
+      "sprite": "title_bg.sprj",
+      "keyframes": [
+        {
+          "tick": 0,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 600,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        }
+      ]
+    },
+    {
+      "sprite": "logo.sprj",
+      "keyframes": [
+        {
+          "tick": 30,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 0],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 90,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 600,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        }
+      ]
+    },
+    {
+      "sprite": "press_start.sprj",
+      "keyframes": [
+        {
+          "tick": 120,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 0.5],
+          "display": true,
+          "effect": "screen"
+        },
+        {
+          "tick": 180,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "screen"
+        },
+        {
+          "tick": 240,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 0.5],
+          "display": true,
+          "effect": "screen"
+        },
+        {
+          "tick": 300,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "screen"
+        },
+        {
+          "tick": 360,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 0.5],
+          "display": true,
+          "effect": "screen"
+        }
+      ]
+    }
+  ]
+}

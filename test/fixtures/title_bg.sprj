@@ -1,0 +1,11 @@
+{
+  "source_format": "spr",
+  "mode": "tile",
+  "pictures": [
+    {
+      "texture": "title_bg.tga",
+      "rect": [0, 0, 640, 480],
+      "uv": [0.0, 0.0, 1.0, 1.0]
+    }
+  ]
+}

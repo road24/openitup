@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "layers": [{
+    "sprite": "full_blue.sprj",
+    "keyframes": [
+      {"tick":10, "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"normal"},
+      {"tick":50, "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"normal"}
+    ]
+  }]
+}

@@ -1,0 +1,85 @@
+{
+  "version": 2,
+  "layers": [
+    {
+      "sprite": "title_bg.sprj",
+      "keyframes": [
+        {
+          "tick": 0,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 240,
+          "translate": [0, 0],
+          "pivot": [0, 0],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        }
+      ]
+    },
+    {
+      "sprite": "ani_frames.sprj",
+      "keyframes": [
+        {
+          "tick": 0,
+          "translate": [0, 0],
+          "pivot": [320, 240],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 60,
+          "translate": [0, 0],
+          "pivot": [320, 240],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 120,
+          "translate": [0, 0],
+          "pivot": [320, 240],
+          "scale": [2, 2],
+          "rotate": 45,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 180,
+          "translate": [0, 0],
+          "pivot": [320, 240],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        },
+        {
+          "tick": 240,
+          "translate": [0, 0],
+          "pivot": [320, 240],
+          "scale": [1, 1],
+          "rotate": 0,
+          "color": [1, 1, 1, 1],
+          "display": true,
+          "effect": "normal"
+        }
+      ]
+    }
+  ]
+}

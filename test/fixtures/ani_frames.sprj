@@ -1,0 +1,26 @@
+{
+  "source_format": "spr",
+  "mode": "ani",
+  "pictures": [
+    {
+      "texture": "frame_red.tga",
+      "rect": [288, 208, 352, 272],
+      "uv": [0.0, 0.0, 1.0, 1.0]
+    },
+    {
+      "texture": "frame_green.tga",
+      "rect": [288, 208, 352, 272],
+      "uv": [0.0, 0.0, 1.0, 1.0]
+    },
+    {
+      "texture": "frame_blue.tga",
+      "rect": [288, 208, 352, 272],
+      "uv": [0.0, 0.0, 1.0, 1.0]
+    },
+    {
+      "texture": "frame_yellow.tga",
+      "rect": [288, 208, 352, 272],
+      "uv": [0.0, 0.0, 1.0, 1.0]
+    }
+  ]
+}

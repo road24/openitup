@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "layers": [
+    {
+      "sprite": "full_gray128.sprj",
+      "keyframes": [
+        {"tick":0,   "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"normal"},
+        {"tick":100, "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"normal"}
+      ]
+    },
+    {
+      "sprite": "full_gray128.sprj",
+      "keyframes": [
+        {"tick":0,   "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"normal"},
+        {"tick":50,  "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"screen"},
+        {"tick":100, "translate":[0,0], "pivot":[0,0], "scale":[1,1], "rotate":0, "color":[1,1,1,1], "display":true, "effect":"screen"}
+      ]
+    }
+  ]
+}
