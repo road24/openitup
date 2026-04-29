@@ -1,5 +1,6 @@
 #include <openitup/audio/audio_system.h>
 #include <openitup/audio/audio_decoder.h>
+#include <openitup/audio/sdl3_audio_system.h>
 
 #include <gtest/gtest.h>
 
@@ -34,4 +35,11 @@ TEST(AudioDecoder, AudioFormatFields) {
     EXPECT_EQ(fmt.sample_rate, 44100);
     EXPECT_EQ(fmt.channels, 2);
     EXPECT_EQ(fmt.total_samples, 132300u);
+}
+
+// Basic SDL3AudioSystem initialization test
+TEST(SDL3AudioSystem, CanConstruct) {
+    SDL3AudioSystem audio;
+    // Constructor succeeds (no crash)
+    SUCCEED();
 }

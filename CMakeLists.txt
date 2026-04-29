@@ -101,6 +101,7 @@ target_link_libraries(openitup_engine PUBLIC
 add_library(openitup_audio STATIC
     src/openitup/audio/vorbis_decoder.cpp
     src/openitup/audio/mp3_decoder.cpp
+    src/openitup/audio/sdl3_audio_system.cpp
 )
 
 target_include_directories(openitup_audio PUBLIC
@@ -109,6 +110,7 @@ target_include_directories(openitup_audio PUBLIC
 )
 
 target_link_libraries(openitup_audio PUBLIC
+    SDL3::SDL3-static
     spdlog::spdlog
 )
 
