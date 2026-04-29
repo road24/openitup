@@ -98,6 +98,7 @@ add_library(openitup_engine STATIC
     src/openitup/judge/gameplay_state.cpp
     src/openitup/render/note_renderer.cpp
     src/openitup/render/judgment_display.cpp
+    src/openitup/scene/minimal_gameplay_scene.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
