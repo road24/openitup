@@ -66,6 +66,10 @@ private:
     std::unique_ptr<AudioDecoder> decoder_;
     AudioFormat source_format_ = {};
 
+    // Output device format (for resampling correction in position tracking).
+    int output_sample_rate_ = 0;
+    int output_channels_ = 0;
+
     // Transport state (main-thread owned, atomic for cross-thread reads).
     std::atomic<AudioState> state_{AudioState::STOPPED};
 
