@@ -97,8 +97,42 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
                                           uint32_t pressed_columns) {
     std::vector<JudgmentEvent> events;
 
+    // Phase 1: Auto-miss scan
+    // Advance cursor past notes that are beyond the late boundary
+    while (cursor_ < note_data_.size()) {
+        const auto& note = note_data_.events()[cursor_];
+
+        // Skip already-judged notes
+        if (judged_[cursor_]) {
+            cursor_++;
+            continue;
+        }
+
+        // Skip non-judgable types
+        if (note.type != NoteType::TAP) {
+            cursor_++;
+            continue;
+        }
+
+        // Convert note beat to milliseconds
+        double note_time_ms = timing_data_.time_at_beat(note.beat) * 1000.0;
+
+        // If this note is still within the judgable window, stop advancing
+        if (song_position_ms - note_time_ms <= profile_.bad_window_ms) {
+            break;
+        }
+
+        // Note is past the late miss boundary → auto-miss
+        events.push_back(JudgmentEvent(cursor_, note.column, note.beat,
+                                        JudgmentTier::MISS,
+                                        profile_.bad_window_ms,
+                                        true));
+        judged_[cursor_] = true;
+        judged_count_++;
+        cursor_++;
+    }
+
     // Phase 2: match pressed columns to unjudged notes
-    // (Auto-miss phase deferred to Step 5)
     for (uint8_t column = 0; column < 10; ++column) {
         // Check if this column bit is set
         if (!(pressed_columns & (1u << column))) {

@@ -292,12 +292,15 @@ TEST(Judge, ClassifyMissBeyondBad) {
     TimingProfile profile = default_timing_profile();
     Judge judge(notes, timing, profile);
 
-    // Input at 2100.1 ms (100.1 ms error) should NOT emit event
-    // (note may still be hit later, wait for auto-miss)
+    // Input at 2100.1 ms (100.1 ms error) is beyond the bad window.
+    // The auto-miss logic will trigger and emit a MISS event.
     uint32_t pressed = 1u << 0;
     auto events = judge.update(2100.1, pressed);
 
-    EXPECT_EQ(events.size(), 0);
+    // Should get 1 auto-miss event
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::MISS);
+    EXPECT_TRUE(events[0].is_auto_miss());
 }
 
 // --- Judge Single Note Update Tests ---
@@ -379,5 +382,135 @@ TEST(Judge, NoInputsNoEvents) {
     // No inputs (pressed_columns = 0)
     auto events = judge.update(2000.0, 0);
 
+    EXPECT_EQ(events.size(), 0);
+}
+
+// --- Auto-Miss and Flush Tests ---
+
+TEST(Judge, AutoMissWhenNoInput) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Advance to 2200 ms (200ms past note, beyond 100ms bad window) with no input
+    auto events = judge.update(2200.0, 0);
+
+    // Should get an auto-miss event
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::MISS);
+    EXPECT_TRUE(events[0].is_auto_miss());
+    EXPECT_NEAR(events[0].timing_error_ms(), 100.0, 0.1);
+}
+
+TEST(Judge, AutoMissIsAutoMissFlag) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Advance past the note without input
+    auto events = judge.update(2150.0, 0);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_TRUE(events[0].is_auto_miss());
+}
+
+TEST(Judge, MissedNoteDoesntBlockFuture) {
+    // Two notes: one at beat 4.0, another at beat 8.0
+    // At 120 BPM: beat 4.0 = 2000ms, beat 8.0 = 4000ms
+    NoteData notes = make_notes({{4.0, 0}, {8.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Advance past first note without input (auto-miss)
+    auto events1 = judge.update(2200.0, 0);
+    ASSERT_EQ(events1.size(), 1);
+    EXPECT_EQ(events1[0].beat(), 4.0);
+    EXPECT_EQ(events1[0].tier(), JudgmentTier::MISS);
+
+    // Now hit the second note normally
+    uint32_t pressed = 1u << 0;
+    auto events2 = judge.update(4000.0, pressed);
+    ASSERT_EQ(events2.size(), 1);
+    EXPECT_EQ(events2[0].beat(), 8.0);
+    EXPECT_EQ(events2[0].tier(), JudgmentTier::PERFECT);
+}
+
+TEST(Judge, FlushRemainingAllMiss) {
+    // 5 unjudged notes
+    NoteData notes = make_notes({{4.0, 0}, {8.0, 1}, {12.0, 2}, {16.0, 3}, {20.0, 4}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Flush without playing
+    auto events = judge.flush_remaining();
+
+    // Should get 5 MISS events
+    ASSERT_EQ(events.size(), 5);
+    for (const auto& event : events) {
+        EXPECT_EQ(event.tier(), JudgmentTier::MISS);
+        EXPECT_TRUE(event.is_auto_miss());
+    }
+}
+
+TEST(Judge, FlushAfterPartialPlay) {
+    // 5 notes
+    NoteData notes = make_notes({{4.0, 0}, {8.0, 1}, {12.0, 2}, {16.0, 3}, {20.0, 4}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit 3 notes
+    auto events1 = judge.update(2000.0, 1u << 0);
+    auto events2 = judge.update(4000.0, 1u << 1);
+    auto events3 = judge.update(6000.0, 1u << 2);
+
+    EXPECT_EQ(events1.size(), 1);
+    EXPECT_EQ(events2.size(), 1);
+    EXPECT_EQ(events3.size(), 1);
+
+    // Flush remaining (should get 2 misses)
+    auto flush_events = judge.flush_remaining();
+    ASSERT_EQ(flush_events.size(), 2);
+    EXPECT_EQ(flush_events[0].beat(), 16.0);
+    EXPECT_EQ(flush_events[1].beat(), 20.0);
+}
+
+TEST(Judge, AllNotesJudgedAtSongEnd) {
+    // 5 notes
+    NoteData notes = make_notes({{4.0, 0}, {8.0, 1}, {12.0, 2}, {16.0, 3}, {20.0, 4}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit some notes
+    judge.update(2000.0, 1u << 0);
+    judge.update(4000.0, 1u << 1);
+    judge.update(6000.0, 1u << 2);
+
+    // Flush rest
+    judge.flush_remaining();
+
+    // All notes should be judged
+    EXPECT_TRUE(judge.is_complete());
+    EXPECT_EQ(judge.judged_count(), judge.total_judgable());
+}
+
+TEST(Judge, NoAutoMissBeforeWindow) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Advance to 2050 ms (only 50ms past note, within 100ms bad window)
+    auto events = judge.update(2050.0, 0);
+
+    // Should NOT get an auto-miss yet (still within judgable window)
     EXPECT_EQ(events.size(), 0);
 }
