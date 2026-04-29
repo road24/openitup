@@ -100,6 +100,7 @@ target_link_libraries(openitup_engine PUBLIC
 
 add_library(openitup_audio STATIC
     src/openitup/audio/vorbis_decoder.cpp
+    src/openitup/audio/mp3_decoder.cpp
 )
 
 target_include_directories(openitup_audio PUBLIC
