@@ -213,3 +213,86 @@ TEST(KsfParser, MissingTitleLogsWarning) {
     // Fallback title should be the filename stem
     EXPECT_EQ(chart.metadata().title, "notitle");
 }
+
+// ============================================================================
+// Regression Tests - Load real fixture files from disk
+// ============================================================================
+
+namespace {
+
+std::filesystem::path fixtures_dir() {
+    const char* env = std::getenv("OPENITUP_FIXTURES_DIR");
+    if (env) return std::filesystem::path(env);
+    return std::filesystem::path(__FILE__).parent_path() / "fixtures";
+}
+
+} // anonymous namespace
+
+TEST(KsfParserRegression, FixtureFileLoadedCorrectly) {
+    // Load the actual test_basic.ksf fixture file using real filesystem
+    KsfParser parser;  // Default constructor uses filesystem reader
+    auto fixture_path = fixtures_dir() / "test_basic.ksf";
+    auto chart = parser.parse(fixture_path.string());
+
+    // Verify metadata
+    EXPECT_EQ(chart.metadata().title, "Test Song");
+    EXPECT_EQ(chart.metadata().artist, "Test Artist");
+    EXPECT_DOUBLE_EQ(chart.timing_data().bpm_at_beat(0.0), 120.0);
+    EXPECT_EQ(chart.note_count(), 4);
+    EXPECT_EQ(chart.metadata().mode, PlayMode::SINGLE);
+}
+
+TEST(KsfParserRegression, FixtureNoteBeats) {
+    // Verify exact beat positions of the 4 notes in test_basic.ksf
+    // TICKCOUNT=2 means 4 lines per beat (TICKCOUNT * 2)
+    // Line 0 (tick 0): beat 0.0, "10000" → column 0
+    // Line 2 (tick 2): beat 0.5, "01000" → column 1
+    // Line 4 (tick 4): beat 1.0, "00010" → column 3
+    // Line 6 (tick 6): beat 1.5, "00100" → column 2
+
+    KsfParser parser;
+    auto fixture_path = fixtures_dir() / "test_basic.ksf";
+    auto chart = parser.parse(fixture_path.string());
+
+    auto& notes = chart.note_data().events();
+    ASSERT_EQ(notes.size(), 4) << "Expected exactly 4 notes";
+
+    // Verify each note's beat and column
+    EXPECT_DOUBLE_EQ(notes[0].beat, 0.0);
+    EXPECT_EQ(notes[0].column, 0);
+    EXPECT_EQ(notes[0].type, NoteType::TAP);
+
+    EXPECT_DOUBLE_EQ(notes[1].beat, 0.5);
+    EXPECT_EQ(notes[1].column, 1);
+    EXPECT_EQ(notes[1].type, NoteType::TAP);
+
+    EXPECT_DOUBLE_EQ(notes[2].beat, 1.0);
+    EXPECT_EQ(notes[2].column, 3);
+    EXPECT_EQ(notes[2].type, NoteType::TAP);
+
+    EXPECT_DOUBLE_EQ(notes[3].beat, 1.5);
+    EXPECT_EQ(notes[3].column, 2);
+    EXPECT_EQ(notes[3].type, NoteType::TAP);
+}
+
+TEST(KsfParserRegression, FixtureTiming) {
+    // Verify time_at_beat matches expected values at 120 BPM
+    // At 120 BPM: seconds_per_beat = 60/120 = 0.5
+    // Beat 0.0 -> 0.0 seconds
+    // Beat 0.5 -> 0.25 seconds
+    // Beat 1.0 -> 0.5 seconds
+    // Beat 1.5 -> 0.75 seconds
+    // Beat 2.0 -> 1.0 seconds
+
+    KsfParser parser;
+    auto fixture_path = fixtures_dir() / "test_basic.ksf";
+    auto chart = parser.parse(fixture_path.string());
+
+    const auto& timing = chart.timing_data();
+
+    EXPECT_DOUBLE_EQ(timing.time_at_beat(0.0), 0.0);
+    EXPECT_DOUBLE_EQ(timing.time_at_beat(0.5), 0.25);
+    EXPECT_DOUBLE_EQ(timing.time_at_beat(1.0), 0.5);
+    EXPECT_DOUBLE_EQ(timing.time_at_beat(1.5), 0.75);
+    EXPECT_DOUBLE_EQ(timing.time_at_beat(2.0), 1.0);
+}
