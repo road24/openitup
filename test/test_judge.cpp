@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <openitup/judge/judgment_tier.h>
+#include <openitup/judge/timing_profile.h>
 
 using namespace openitup;
 
@@ -67,4 +68,51 @@ TEST(Judge, StringRoundTrip) {
     EXPECT_EQ(judgment_tier_from_string(judgment_tier_to_string(JudgmentTier::GOOD)), JudgmentTier::GOOD);
     EXPECT_EQ(judgment_tier_from_string(judgment_tier_to_string(JudgmentTier::BAD)), JudgmentTier::BAD);
     EXPECT_EQ(judgment_tier_from_string(judgment_tier_to_string(JudgmentTier::MISS)), JudgmentTier::MISS);
+}
+
+// --- TimingProfile Tests ---
+
+TEST(Judge, DefaultProfileValues) {
+    // Verify default_timing_profile() returns Exceed-era values
+    TimingProfile profile = default_timing_profile();
+    EXPECT_DOUBLE_EQ(profile.perfect_window_ms, 16.0);
+    EXPECT_DOUBLE_EQ(profile.great_window_ms, 33.0);
+    EXPECT_DOUBLE_EQ(profile.good_window_ms, 66.0);
+    EXPECT_DOUBLE_EQ(profile.bad_window_ms, 100.0);
+}
+
+TEST(Judge, DefaultProfileIsValid) {
+    // Verify the default profile is valid
+    TimingProfile profile = default_timing_profile();
+    EXPECT_TRUE(profile.is_valid());
+}
+
+TEST(Judge, InvalidProfileNegativeWindow) {
+    // Negative window values should be invalid
+    TimingProfile profile{-16.0, 33.0, 66.0, 100.0};
+    EXPECT_FALSE(profile.is_valid());
+}
+
+TEST(Judge, InvalidProfileUnordered) {
+    // Windows must be ordered: perfect <= great <= good <= bad
+    TimingProfile profile{50.0, 33.0, 66.0, 100.0};
+    EXPECT_FALSE(profile.is_valid());
+}
+
+TEST(Judge, InvalidProfileZeroWindow) {
+    // Zero window values should be invalid
+    TimingProfile profile{0.0, 33.0, 66.0, 100.0};
+    EXPECT_FALSE(profile.is_valid());
+}
+
+TEST(Judge, ValidProfileAllEqual) {
+    // All windows equal is valid (degenerate case)
+    TimingProfile profile{16.0, 16.0, 16.0, 16.0};
+    EXPECT_TRUE(profile.is_valid());
+}
+
+TEST(Judge, ValidProfileMinimal) {
+    // Small but strictly ordered windows are valid
+    TimingProfile profile{1.0, 2.0, 3.0, 4.0};
+    EXPECT_TRUE(profile.is_valid());
 }
