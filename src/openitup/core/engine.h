@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <string>
 
@@ -30,6 +31,8 @@ public:
     Engine& operator=(const Engine&) = delete;
 
     int run();
+    int run_gameplay(const std::filesystem::path& chart_path,
+                     const std::filesystem::path& data_dir);
     void request_quit();
 
     Renderer* get_renderer() const { return renderer_.get(); }

@@ -27,13 +27,26 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // Find chart file
+    std::filesystem::path chart_file;
+    if (!chart_arg.empty()) {
+        chart_file = chart_arg;
+    } else {
+        auto found = data_dir->find_file_by_extension(".ksf");
+        if (!found) {
+            spdlog::error("No .ksf chart found in '{}'", data_dir->path().string());
+            return 1;
+        }
+        chart_file = *found;
+    }
+
+    spdlog::info("Chart: {}", chart_file.string());
+    spdlog::info("Data dir: {}", data_dir->path().string());
+
     try {
         openitup::EngineConfig config;
-        config.data_dir_path = data_dir->path().string();
-        config.chart_path = chart_arg;
-
         openitup::Engine engine(config);
-        return engine.run();
+        return engine.run_gameplay(chart_file, data_dir->path());
     } catch (const std::exception& e) {
         spdlog::critical("fatal startup error: {}", e.what());
         return 1;

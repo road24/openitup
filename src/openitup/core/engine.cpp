@@ -6,6 +6,8 @@
 #include <spdlog/spdlog.h>
 
 #include <openitup/audio/sdl3_audio_system.h>
+#include <openitup/chart/chart_builder.h>
+#include <openitup/scene/minimal_gameplay_scene.h>
 
 namespace openitup {
 
@@ -119,6 +121,74 @@ int Engine::run() {
     }
 
     return 0;
+}
+
+int Engine::run_gameplay(const std::filesystem::path& chart_path,
+                         const std::filesystem::path& data_dir) {
+    try {
+        auto scene = std::make_unique<MinimalGameplayScene>(
+            chart_path, data_dir,
+            audio_.get(),
+            input_system_ ? input_system_.get() : nullptr,
+            renderer_.get());
+
+        running_ = true;
+        clock_->reset();
+        accumulator_ = 0.0;
+        tick_count_ = 0;
+
+        while (running_ && !scene->is_complete()) {
+            process_events();
+
+            double delta = clock_->tick();
+            auto result = compute_fixed_steps(delta, accumulator_);
+            accumulator_ = result.new_accumulator;
+            render_alpha_ = result.alpha;
+
+            if (result.spiral_guard_triggered) {
+                spdlog::warn("Spiral-of-death guard triggered");
+            }
+
+            for (int i = 0; i < result.num_steps; i++) {
+                try {
+                    if (input_system_) input_system_->poll(tick_count_);
+                    scene->update(FIXED_STEP);
+                } catch (const std::exception& e) {
+                    spdlog::error("Exception in gameplay update: {}", e.what());
+                }
+                tick_count_++;
+            }
+
+            renderer_->begin_frame();
+            try {
+                scene->render(render_alpha_);
+            } catch (const std::exception& e) {
+                spdlog::error("Exception in gameplay render: {}", e.what());
+            }
+            renderer_->end_frame();
+        }
+
+        // Log final results
+        const auto& state = scene->gameplay_state();
+        spdlog::info("=== Results ===");
+        spdlog::info("Score: {}", state.score());
+        spdlog::info("Max combo: {}", state.max_combo());
+        spdlog::info("Perfect: {}, Great: {}, Good: {}, Bad: {}, Miss: {}",
+                     state.judgment_count(JudgmentTier::PERFECT),
+                     state.judgment_count(JudgmentTier::GREAT),
+                     state.judgment_count(JudgmentTier::GOOD),
+                     state.judgment_count(JudgmentTier::BAD),
+                     state.judgment_count(JudgmentTier::MISS));
+
+        return 0;
+
+    } catch (const ChartLoadException& e) {
+        spdlog::error("Failed to load chart: {}", e.what());
+        return 1;
+    } catch (const std::exception& e) {
+        spdlog::error("Gameplay error: {}", e.what());
+        return 1;
+    }
 }
 
 void Engine::process_events() {
