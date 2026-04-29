@@ -2,6 +2,8 @@
 
 #include <spdlog/spdlog.h>
 
+#include <openitup/input/input_snapshot.h>
+#include <openitup/judge/judgment_event.h>
 #include <openitup/judge/timing_profile.h>
 #include <openitup/render/note_renderer.h>
 
@@ -64,7 +66,60 @@ MinimalGameplayScene::MinimalGameplayScene(
 MinimalGameplayScene::~MinimalGameplayScene() = default;
 
 void MinimalGameplayScene::update(double /*dt*/) {
-    // Implemented in Step 2
+    // Start audio on first tick
+    if (!audio_started_ && audio_) {
+        audio_->play();
+        audio_started_ = true;
+        spdlog::info("Audio playback started");
+    }
+
+    // Get song position from audio (authoritative time source)
+    double song_ms = 0.0;
+    if (audio_ && audio_->get_state() == AudioState::PLAYING) {
+        song_ms = audio_->get_position_ms();
+    }
+    last_song_ms_ = song_ms;
+
+    // Get input (InputSystem was already polled by Engine before this call)
+    uint32_t pressed = 0;
+    if (input_) {
+        pressed = input_->snapshot().pressed_mask() & 0x03FF;
+    }
+
+    // Run judge
+    auto events = judge_.update(song_ms, pressed);
+
+    // Feed events to displays and state
+    for (const auto& event : events) {
+        judgment_display_.on_judgment(event.tier());
+
+        if (spdlog::should_log(spdlog::level::debug)) {
+            spdlog::debug("Judgment: {} col={} error={:.1f}ms {}",
+                         judgment_tier_to_string(event.tier()),
+                         event.column(),
+                         event.timing_error_ms(),
+                         event.is_auto_miss() ? "(auto-miss)" : "");
+        }
+    }
+    gameplay_state_.apply(events);
+
+    // Check song completion
+    if (audio_started_ && audio_ && audio_->get_state() == AudioState::STOPPED) {
+        if (!complete_) {
+            auto remaining = judge_.flush_remaining();
+            gameplay_state_.apply(remaining);
+            complete_ = true;
+            spdlog::info("Song complete. Score: {}, Max combo: {}, Perfects: {}",
+                         gameplay_state_.score(),
+                         gameplay_state_.max_combo(),
+                         gameplay_state_.judgment_count(JudgmentTier::PERFECT));
+        }
+    }
+
+    // Also complete if all notes judged (edge case: chart with no audio)
+    if (!complete_ && judge_.is_complete()) {
+        complete_ = true;
+    }
 }
 
 void MinimalGameplayScene::render(double /*alpha*/) {
