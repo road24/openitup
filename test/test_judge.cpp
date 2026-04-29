@@ -2,6 +2,10 @@
 
 #include <openitup/judge/judgment_tier.h>
 #include <openitup/judge/timing_profile.h>
+#include <openitup/judge/judgment_event.h>
+
+#include <algorithm>
+#include <vector>
 
 using namespace openitup;
 
@@ -115,4 +119,78 @@ TEST(Judge, ValidProfileMinimal) {
     // Small but strictly ordered windows are valid
     TimingProfile profile{1.0, 2.0, 3.0, 4.0};
     EXPECT_TRUE(profile.is_valid());
+}
+
+// --- JudgmentEvent Tests ---
+
+TEST(Judge, JudgmentEventFieldsAccessible) {
+    JudgmentEvent event(42, 3, 8.5, JudgmentTier::GREAT, 25.0, false);
+
+    EXPECT_EQ(event.note_index(), 42);
+    EXPECT_EQ(event.column(), 3);
+    EXPECT_EQ(event.beat(), 8.5);
+    EXPECT_EQ(event.tier(), JudgmentTier::GREAT);
+    EXPECT_EQ(event.timing_error_ms(), 25.0);
+    EXPECT_FALSE(event.is_auto_miss());
+}
+
+TEST(Judge, JudgmentEventNegativeErrorIsEarly) {
+    JudgmentEvent event(0, 0, 4.0, JudgmentTier::PERFECT, -5.5, false);
+    EXPECT_LT(event.timing_error_ms(), 0.0);
+}
+
+TEST(Judge, JudgmentEventPositiveErrorIsLate) {
+    JudgmentEvent event(0, 0, 4.0, JudgmentTier::GREAT, 20.3, false);
+    EXPECT_GT(event.timing_error_ms(), 0.0);
+}
+
+TEST(Judge, JudgmentEventZeroErrorIsExact) {
+    JudgmentEvent event(0, 0, 4.0, JudgmentTier::PERFECT, 0.0, false);
+    EXPECT_EQ(event.timing_error_ms(), 0.0);
+}
+
+TEST(Judge, JudgmentEventSortByBeat) {
+    JudgmentEvent event1(0, 0, 5.0, JudgmentTier::PERFECT, 0.0, false);
+    JudgmentEvent event2(1, 0, 3.0, JudgmentTier::PERFECT, 0.0, false);
+    JudgmentEvent event3(2, 0, 4.0, JudgmentTier::PERFECT, 0.0, false);
+
+    std::vector<JudgmentEvent> events = {event1, event2, event3};
+    std::sort(events.begin(), events.end());
+
+    EXPECT_EQ(events[0].beat(), 3.0);
+    EXPECT_EQ(events[1].beat(), 4.0);
+    EXPECT_EQ(events[2].beat(), 5.0);
+}
+
+TEST(Judge, JudgmentEventSortStableByColumn) {
+    JudgmentEvent event1(0, 5, 4.0, JudgmentTier::PERFECT, 0.0, false);
+    JudgmentEvent event2(1, 2, 4.0, JudgmentTier::PERFECT, 0.0, false);
+    JudgmentEvent event3(2, 7, 4.0, JudgmentTier::PERFECT, 0.0, false);
+
+    std::vector<JudgmentEvent> events = {event1, event2, event3};
+    std::sort(events.begin(), events.end());
+
+    EXPECT_EQ(events[0].column(), 2);
+    EXPECT_EQ(events[1].column(), 5);
+    EXPECT_EQ(events[2].column(), 7);
+}
+
+TEST(Judge, JudgmentEventAutoMissFlag) {
+    JudgmentEvent auto_miss(0, 0, 4.0, JudgmentTier::MISS, 100.0, true);
+    JudgmentEvent input_miss(1, 0, 5.0, JudgmentTier::MISS, 150.0, false);
+
+    EXPECT_TRUE(auto_miss.is_auto_miss());
+    EXPECT_FALSE(input_miss.is_auto_miss());
+}
+
+TEST(Judge, JudgmentEventCopyAndMove) {
+    JudgmentEvent original(42, 3, 8.5, JudgmentTier::GREAT, 25.0, false);
+
+    JudgmentEvent copy(original);
+    EXPECT_EQ(copy.note_index(), original.note_index());
+    EXPECT_EQ(copy.tier(), original.tier());
+
+    JudgmentEvent moved(std::move(copy));
+    EXPECT_EQ(moved.note_index(), original.note_index());
+    EXPECT_EQ(moved.tier(), original.tier());
 }
