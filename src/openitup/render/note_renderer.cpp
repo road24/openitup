@@ -1,6 +1,7 @@
 #include <openitup/render/note_renderer.h>
 
 #include <SDL3/SDL.h>
+#include <openitup/chart/note_type.h>
 
 namespace openitup {
 
@@ -47,11 +48,68 @@ float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
 }
 
 void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms) const {
-    // Stub implementation — Step 2
+    // Convert song position to current beat
+    double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
+
+    // Compute visible beat range
+    double beats_above = config_.receptor_y / (config_.pixels_per_beat * config_.scroll_speed);
+    double beats_below = (480.0f - config_.receptor_y) / (config_.pixels_per_beat * config_.scroll_speed);
+    double top_beat = current_beat + beats_above;
+    double bottom_beat = current_beat - beats_below;
+
+    // Get notes in visible range
+    auto [begin_it, end_it] = note_data_.notes_in_range(bottom_beat, top_beat);
+
+    // Render each visible note
+    for (auto it = begin_it; it != end_it; ++it) {
+        const auto& note = *it;
+        // Skip non-TAP and non-HOLD_HEAD notes
+        if (note.type != NoteType::TAP && note.type != NoteType::HOLD_HEAD) {
+            continue;
+        }
+
+        // Skip if column is out of range
+        if (note.column >= config_.num_columns) {
+            continue;
+        }
+
+        // Compute screen position
+        float y = beat_to_y(note.beat, current_beat);
+
+        // Skip if offscreen (with margin for note height)
+        if (y < -config_.note_height || y > 480.0f + config_.note_height) {
+            continue;
+        }
+
+        float x = config_.column_x[note.column] - config_.note_width / 2.0f;
+
+        // Set color from column
+        const auto& color = COLUMN_COLORS[note.column];
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+
+        // Draw filled rectangle
+        SDL_FRect rect;
+        rect.x = x;
+        rect.y = y - config_.note_height / 2.0f;
+        rect.w = config_.note_width;
+        rect.h = config_.note_height;
+        SDL_RenderFillRect(renderer, &rect);
+    }
 }
 
 void NoteRenderer::render_receptors(SDL_Renderer* renderer) const {
-    // Stub implementation — Step 2
+    // Set draw color to dim gray
+    SDL_SetRenderDrawColor(renderer, 80, 80, 80, 180);
+
+    // Draw outlined rectangle at receptor position for each column
+    for (int col = 0; col < config_.num_columns; col++) {
+        SDL_FRect rect;
+        rect.x = config_.column_x[col] - config_.note_width / 2.0f;
+        rect.y = config_.receptor_y - config_.note_height / 2.0f;
+        rect.w = config_.note_width;
+        rect.h = config_.note_height;
+        SDL_RenderRect(renderer, &rect);
+    }
 }
 
 const NoteFieldConfig& NoteRenderer::config() const {
