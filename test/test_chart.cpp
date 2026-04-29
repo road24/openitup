@@ -4,6 +4,8 @@
 #include <openitup/chart/play_mode.h>
 #include <openitup/chart/note_data.h>
 #include <openitup/chart/chart_metadata.h>
+#include <openitup/chart/chart.h>
+#include <openitup/chart/chart_builder.h>
 
 #include <algorithm>
 
@@ -191,4 +193,150 @@ TEST(Chart, OptionalFieldsHaveSafeDefaults) {
     EXPECT_DOUBLE_EQ(metadata.preview_start_seconds, -1.0);
     EXPECT_DOUBLE_EQ(metadata.preview_length_seconds, -1.0);
     EXPECT_EQ(metadata.mode, PlayMode::SINGLE);
+}
+
+// --- Chart Tests ---
+
+TEST(Chart, ChartExposesAllComponents) {
+    // metadata(), timing_data(), note_data() all accessible
+    ChartBuilder builder;
+    builder.set_title("Test Chart");
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(4.0, 1, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    EXPECT_EQ(chart.metadata().title, "Test Chart");
+    EXPECT_EQ(chart.metadata().mode, PlayMode::SINGLE);
+    EXPECT_EQ(chart.timing_data().size(), 1);
+    EXPECT_EQ(chart.note_data().size(), 2);
+}
+
+TEST(Chart, ChartDurationSeconds) {
+    // Chart with notes at beat 4 at 120 BPM has duration ~2.0s
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(4.0, 1, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    // 120 BPM = 2 beats per second
+    // 4 beats = 2.0 seconds
+    EXPECT_DOUBLE_EQ(chart.duration_seconds(), 2.0);
+}
+
+TEST(Chart, ChartNoteCount) {
+    // Chart with 5 notes has note_count() == 5
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(1.0, 1, NoteType::TAP);
+    builder.add_note(2.0, 2, NoteType::TAP);
+    builder.add_note(3.0, 3, NoteType::TAP);
+    builder.add_note(4.0, 4, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    EXPECT_EQ(chart.note_count(), 5);
+}
+
+// --- ChartBuilder Tests ---
+
+TEST(Chart, BuilderProducesValidChart) {
+    // Full builder flow produces accessible Chart
+    ChartBuilder builder;
+    builder.set_title("Test Song");
+    builder.set_artist("Test Artist");
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 140.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(2.0, 2, NoteType::HOLD_HEAD);
+    builder.add_note(4.0, 2, NoteType::HOLD_TAIL);
+
+    Chart chart = builder.build();
+
+    EXPECT_EQ(chart.metadata().title, "Test Song");
+    EXPECT_EQ(chart.metadata().artist, "Test Artist");
+    EXPECT_EQ(chart.note_count(), 3);
+    EXPECT_DOUBLE_EQ(chart.timing_data().bpm_at_beat(0.0), 140.0);
+}
+
+TEST(Chart, BuilderSortsNotes) {
+    // Notes added [8.0, 2.5, 4.0] are sorted in built Chart
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_note(8.0, 0, NoteType::TAP);
+    builder.add_note(2.5, 1, NoteType::TAP);
+    builder.add_note(4.0, 2, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    const auto& events = chart.note_data().events();
+    EXPECT_DOUBLE_EQ(events[0].beat, 2.5);
+    EXPECT_DOUBLE_EQ(events[1].beat, 4.0);
+    EXPECT_DOUBLE_EQ(events[2].beat, 8.0);
+}
+
+TEST(Chart, BuilderSortsTimingEvents) {
+    // BPM events added out of order are sorted
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(8.0, 180.0);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_bpm_change(4.0, 150.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    const auto& events = chart.timing_data().events();
+    EXPECT_DOUBLE_EQ(events[0].beat, 0.0);
+    EXPECT_DOUBLE_EQ(events[0].bpm, 120.0);
+    EXPECT_DOUBLE_EQ(events[1].beat, 4.0);
+    EXPECT_DOUBLE_EQ(events[1].bpm, 150.0);
+    EXPECT_DOUBLE_EQ(events[2].beat, 8.0);
+    EXPECT_DOUBLE_EQ(events[2].bpm, 180.0);
+}
+
+TEST(Chart, BuilderThrowsOnNegativeBpm) {
+    // add_bpm_change(0, -120) -> ChartLoadException on build()
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, -120.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+
+    EXPECT_THROW(builder.build(), ChartLoadException);
+}
+
+TEST(Chart, BuilderWarnsOnInvalidColumn) {
+    // Column 7 in single mode -> logs warning, chart still builds
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_bpm_change(0.0, 120.0);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(2.0, 7, NoteType::TAP);  // Column 7 is out of range for single mode
+
+    // Should not throw, just log warning
+    Chart chart = builder.build();
+
+    EXPECT_EQ(chart.note_count(), 2);
+}
+
+TEST(Chart, BuilderDefaultBpmWhenNoneAdded) {
+    // No BPM events -> default 120 BPM, logs warning
+    ChartBuilder builder;
+    builder.set_mode(PlayMode::SINGLE);
+    builder.add_note(0.0, 0, NoteType::TAP);
+    builder.add_note(4.0, 1, NoteType::TAP);
+
+    Chart chart = builder.build();
+
+    // Should have default 120 BPM
+    EXPECT_DOUBLE_EQ(chart.timing_data().bpm_at_beat(0.0), 120.0);
+    EXPECT_EQ(chart.timing_data().size(), 1);
 }

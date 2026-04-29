@@ -87,6 +87,8 @@ add_library(openitup_engine STATIC
     src/openitup/chart/play_mode.cpp
     src/openitup/chart/note_data.cpp
     src/openitup/chart/timing_data.cpp
+    src/openitup/chart/chart.cpp
+    src/openitup/chart/chart_builder.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
