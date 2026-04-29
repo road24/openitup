@@ -4,6 +4,7 @@
 #include <openitup/judge/timing_profile.h>
 #include <openitup/judge/judgment_event.h>
 #include <openitup/judge/judge.h>
+#include <openitup/judge/gameplay_state.h>
 
 #include <openitup/chart/note_data.h>
 #include <openitup/chart/timing_data.h>
@@ -513,4 +514,289 @@ TEST(Judge, NoAutoMissBeforeWindow) {
 
     // Should NOT get an auto-miss yet (still within judgable window)
     EXPECT_EQ(events.size(), 0);
+}
+
+// --- Integration Tests: Judge + GameplayState Pipeline ---
+
+TEST(Judge, FullPerfectSong) {
+    // Build 10 tap notes at regular beat intervals (beat 0, 2, 4, 6, 8, 10, 12, 14, 16, 18)
+    // cycling through columns 0-4
+    std::vector<std::pair<double, uint8_t>> notes_spec;
+    for (int i = 0; i < 10; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        notes_spec.push_back({beat, column});
+    }
+    NoteData notes = make_notes(notes_spec);
+
+    // Build 120 BPM TimingData (each beat = 500ms)
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+
+    // Create Judge and GameplayState(10)
+    Judge judge(notes, timing, profile);
+    GameplayState state(10);
+
+    // For each note: compute exact note_time_ms, call judge.update(note_time_ms, column_bitmask), apply events to state
+    for (int i = 0; i < 10; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Verify: score = 10000, max_combo = 10, judgment_count(PERFECT) = 10, is_complete = true
+    EXPECT_EQ(state.score(), 10000);
+    EXPECT_EQ(state.max_combo(), 10);
+    EXPECT_EQ(state.current_combo(), 10);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::PERFECT), 10);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GREAT), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GOOD), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::BAD), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::MISS), 0);
+    EXPECT_TRUE(judge.is_complete());
+}
+
+TEST(Judge, MixedJudgments) {
+    // Build 10 notes at regular intervals
+    std::vector<std::pair<double, uint8_t>> notes_spec;
+    for (int i = 0; i < 10; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        notes_spec.push_back({beat, column});
+    }
+    NoteData notes = make_notes(notes_spec);
+
+    // Build 120 BPM TimingData
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+
+    Judge judge(notes, timing, profile);
+    GameplayState state(10);
+
+    // Hit with varying timing errors:
+    // Notes 0-2: exact (PERFECT)
+    for (int i = 0; i < 3; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Notes 3-4: +25ms (GREAT)
+    for (int i = 3; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 25.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Notes 5-6: +50ms (GOOD)
+    for (int i = 5; i < 7; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 50.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Note 7: +80ms (BAD)
+    {
+        int i = 7;
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 80.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Notes 8-9: skip (auto-miss by advancing past window)
+    // Advance past beat 18 + bad window
+    double last_note_beat = 18.0;
+    double last_note_time_ms = timing.time_at_beat(last_note_beat) * 1000.0;
+    double advance_time_ms = last_note_time_ms + 150.0; // beyond 100ms window
+    auto events = judge.update(advance_time_ms, 0);
+    state.apply(events);
+
+    // Flush to get remaining misses
+    auto flush_events = judge.flush_remaining();
+    state.apply(flush_events);
+
+    // Verify: score = 3*1000 + 2*800 + 2*500 + 1*100 + 2*0 = 5700
+    EXPECT_EQ(state.score(), 5700);
+
+    // Verify: max_combo = 7 (3+2+2 before BAD), current_combo = 0
+    EXPECT_EQ(state.max_combo(), 7);
+    EXPECT_EQ(state.current_combo(), 0);
+
+    // Verify judgment counts
+    EXPECT_EQ(state.judgment_count(JudgmentTier::PERFECT), 3);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GREAT), 2);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GOOD), 2);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::BAD), 1);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::MISS), 2);
+
+    EXPECT_TRUE(judge.is_complete());
+}
+
+TEST(Judge, DeterminismTest) {
+    // Build a chart with 5 notes
+    std::vector<std::pair<double, uint8_t>> notes_spec;
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        notes_spec.push_back({beat, column});
+    }
+    NoteData notes = make_notes(notes_spec);
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+
+    // Run scenario 1
+    Judge judge1(notes, timing, profile);
+    GameplayState state1(5);
+
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 10.0; // +10ms
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge1.update(note_time_ms, column_bitmask);
+        state1.apply(events);
+    }
+
+    // Run scenario 2 (identical inputs)
+    Judge judge2(notes, timing, profile);
+    GameplayState state2(5);
+
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 10.0; // +10ms
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge2.update(note_time_ms, column_bitmask);
+        state2.apply(events);
+    }
+
+    // Verify: both runs produce identical results
+    EXPECT_EQ(state1.score(), state2.score());
+    EXPECT_EQ(state1.max_combo(), state2.max_combo());
+    EXPECT_EQ(state1.current_combo(), state2.current_combo());
+    EXPECT_EQ(state1.judgment_count(JudgmentTier::PERFECT), state2.judgment_count(JudgmentTier::PERFECT));
+    EXPECT_EQ(state1.judgment_count(JudgmentTier::GREAT), state2.judgment_count(JudgmentTier::GREAT));
+    EXPECT_EQ(state1.judgment_count(JudgmentTier::GOOD), state2.judgment_count(JudgmentTier::GOOD));
+    EXPECT_EQ(state1.judgment_count(JudgmentTier::BAD), state2.judgment_count(JudgmentTier::BAD));
+    EXPECT_EQ(state1.judgment_count(JudgmentTier::MISS), state2.judgment_count(JudgmentTier::MISS));
+}
+
+TEST(Judge, JudgeResetAndReplay) {
+    // Build a chart with 5 notes
+    std::vector<std::pair<double, uint8_t>> notes_spec;
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        notes_spec.push_back({beat, column});
+    }
+    NoteData notes = make_notes(notes_spec);
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+
+    Judge judge(notes, timing, profile);
+    GameplayState state(5);
+
+    // First playthrough
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 5.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    int64_t first_score = state.score();
+    int first_max_combo = state.max_combo();
+
+    // Reset both judge and state
+    judge.reset();
+    state.reset();
+
+    // Second playthrough (identical inputs)
+    for (int i = 0; i < 5; i++) {
+        double beat = i * 2.0;
+        uint8_t column = i % 5;
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 5.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Verify: second run produces identical results
+    EXPECT_EQ(state.score(), first_score);
+    EXPECT_EQ(state.max_combo(), first_max_combo);
+}
+
+TEST(Judge, BpmChangeChart) {
+    // Build chart with notes before and after BPM change
+    // BPM change at beat 8: 120 → 180
+    std::vector<std::pair<double, uint8_t>> notes_spec;
+    // 3 notes before BPM change
+    notes_spec.push_back({2.0, 0});
+    notes_spec.push_back({4.0, 1});
+    notes_spec.push_back({6.0, 2});
+    // 3 notes after BPM change
+    notes_spec.push_back({10.0, 3});
+    notes_spec.push_back({12.0, 4});
+    notes_spec.push_back({14.0, 0});
+
+    NoteData notes = make_notes(notes_spec);
+
+    // Build TimingData with BPM change at beat 8
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    timing_events.push_back({8.0, TimingEventType::BPM_CHANGE, 180.0, 0.0});
+    TimingData timing(std::move(timing_events));
+
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+    GameplayState state(6);
+
+    // Hit all notes at exact times
+    std::vector<std::pair<double, uint8_t>> test_notes = {
+        {2.0, 0}, {4.0, 1}, {6.0, 2}, {10.0, 3}, {12.0, 4}, {14.0, 0}
+    };
+
+    for (const auto& [beat, column] : test_notes) {
+        double note_time_ms = timing.time_at_beat(beat) * 1000.0;
+        uint32_t column_bitmask = 1u << column;
+
+        auto events = judge.update(note_time_ms, column_bitmask);
+        state.apply(events);
+    }
+
+    // Verify: all PERFECT, timing errors near 0.0
+    EXPECT_EQ(state.judgment_count(JudgmentTier::PERFECT), 6);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GREAT), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::GOOD), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::BAD), 0);
+    EXPECT_EQ(state.judgment_count(JudgmentTier::MISS), 0);
+    EXPECT_EQ(state.score(), 6000);
+    EXPECT_EQ(state.max_combo(), 6);
+    EXPECT_TRUE(judge.is_complete());
 }
