@@ -94,6 +94,7 @@ add_library(openitup_engine STATIC
     src/openitup/judge/timing_profile.cpp
     src/openitup/judge/judgment_event.cpp
     src/openitup/judge/judge.cpp
+    src/openitup/judge/gameplay_state.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -169,6 +170,7 @@ add_executable(openitup_tests
     test/test_timing_data.cpp
     test/test_ksf_parser.cpp
     test/test_judge.cpp
+    test/test_gameplay_state.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
