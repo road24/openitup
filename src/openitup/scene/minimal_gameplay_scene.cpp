@@ -123,7 +123,17 @@ void MinimalGameplayScene::update(double /*dt*/) {
 }
 
 void MinimalGameplayScene::render(double /*alpha*/) {
-    // Implemented in Step 3
+    if (!renderer_) return;
+
+    SDL_Renderer* sdl_renderer = renderer_->get();
+
+    // Render note field
+    note_renderer_.render_receptors(sdl_renderer);
+    note_renderer_.render(sdl_renderer, last_song_ms_);
+
+    // Render judgment feedback
+    // Use FIXED_STEP as dt approximation for the fade timer
+    judgment_display_.render(sdl_renderer, 1.0 / 60.0);
 }
 
 bool MinimalGameplayScene::is_complete() const {
