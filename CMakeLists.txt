@@ -93,6 +93,7 @@ add_library(openitup_engine STATIC
     src/openitup/judge/judgment_tier.cpp
     src/openitup/judge/timing_profile.cpp
     src/openitup/judge/judgment_event.cpp
+    src/openitup/judge/judge.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC

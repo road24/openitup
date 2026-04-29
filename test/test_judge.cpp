@@ -3,11 +3,36 @@
 #include <openitup/judge/judgment_tier.h>
 #include <openitup/judge/timing_profile.h>
 #include <openitup/judge/judgment_event.h>
+#include <openitup/judge/judge.h>
+
+#include <openitup/chart/note_data.h>
+#include <openitup/chart/timing_data.h>
+#include <openitup/chart/note_type.h>
 
 #include <algorithm>
 #include <vector>
+#include <utility>
 
 using namespace openitup;
+
+// --- Helper functions for building test fixtures ---
+
+// Helper: build a simple NoteData with N tap notes at given beats/columns
+NoteData make_notes(std::vector<std::pair<double, uint8_t>> beat_col_pairs) {
+    std::vector<NoteEvent> events;
+    for (auto& [beat, col] : beat_col_pairs) {
+        events.push_back({beat, col, NoteType::TAP});
+    }
+    std::sort(events.begin(), events.end());
+    return NoteData(std::move(events));
+}
+
+// Helper: build a simple 120 BPM TimingData
+TimingData make_simple_timing(double bpm = 120.0) {
+    std::vector<TimingEvent> events;
+    events.push_back({0.0, TimingEventType::BPM_CHANGE, bpm, 0.0});
+    return TimingData(std::move(events));
+}
 
 // --- JudgmentTier Tests ---
 
@@ -193,4 +218,166 @@ TEST(Judge, JudgmentEventCopyAndMove) {
     JudgmentEvent moved(std::move(copy));
     EXPECT_EQ(moved.note_index(), original.note_index());
     EXPECT_EQ(moved.tier(), original.tier());
+}
+
+// --- Judge Classification Tests ---
+
+TEST(Judge, ClassifyExactHit) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at exactly 2000 ms (0.0 ms error) should be PERFECT
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2000.0, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
+    EXPECT_NEAR(events[0].timing_error_ms(), 0.0, 0.1);
+}
+
+TEST(Judge, ClassifyPerfectBoundary) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at 2016 ms (16.0 ms error) should be PERFECT (boundary inclusive)
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2016.0, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
+    EXPECT_NEAR(events[0].timing_error_ms(), 16.0, 0.1);
+}
+
+TEST(Judge, ClassifyGreatJustOutsidePerfect) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at 2016.1 ms (16.1 ms error) should be GREAT
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2016.1, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::GREAT);
+}
+
+TEST(Judge, ClassifyBadBoundary) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at 2100 ms (100.0 ms error) should be BAD (boundary inclusive)
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2100.0, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::BAD);
+    EXPECT_NEAR(events[0].timing_error_ms(), 100.0, 0.1);
+}
+
+TEST(Judge, ClassifyMissBeyondBad) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at 2100.1 ms (100.1 ms error) should NOT emit event
+    // (note may still be hit later, wait for auto-miss)
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2100.1, pressed);
+
+    EXPECT_EQ(events.size(), 0);
+}
+
+// --- Judge Single Note Update Tests ---
+
+TEST(Judge, SingleNotePerfectHit) {
+    // Note at beat 4.0
+    // At 120 BPM: 60/120 = 0.5 seconds per beat
+    // Beat 4.0 = 4 * 0.5 = 2.0 seconds = 2000 ms
+    NoteData notes = make_notes({{4.0, 2}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input at 2001 ms (1ms late) on column 2
+    uint32_t pressed = 1u << 2; // column 2
+    auto events = judge.update(2001.0, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
+    EXPECT_EQ(events[0].column(), 2);
+    EXPECT_NEAR(events[0].timing_error_ms(), 1.0, 0.1);
+}
+
+TEST(Judge, SingleNoteGreatHit) {
+    // Note at beat 4.0 = 2000 ms at 120 BPM
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input 25ms late
+    uint32_t pressed = 1u << 0; // column 0
+    auto events = judge.update(2025.0, pressed);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::GREAT);
+    EXPECT_NEAR(events[0].timing_error_ms(), 25.0, 0.1);
+}
+
+TEST(Judge, WrongColumnNoMatch) {
+    // Note at beat 4.0, column 2
+    NoteData notes = make_notes({{4.0, 2}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Input on column 0 (wrong column)
+    uint32_t pressed = 1u << 0; // column 0
+    auto events = judge.update(2000.0, pressed);
+
+    // No event should be emitted
+    EXPECT_EQ(events.size(), 0);
+}
+
+TEST(Judge, MultipleColumnsOneTick) {
+    // 3 notes on 3 different columns at the same beat
+    NoteData notes = make_notes({{4.0, 0}, {4.0, 1}, {4.0, 2}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Press all 3 columns
+    uint32_t pressed = (1u << 0) | (1u << 1) | (1u << 2);
+    auto events = judge.update(2000.0, pressed);
+
+    // Should get 3 events
+    ASSERT_EQ(events.size(), 3);
+    EXPECT_EQ(events[0].column(), 0);
+    EXPECT_EQ(events[1].column(), 1);
+    EXPECT_EQ(events[2].column(), 2);
+}
+
+TEST(Judge, NoInputsNoEvents) {
+    NoteData notes = make_notes({{4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // No inputs (pressed_columns = 0)
+    auto events = judge.update(2000.0, 0);
+
+    EXPECT_EQ(events.size(), 0);
 }
