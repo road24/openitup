@@ -1,0 +1,58 @@
+#pragma once
+
+#include <memory>
+#include <string>
+
+#include <openitup/core/clock.h>
+#include <openitup/gfx/renderer.h>
+#include <openitup/input/input_system.h>
+
+namespace openitup {
+
+struct EngineConfig {
+    std::string window_title = "openitup";
+    int window_width = 1280;
+    int window_height = 960;
+    double target_fps = 0.0;
+};
+
+class Engine {
+public:
+    explicit Engine(const EngineConfig& config = {});
+    Engine(const EngineConfig& config, std::unique_ptr<Clock> clock);
+    ~Engine();
+
+    Engine(const Engine&) = delete;
+    Engine& operator=(const Engine&) = delete;
+
+    int run();
+    void request_quit();
+
+    Renderer* get_renderer() const { return renderer_.get(); }
+    Clock* get_clock() const { return clock_.get(); }
+    InputSystem* get_input_system() const { return input_system_.get(); }
+    uint64_t tick_count() const { return tick_count_; }
+    double render_alpha() const { return render_alpha_; }
+    bool is_running() const { return running_; }
+
+    void set_input_system(std::unique_ptr<InputSystem> input);
+
+private:
+    void init_renderer(const EngineConfig& config);
+    void process_events();
+    void update(double dt);
+    void render(double alpha);
+
+    EngineConfig config_;
+    std::unique_ptr<Clock> clock_;
+    std::unique_ptr<Renderer> renderer_;
+    std::unique_ptr<InputSystem> input_system_;
+
+    bool running_ = false;
+    uint64_t tick_count_ = 0;
+    double accumulator_ = 0.0;
+    double render_alpha_ = 0.0;
+    double target_frame_time_ = 0.0;
+};
+
+} // namespace openitup

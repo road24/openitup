@@ -68,6 +68,12 @@ FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog)
 # --- Engine library ---
 
 add_library(openitup_engine STATIC
+    src/openitup/core/clock.cpp
+    src/openitup/core/engine.cpp
+    src/openitup/input/pad_input.cpp
+    src/openitup/input/input_snapshot.cpp
+    src/openitup/input/input_system.cpp
+    src/openitup/input/keyboard_driver.cpp
     src/openitup/bga/layer.cpp
     src/openitup/bga/animation.cpp
     src/openitup/bga/bga_loader.cpp
@@ -120,6 +126,9 @@ add_executable(openitup_tests
     test/test_sprite_modes.cpp
     test/test_integration.cpp
     test/test_regression.cpp
+    test/test_clock.cpp
+    test/test_engine.cpp
+    test/test_input.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
