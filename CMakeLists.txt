@@ -150,6 +150,7 @@ add_executable(openitup_tests
     test/test_input.cpp
     test/test_vendor_headers.cpp
     test/test_audio_system.cpp
+    test/test_audio_decoder.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
