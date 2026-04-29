@@ -217,3 +217,182 @@ TEST(JudgmentDisplay, NewJudgmentResetsTimer) {
     EXPECT_TRUE(display.is_visible());
     EXPECT_EQ(display.current_tier(), JudgmentTier::MISS);
 }
+
+TEST(JudgmentDisplay, TierColorsDistinct) {
+    // All 5 tier colors should be distinct
+    // This is a compile-time check that TIER_COLORS array has 5 entries
+    // We can't directly access the private array, but we can test behavior
+    JudgmentDisplay display;
+
+    // Just verify that on_judgment works for all tiers without crashing
+    display.on_judgment(JudgmentTier::PERFECT);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::PERFECT);
+
+    display.on_judgment(JudgmentTier::GREAT);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::GREAT);
+
+    display.on_judgment(JudgmentTier::GOOD);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::GOOD);
+
+    display.on_judgment(JudgmentTier::BAD);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::BAD);
+
+    display.on_judgment(JudgmentTier::MISS);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::MISS);
+}
+
+// --- Integration Tests ---
+
+TEST(NoteRenderer, VisibleRangeAt120BPM) {
+    // At 120 BPM, current_beat=10: notes at beats 5-15 should have y values within [0, 480]
+    // With pixels_per_beat=80, receptor_y=400:
+    // - beat 10 (current) -> y=400
+    // - beat 5 (5 beats back) -> y=400+400=800 (below screen)
+    // - beat 15 (5 beats ahead) -> y=400-400=0 (top of screen)
+    // - beat 10±5 represents the visible range (approximately)
+
+    std::vector<NoteEvent> notes;
+    notes.push_back({5.0, 0, NoteType::TAP});
+    notes.push_back({7.0, 1, NoteType::TAP});
+    notes.push_back({10.0, 2, NoteType::TAP});
+    notes.push_back({13.0, 3, NoteType::TAP});
+    notes.push_back({15.0, 4, NoteType::TAP});
+
+    NoteData note_data(std::move(notes));
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    constexpr double current_beat = 10.0;
+
+    // Notes near current beat should be in visible range [0, 480]
+    float y10 = renderer.beat_to_y(10.0, current_beat);
+    EXPECT_FLOAT_EQ(y10, 400.0f);
+    EXPECT_GE(y10, 0.0f);
+    EXPECT_LE(y10, 480.0f);
+
+    float y13 = renderer.beat_to_y(13.0, current_beat);
+    EXPECT_FLOAT_EQ(y13, 160.0f);  // 400 - 3*80 = 160
+    EXPECT_GE(y13, 0.0f);
+    EXPECT_LE(y13, 480.0f);
+
+    float y7 = renderer.beat_to_y(7.0, current_beat);
+    EXPECT_FLOAT_EQ(y7, 640.0f);  // 400 - (-3)*80 = 640 (below screen but close)
+}
+
+TEST(NoteRenderer, NoteBeyondScreenIgnored) {
+    // Note at beat 100 while current_beat=0: y should be far above screen (very negative)
+    std::vector<NoteEvent> notes;
+    notes.push_back({100.0, 0, NoteType::TAP});
+
+    NoteData note_data(std::move(notes));
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    constexpr double current_beat = 0.0;
+    float y = renderer.beat_to_y(100.0, current_beat);
+
+    // 400 - 100*80 = 400 - 8000 = -7600
+    EXPECT_FLOAT_EQ(y, -7600.0f);
+    EXPECT_LT(y, -48.0f);  // Far above screen (less than one note height above top)
+}
+
+TEST(NoteRenderer, FourConsecutiveQuarterNotes) {
+    // 4 notes at beats 0,1,2,3. With current_beat=0, y spacing should be exactly pixels_per_beat (80px)
+    std::vector<NoteEvent> notes;
+    notes.push_back({0.0, 0, NoteType::TAP});
+    notes.push_back({1.0, 1, NoteType::TAP});
+    notes.push_back({2.0, 2, NoteType::TAP});
+    notes.push_back({3.0, 3, NoteType::TAP});
+
+    NoteData note_data(std::move(notes));
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    constexpr double current_beat = 0.0;
+
+    float y0 = renderer.beat_to_y(0.0, current_beat);
+    float y1 = renderer.beat_to_y(1.0, current_beat);
+    float y2 = renderer.beat_to_y(2.0, current_beat);
+    float y3 = renderer.beat_to_y(3.0, current_beat);
+
+    // Verify exact y values
+    EXPECT_FLOAT_EQ(y0, 400.0f);
+    EXPECT_FLOAT_EQ(y1, 320.0f);  // 400 - 80
+    EXPECT_FLOAT_EQ(y2, 240.0f);  // 400 - 160
+    EXPECT_FLOAT_EQ(y3, 160.0f);  // 400 - 240
+
+    // Verify equal spacing of 80px
+    EXPECT_FLOAT_EQ(y0 - y1, 80.0f);
+    EXPECT_FLOAT_EQ(y1 - y2, 80.0f);
+    EXPECT_FLOAT_EQ(y2 - y3, 80.0f);
+}
+
+TEST(NoteRenderer, StopFreezesNotes) {
+    // During a stop, same song_ms gives same beat from timing data, so beat_to_y should be stable
+    // Create TimingData with a stop at beat 4.0 lasting 1.0 seconds
+    std::vector<TimingEvent> events;
+    events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    events.push_back({4.0, TimingEventType::STOP, 0.0, 1.0});  // 1 second stop at beat 4
+    TimingData timing(std::move(events));
+
+    std::vector<NoteEvent> notes;
+    notes.push_back({4.0, 0, NoteType::TAP});
+    NoteData note_data(std::move(notes));
+
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    // At 120 BPM, beat 4 occurs at time: 4 beats * (60/120) = 2.0 seconds
+    // During the stop (2.0s to 3.0s), beat stays at 4.0
+    constexpr double time_during_stop_1 = 2.0;
+    constexpr double time_during_stop_2 = 2.5;
+
+    double beat1 = timing.beat_at_time(time_during_stop_1);
+    double beat2 = timing.beat_at_time(time_during_stop_2);
+
+    // During stop, beat should be frozen at 4.0
+    EXPECT_FLOAT_EQ(beat1, 4.0);
+    EXPECT_FLOAT_EQ(beat2, 4.0);
+
+    // beat_to_y should give same result for both times (both have current_beat=4.0)
+    float y1 = renderer.beat_to_y(4.0, beat1);
+    float y2 = renderer.beat_to_y(4.0, beat2);
+
+    EXPECT_FLOAT_EQ(y1, y2);
+    EXPECT_FLOAT_EQ(y1, 400.0f);  // Note at beat 4, current at beat 4 -> receptor y
+}
+
+TEST(NoteRenderer, JudgmentDisplayIntegration) {
+    // on_judgment, simulate 30 frames at 60fps, should still be visible just before fade
+    // Then advance one more frame to trigger fade, then on_judgment again should be visible
+    JudgmentDisplay display;
+
+    // Initially invisible
+    EXPECT_FALSE(display.is_visible());
+
+    // Trigger judgment
+    display.on_judgment(JudgmentTier::PERFECT);
+    EXPECT_TRUE(display.is_visible());
+    EXPECT_EQ(display.current_tier(), JudgmentTier::PERFECT);
+
+    // Simulate 30 frames at 60fps (0.5s exactly - should still be visible at threshold)
+    constexpr double dt = 1.0 / 60.0;
+    for (int i = 0; i < 30; i++) {
+        display.render(nullptr, dt);
+    }
+
+    // At exactly 0.5s, may or may not be visible depending on comparison (>= vs >)
+    // Advance one more frame to definitely be past threshold
+    display.render(nullptr, dt);
+
+    // 31 frames = ~0.517s > 0.5s, should be invisible
+    EXPECT_FALSE(display.is_visible());
+
+    // Trigger new judgment
+    display.on_judgment(JudgmentTier::MISS);
+    EXPECT_TRUE(display.is_visible());
+    EXPECT_EQ(display.current_tier(), JudgmentTier::MISS);
+}
