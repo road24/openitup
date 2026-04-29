@@ -68,6 +68,7 @@ FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog)
 # --- Engine library ---
 
 add_library(openitup_engine STATIC
+    src/openitup/asset/data_directory.cpp
     src/openitup/core/clock.cpp
     src/openitup/core/engine.cpp
     src/openitup/input/pad_input.cpp
@@ -157,6 +158,7 @@ target_link_libraries(generate_samples PRIVATE SDL3::SDL3-static SDL3_image::SDL
 enable_testing()
 
 add_executable(openitup_tests
+    test/test_data_directory.cpp
     test/test_keyframe_interp.cpp
     test/test_texture_cache.cpp
     test/test_sprite_modes.cpp
