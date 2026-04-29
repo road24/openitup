@@ -181,3 +181,41 @@ TEST(DataDirectory, ResolveEnvEmptyStringReturnsNullopt) {
     auto result = openitup::resolve_data_directory("");
     EXPECT_FALSE(result.has_value());
 }
+
+// --- Missing asset logging tests ---
+
+TEST(DataDirectory, FindFileMissingNoErrorLogged) {
+    auto temp_dir = create_temp_test_dir("find_missing_no_error");
+
+    openitup::DataDirectory dd(temp_dir);
+    // Empty directory - find returns nullopt without logging error
+    // (caller logs context-specific message)
+    auto result = dd.find_file_by_extension(".ksf");
+    EXPECT_FALSE(result.has_value());
+
+    std::filesystem::remove_all(temp_dir);
+}
+
+TEST(DataDirectory, MultipleFindCallsIndependent) {
+    auto temp_dir = create_temp_test_dir("multiple_find");
+    create_file(temp_dir, "test1.ksf");
+    create_file(temp_dir, "test2.ogg");
+
+    openitup::DataDirectory dd(temp_dir);
+
+    // First find
+    auto result1 = dd.find_file_by_extension(".ksf");
+    ASSERT_TRUE(result1.has_value());
+    EXPECT_EQ(result1->filename(), "test1.ksf");
+
+    // Second find for different extension
+    auto result2 = dd.find_file_by_extension(".ogg");
+    ASSERT_TRUE(result2.has_value());
+    EXPECT_EQ(result2->filename(), "test2.ogg");
+
+    // Third find for missing extension
+    auto result3 = dd.find_file_by_extension(".mp3");
+    EXPECT_FALSE(result3.has_value());
+
+    std::filesystem::remove_all(temp_dir);
+}
