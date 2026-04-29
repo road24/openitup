@@ -94,6 +94,7 @@ target_link_libraries(openitup_engine PUBLIC
     SDL3_image::SDL3_image-static
     nlohmann_json::nlohmann_json
     spdlog::spdlog
+    openitup_audio
 )
 
 # --- Audio library ---

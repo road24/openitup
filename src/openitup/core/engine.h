@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 
+#include <openitup/audio/audio_system.h>
 #include <openitup/core/clock.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/input/input_system.h>
@@ -20,6 +21,7 @@ class Engine {
 public:
     explicit Engine(const EngineConfig& config = {});
     Engine(const EngineConfig& config, std::unique_ptr<Clock> clock);
+    Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::unique_ptr<AudioSystem> audio);
     ~Engine();
 
     Engine(const Engine&) = delete;
@@ -31,14 +33,18 @@ public:
     Renderer* get_renderer() const { return renderer_.get(); }
     Clock* get_clock() const { return clock_.get(); }
     InputSystem* get_input_system() const { return input_system_.get(); }
+    AudioSystem* get_audio() const { return audio_.get(); }
     uint64_t tick_count() const { return tick_count_; }
     double render_alpha() const { return render_alpha_; }
     bool is_running() const { return running_; }
 
     void set_input_system(std::unique_ptr<InputSystem> input);
+    void set_audio_system(std::unique_ptr<AudioSystem> audio);
 
 private:
+    void init_sdl();
     void init_renderer(const EngineConfig& config);
+    void init_audio();
     void process_events();
     void update(double dt);
     void render(double alpha);
@@ -47,6 +53,7 @@ private:
     std::unique_ptr<Clock> clock_;
     std::unique_ptr<Renderer> renderer_;
     std::unique_ptr<InputSystem> input_system_;
+    std::unique_ptr<AudioSystem> audio_;
 
     bool running_ = false;
     uint64_t tick_count_ = 0;

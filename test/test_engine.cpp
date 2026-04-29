@@ -70,27 +70,19 @@ TEST_F(EngineTimingTest, SpiralGuardPreventsRunaway) {
 
 class EngineConstructionTest : public ::testing::Test {
 protected:
-    SDL_Window* window_ = nullptr;
-
-    void SetUp() override {
+    bool has_display() const {
+        // Check if we can create a dummy window to test display availability
         SDL_Init(SDL_INIT_VIDEO);
-        window_ = SDL_CreateWindow("test", 1, 1, SDL_WINDOW_HIDDEN);
-    }
-
-    void TearDown() override {
-        if (window_) SDL_DestroyWindow(window_);
+        SDL_Window* test_window = SDL_CreateWindow("test", 1, 1, SDL_WINDOW_HIDDEN);
+        bool available = (test_window != nullptr);
+        if (test_window) SDL_DestroyWindow(test_window);
         SDL_Quit();
+        return available;
     }
-
-    bool has_display() const { return window_ != nullptr; }
 };
 
 TEST_F(EngineConstructionTest, EngineStartsAndStops) {
     if (!has_display()) GTEST_SKIP() << "No display available";
-
-    // Need fresh SDL state — Engine will call SDL_Init itself
-    if (window_) { SDL_DestroyWindow(window_); window_ = nullptr; }
-    SDL_Quit();
 
     // Use injectable clock that advances time, and quit after first frame
     uint64_t counter = 0;
@@ -113,4 +105,26 @@ TEST_F(EngineConstructionTest, EngineStartsAndStops) {
 
     int result = engine.run();
     EXPECT_EQ(result, 0);
+}
+
+TEST_F(EngineConstructionTest, AudioSystemAccessor) {
+    if (!has_display()) GTEST_SKIP() << "No display available";
+
+    EngineConfig config;
+    config.window_title = "audio_test";
+    config.window_width = 640;
+    config.window_height = 480;
+
+    Engine engine(config);
+
+    // Audio may be null if no device available
+    // Just verify the accessor doesn't crash
+    AudioSystem* audio = engine.get_audio();
+
+    // If audio is available, verify it was initialized
+    if (audio) {
+        EXPECT_NE(audio, nullptr);
+        // Audio system should be in STOPPED state initially
+        EXPECT_EQ(audio->get_state(), AudioState::STOPPED);
+    }
 }

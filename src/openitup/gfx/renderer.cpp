@@ -10,11 +10,6 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::init(const std::string& title, int width, int height) {
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        spdlog::error("SDL_Init failed: {}", SDL_GetError());
-        return false;
-    }
-
     window_ = SDL_CreateWindow(title.c_str(), width, height, SDL_WINDOW_RESIZABLE);
     if (!window_) {
         spdlog::error("SDL_CreateWindow failed: {}", SDL_GetError());
@@ -46,7 +41,6 @@ void Renderer::shutdown() {
         SDL_DestroyWindow(window_);
         window_ = nullptr;
     }
-    SDL_Quit();
 }
 
 void Renderer::begin_frame() {

@@ -5,20 +5,41 @@
 #include <SDL3/SDL.h>
 #include <spdlog/spdlog.h>
 
+#include <openitup/audio/sdl3_audio_system.h>
+
 namespace openitup {
 
 Engine::Engine(const EngineConfig& config)
     : Engine(config, std::make_unique<Clock>()) {}
 
 Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock)
-    : config_(config), clock_(std::move(clock)) {
+    : Engine(config, std::move(clock), nullptr) {}
+
+Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::unique_ptr<AudioSystem> audio)
+    : config_(config), clock_(std::move(clock)), audio_(std::move(audio)) {
     if (config_.target_fps > 0.0) {
         target_frame_time_ = 1.0 / config_.target_fps;
     }
+    init_sdl();
     init_renderer(config_);
+    init_audio();
 }
 
-Engine::~Engine() = default;
+Engine::~Engine() {
+    if (audio_) {
+        audio_->shutdown();
+    }
+    renderer_.reset();
+    SDL_Quit();
+}
+
+void Engine::init_sdl() {
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+        spdlog::critical("SDL_Init failed: {}", SDL_GetError());
+        throw std::runtime_error(std::string("SDL_Init failed: ") + SDL_GetError());
+    }
+    spdlog::debug("SDL initialized with VIDEO and AUDIO subsystems");
+}
 
 void Engine::init_renderer(const EngineConfig& config) {
     renderer_ = std::make_unique<Renderer>();
@@ -28,6 +49,28 @@ void Engine::init_renderer(const EngineConfig& config) {
             std::string("Failed to initialize renderer: ") + SDL_GetError());
     }
     spdlog::info("renderer initialized: {}x{}", config.window_width, config.window_height);
+}
+
+void Engine::init_audio() {
+    if (audio_) {
+        // Audio was injected for testing
+        if (!audio_->init()) {
+            spdlog::error("failed to initialize injected audio system");
+            audio_ = nullptr;
+        }
+        return;
+    }
+
+    // Create default SDL3AudioSystem
+    auto sdl_audio = std::make_unique<SDL3AudioSystem>();
+    if (!sdl_audio->init()) {
+        spdlog::error("failed to initialize SDL3AudioSystem - continuing without audio");
+        audio_ = nullptr;
+        return;
+    }
+
+    audio_ = std::move(sdl_audio);
+    spdlog::info("audio system initialized");
 }
 
 int Engine::run() {
@@ -92,6 +135,10 @@ void Engine::process_events() {
 
 void Engine::set_input_system(std::unique_ptr<InputSystem> input) {
     input_system_ = std::move(input);
+}
+
+void Engine::set_audio_system(std::unique_ptr<AudioSystem> audio) {
+    audio_ = std::move(audio);
 }
 
 void Engine::update(double /*dt*/) {
