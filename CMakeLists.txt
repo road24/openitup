@@ -83,6 +83,8 @@ add_library(openitup_engine STATIC
     src/openitup/gfx/renderer.cpp
     src/openitup/sprite/sprite.cpp
     src/openitup/sprite/sprite_loader.cpp
+    src/openitup/chart/note_type.cpp
+    src/openitup/chart/play_mode.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -154,6 +156,7 @@ add_executable(openitup_tests
     test/test_vendor_headers.cpp
     test/test_audio_system.cpp
     test/test_audio_decoder.cpp
+    test/test_chart.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
