@@ -133,7 +133,7 @@ target_link_libraries(openitup_audio PUBLIC
 # --- Main executable ---
 
 add_executable(openitup src/openitup/main.cpp)
-target_link_libraries(openitup PRIVATE openitup_engine)
+target_link_libraries(openitup PRIVATE openitup_engine CLI11::CLI11)
 
 # --- BGA Player tool ---
 

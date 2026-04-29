@@ -15,6 +15,8 @@ struct EngineConfig {
     int window_width = 1280;
     int window_height = 960;
     double target_fps = 0.0;
+    std::string data_dir_path;
+    std::string chart_path;
 };
 
 class Engine {
