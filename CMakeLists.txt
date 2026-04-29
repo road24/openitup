@@ -177,6 +177,7 @@ add_executable(openitup_tests
     test/test_judge.cpp
     test/test_gameplay_state.cpp
     test/test_note_renderer.cpp
+    test/test_minimal_gameplay_scene.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
