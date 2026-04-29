@@ -9,7 +9,8 @@ Generated: 2026-04-28
 | Phase | Stories | Total Points |
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
-| Phase 1 | 48 | 134 |
+| DONE (Phase 1) | 16 | 38 |
+| Phase 1 | 32 | 96 |
 | Phase 2 | 19 | 74 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
@@ -28,12 +29,29 @@ Generated: 2026-04-28
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
+| US-ENG-001 | Time accumulator for fixed logic step | DONE | 1 | 5 | US-ENG-021 |
+| US-ENG-003 | Uncapped/variable refresh rate render | DONE | 1 | 2 | US-ENG-001, US-ENG-011 |
+| US-ENG-004 | Render state interpolation | DONE | 1 | 3 | US-ENG-001, US-ENG-003 |
+| US-ENG-011 | Engine class as subsystem owner | DONE | 1 | 3 | None |
+| US-ENG-012 | Integrate renderer into engine | DONE | 1 | 2 | US-ENG-011 |
+| US-ENG-021 | Clock utility wrapping SDL perf ctr | DONE | 1 | 3 | None |
 | US-ENG-031 | Verify Linux cross-distro compat | DONE | N/A | 5 | None |
 | US-ENG-032 | Verify Windows platform compat | DONE | N/A | 5 | None |
 | US-ENG-041 | CMake FetchContent for all deps | DONE | N/A | 5 | None |
 | US-ENG-042 | Optimize incremental build perf | DONE | N/A | 2 | US-ENG-041 |
 | US-ENG-061 | Log asset loading errors w/ context | DONE | N/A | 2 | None |
 | US-ENG-062 | Graceful degrade missing non-crit | DONE | N/A | 3 | None |
+| US-ENG-063a | Catch/log engine loop exceptions | DONE | 1 | 2 | US-ENG-011 |
+| US-ENG-063b | Graceful startup failure | DONE | 1 | 1 | None |
+| US-INP-001 | Define PadInput enum for all controls | DONE | 1 | 1 | None |
+| US-INP-002 | Create InputSnapshot structure | DONE | 1 | 2 | US-INP-001 |
+| US-INP-003 | Define InputDriver interface | DONE | 1 | 2 | US-INP-002 |
+| US-INP-011 | Capture input snapshot once per tick | DONE | 1 | 3 | US-INP-003, US-ENG-001 |
+| US-INP-012 | Detect press/release edge events | DONE | 1 | 3 | US-INP-002, US-INP-011 |
+| US-INP-013 | Verify no input events lost | DONE | 1 | 3 | US-INP-012 |
+| US-INP-021 | KeyboardDriver w/ configurable keymap | DONE | 1 | 5 | US-INP-003, US-INP-012 |
+| US-INP-022 | Default QWEASDZXC keymap | DONE | 1 | 1 | US-INP-021 |
+| US-INP-024 | Support 10+ key rollover | DONE | 1 | 2 | US-INP-021 |
 | US-REN-001 | SDL3 renderer with logical resolution | DONE | N/A | 1 | None |
 | US-REN-002 | Frame render loop | DONE | N/A | 1 | US-REN-001 |
 | US-REN-003 | Sprite loading from JSON (SPRJ) | DONE | N/A | 2 | US-REN-001, US-REN-005 |
@@ -67,23 +85,6 @@ Generated: 2026-04-28
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-ENG-001 | Time accumulator for fixed logic step | PLANNED | 1 | 5 | US-ENG-021 |
-| US-ENG-003 | Uncapped/variable refresh rate render | PLANNED | 1 | 2 | US-ENG-001, US-ENG-011 |
-| US-ENG-004 | Render state interpolation | PLANNED | 1 | 3 | US-ENG-001, US-ENG-003 |
-| US-ENG-011 | Engine class as subsystem owner | PLANNED | 1 | 3 | None |
-| US-ENG-012 | Integrate renderer into engine | PLANNED | 1 | 2 | US-ENG-011 |
-| US-ENG-021 | Clock utility wrapping SDL perf ctr | PLANNED | 1 | 3 | None |
-| US-ENG-063a | Catch/log engine loop exceptions | PLANNED | 1 | 2 | US-ENG-011 |
-| US-ENG-063b | Graceful startup failure | PLANNED | 1 | 1 | None |
-| US-INP-001 | Define PadInput enum for all controls | PLANNED | 1 | 1 | None |
-| US-INP-002 | Create InputSnapshot structure | PLANNED | 1 | 2 | US-INP-001 |
-| US-INP-003 | Define InputDriver interface | PLANNED | 1 | 2 | US-INP-002 |
-| US-INP-011 | Capture input snapshot once per tick | PLANNED | 1 | 3 | US-INP-003, US-ENG-001 |
-| US-INP-012 | Detect press/release edge events | PLANNED | 1 | 3 | US-INP-002, US-INP-011 |
-| US-INP-013 | Verify no input events lost | PLANNED | 1 | 3 | US-INP-012 |
-| US-INP-021 | KeyboardDriver w/ configurable keymap | PLANNED | 1 | 5 | US-INP-003, US-INP-012 |
-| US-INP-022 | Default QWEASDZXC keymap | PLANNED | 1 | 1 | US-INP-021 |
-| US-INP-024 | Support 10+ key rollover | PLANNED | 1 | 2 | US-INP-021 |
 | US-AUD-001 | Load OGG Vorbis music files | PLANNED | 1 | 3 | None |
 | US-AUD-002 | Load MP3 music files | PLANNED | 1 | 3 | US-AUD-001 |
 | US-AUD-003 | Music playback controls | PLANNED | 1 | 2 | US-AUD-001, US-AUD-002 |
