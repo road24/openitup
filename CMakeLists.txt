@@ -89,6 +89,7 @@ add_library(openitup_engine STATIC
     src/openitup/chart/timing_data.cpp
     src/openitup/chart/chart.cpp
     src/openitup/chart/chart_builder.cpp
+    src/openitup/chart/ksf_parser.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -162,6 +163,7 @@ add_executable(openitup_tests
     test/test_audio_decoder.cpp
     test/test_chart.cpp
     test/test_timing_data.cpp
+    test/test_ksf_parser.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
