@@ -96,6 +96,21 @@ target_link_libraries(openitup_engine PUBLIC
     spdlog::spdlog
 )
 
+# --- Audio library ---
+
+add_library(openitup_audio STATIC
+    src/openitup/audio/vorbis_decoder.cpp
+)
+
+target_include_directories(openitup_audio PUBLIC
+    src
+    third_party
+)
+
+target_link_libraries(openitup_audio PUBLIC
+    spdlog::spdlog
+)
+
 # --- Main executable ---
 
 add_executable(openitup src/openitup/main.cpp)
@@ -138,6 +153,7 @@ add_executable(openitup_tests
 
 target_link_libraries(openitup_tests PRIVATE
     openitup_engine
+    openitup_audio
     GTest::gtest_main
 )
 

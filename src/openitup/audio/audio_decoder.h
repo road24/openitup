@@ -30,6 +30,9 @@ public:
 
     // Query format
     virtual const AudioFormat& format() const = 0;
+
+    // Is the decoder currently open?
+    virtual bool is_open() const = 0;
 };
 
 }  // namespace openitup
