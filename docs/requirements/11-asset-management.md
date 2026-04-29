@@ -132,14 +132,19 @@ The asset manager must discover system assets (UI sprites, fonts, sound effects)
 
 The engine must handle missing assets gracefully with appropriate fallbacks or disabling optional features.
 
-**Acceptance Criteria**:
-- Missing chart or audio: song not listed in database
-- Missing banner: placeholder banner displayed
-- Missing BGA: gameplay proceeds without BGA
-- Missing note skin: default skin used
+**Phase 1 Acceptance Criteria** (CLI-specified song directory):
+- If chart file is missing, exit with error code 1 and log error message
+- If audio file is missing, exit with error code 1 and log error message
+- If BGA is missing, continue gameplay without background and log warning
 - All missing assets logged at ERROR or WARN level
 
-**Dependencies**: REQ-AST-003  
+**Phase 3 Acceptance Criteria** (database scanning):
+- Missing chart or audio: song not listed in database, log warning during scan
+- Missing banner: placeholder banner displayed in song select
+- Missing BGA: gameplay proceeds without BGA, log warning on load
+- Missing note skin: default skin used, log warning
+
+**Dependencies**: None (Phase 1), REQ-AST-003 (Phase 3)  
 **Source**: Roadmap scope notes
 
 ---

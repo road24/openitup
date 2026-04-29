@@ -13,6 +13,40 @@ This document contains user stories for the Gameplay Judge subsystem (Subsystem 
 
 ## Phase 1: Core Judge Logic (Taps Only)
 
+### Story ID: US-JDG-019 - Default Hardcoded Timing Profile
+
+**Story Card:**
+> **As a** Developer
+> **I want** hardcoded timing windows for Phase 1
+> **So that** the judge can classify hits without needing JSON profile loading
+
+#### Description
+Provide a default set of hardcoded timing windows (Perfect ±16ms, Great ±33ms, Good ±66ms, Bad ±100ms, Miss >100ms) for Phase 1 gameplay. JSON profile loading will be implemented in Phase 4.
+
+#### Acceptance Criteria
+
+*   **Scenario 1: Default windows are available**
+    *   **Given** the judge is initialized without loading a profile
+    *   **When** notes are judged
+    *   **Then** Perfect window is ±16ms, Great is ±33ms, Good is ±66ms, Bad is ±100ms
+
+*   **Scenario 2: Judgments use hardcoded windows**
+    *   **Given** a note at time 1000ms
+    *   **When** input arrives at 1015ms (15ms late)
+    *   **Then** the judgment is "Perfect" (within ±16ms window)
+
+*   **Scenario 3: Hardcoded values match Exceed era**
+    *   **Given** the hardcoded timing windows
+    *   **When** compared to documented Exceed timing
+    *   **Then** the values match historically accurate Exceed timing
+
+#### Technical Notes & Constraints
+*   **Estimation Pointer**: 2 story points
+*   **Dependencies**: US-JDG-001
+*   **Phase**: 1
+
+---
+
 ### Story ID: US-JDG-001 - Deterministic Pure Logic Judge
 
 **Story Card:**

@@ -106,22 +106,42 @@ The engine must provide song selection screen with music wheel, banner display, 
 
 ---
 
-## REQ-SCN-007: Gameplay Scene
+## REQ-SCN-007a: Minimal Gameplay Scene
 **Status**: [PLANNED Phase 1]  
 **Priority**: Must Have
 
-The engine must provide the main gameplay screen orchestrating judge, note renderer, audio, BGA, and UI overlays.
+The engine must provide a minimal gameplay scene that loads chart from KSF parser, plays audio, renders placeholder notes as rectangles, accepts keyboard input, runs judge, and shows text-based timing feedback.
 
 **Acceptance Criteria**:
-- Queries audio position each frame
-- Advances BGA tick counter synchronized to audio
+- Loads chart from KSF parser
+- Plays audio and queries position each frame
+- Renders notes as colored rectangles scrolling in beat-space
+- Accepts keyboard input via InputSnapshot
 - Calls judge.update() with input snapshot
-- Updates note renderer scroll position
-- Renders BGA, note field, combo, judgment, life gauge in order
-- Transitions to result scene on song completion
+- Shows judgment word rendered as SDL text or colored rectangle flash
+- No dependency on scene stack (Phase 1 runs GameplayScene directly)
 
-**Dependencies**: REQ-SCN-001, REQ-JDG-001, REQ-REN-007, REQ-AUD-002  
+**Dependencies**: REQ-ENG-001, REQ-INP-001, REQ-AUD-001, REQ-CHT-001, REQ-JDG-001, REQ-REN-007, REQ-REN-019  
 **Source**: Roadmap subsystem 7, Phase 1
+
+---
+
+## REQ-SCN-007b: Full Gameplay Scene Orchestration
+**Status**: [PLANNED Phase 2]  
+**Priority**: Must Have
+
+The engine must provide full gameplay orchestration including BGA playback, sprite-based note rendering, combo/judgment display, life gauge, and result scene transition.
+
+**Acceptance Criteria**:
+- Advances BGA tick counter synchronized to audio
+- Renders sprite-based notes using note skin
+- Displays sprite-based judgments and combo
+- Displays life gauge with HP drain
+- Transitions to result scene on song completion
+- Integrates with scene stack for pause/overlay support
+
+**Dependencies**: REQ-SCN-001, REQ-SCN-007a, REQ-REN-008, REQ-JDG-011  
+**Source**: Roadmap subsystem 7, Phase 2
 
 ---
 

@@ -1038,7 +1038,7 @@ Implement the AudioSystem interface using SDL3 audio APIs, wrapping SDL_AudioStr
 
 **References**: REQ-AUD-010
 
-**Status**: FUTURE
+**Status**: PLANNED (Phase 3)
 
 ### 📝 Description
 Add CMake configuration to select between SDL3, SoLoud, or miniaudio backends at compile time, with SDL3 as the default.
@@ -1066,6 +1066,7 @@ Add CMake configuration to select between SDL3, SoLoud, or miniaudio backends at
 ### 📊 Technical Notes & Constraints
 *   **Estimation Pointer**: 2 story points
 *   **Dependencies**: US-AUD-092
+*   **Phase**: 3 (backend swapping becomes relevant once audio system is proven in gameplay)
 *   **Implementation Note**: CMake preprocessor defines. Backend factory function returns concrete implementation.
 
 ---

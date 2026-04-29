@@ -1054,9 +1054,9 @@ During directory scan, if a song folder has no valid chart file or no audio file
     *   **Then** the folder is skipped during scan (not recognized as a song folder)
 
 ### Technical Notes & Constraints
-*   **Status**: PLANNED Phase 1
+*   **Status**: PLANNED Phase 3
 *   **Estimation Pointer**: 1
-*   **Dependencies**: US-AST-012
+*   **Dependencies**: US-AST-012 (song database scanning)
 
 ---
 
@@ -1088,9 +1088,9 @@ If a song has no banner file, the UI displays a default placeholder image with t
     *   **Then** the engine logs "song 'Pumptris' has no banner, using placeholder" at INFO level only on first view
 
 ### Technical Notes & Constraints
-*   **Status**: PLANNED Phase 1
+*   **Status**: PLANNED Phase 3
 *   **Estimation Pointer**: 1
-*   **Dependencies**: US-AST-015
+*   **Dependencies**: US-AST-015 (banner discovery), US-SCN-006 (song select)
 
 ---
 
@@ -1102,29 +1102,25 @@ If a song has no banner file, the UI displays a default placeholder image with t
 > **So that** I play charts without requiring video files
 
 ### Description
-If a song's bga_path is null, gameplay renders the note field on a black or solid color background without error.
+If a song has no BGA file, Phase 1 gameplay renders the note field on a black background without error. Phase 2+ can load optional fallback backgrounds.
 
 ### Acceptance Criteria
 
-*   **Scenario 1: Gameplay without BGA**
-    *   **Given** database entry for "Pumptris" has bga_path=null
-    *   **When** the player selects the song and starts gameplay
-    *   **Then** the note field renders on a black background and the game plays normally
+*   **Scenario 1: Gameplay without BGA (Phase 1)**
+    *   **Given** a chart with no associated BGA file
+    *   **When** the player starts gameplay
+    *   **Then** the note field renders on a black background and gameplay proceeds normally
 
 *   **Scenario 2: No error logged during gameplay**
     *   **Given** a song without BGA is playing
     *   **When** 60 seconds of gameplay complete
     *   **Then** no BGA-related errors are logged
 
-*   **Scenario 3: Optional static background image**
-    *   **Given** settings.json contains `"fallback_background": "data/system/bg_default.png"`
-    *   **When** a song without BGA is played
-    *   **Then** the static image is displayed instead of black
-
 ### Technical Notes & Constraints
 *   **Status**: PLANNED Phase 1
 *   **Estimation Pointer**: 1
-*   **Dependencies**: US-AST-016
+*   **Dependencies**: None (Phase 1 just checks for null and renders black)
+*   **Phase 2 Extension**: US-REN-027 will handle optional fallback backgrounds
 
 ---
 

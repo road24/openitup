@@ -358,9 +358,9 @@ Define a default keymap matching the common QWEASDZXC layout for single-player m
 > **I want** my custom key mappings to persist between sessions
 > **So that** I don't need to reconfigure controls every time I launch the game
 
-**References**: REQ-INP-003, Roadmap Phase 1
+**References**: REQ-INP-003, Roadmap Phase 3
 
-**Status**: PLANNED (Phase 1)
+**Status**: PLANNED (Phase 3)
 
 ### 📝 Description
 Save and load keymap configuration to the settings.json file. The keymap is serialized as a JSON object mapping SDL scancode names to PadInput enum names.
@@ -389,6 +389,7 @@ Save and load keymap configuration to the settings.json file. The keymap is seri
 ### 📊 Technical Notes & Constraints
 *   **Estimation Pointer**: 3 story points
 *   **Dependencies**: US-INP-022, REQ-DAT-002 (settings file)
+*   **Phase**: 3 (Phase 1 uses hardcoded keymap only)
 *   **Implementation Note**: JSON format: `{"keyboard_map": {"SDL_SCANCODE_Q": "P1_DOWN_LEFT"}}`
 
 ---

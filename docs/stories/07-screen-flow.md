@@ -6,7 +6,7 @@ User stories for the screen system (subsystem 7) implementing the scene stack, l
 
 ## Story ID: US-SCN-001 - Scene Stack Core Infrastructure
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 2)
 **Estimate**: 5 points
 
 **Story Card:**
@@ -58,7 +58,7 @@ Implement the foundational `SceneStack` class that manages a vector of scene poi
 
 ## Story ID: US-SCN-002 - Scene Lifecycle Interface
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 2)
 **Estimate**: 3 points
 
 **Story Card:**
@@ -110,7 +110,7 @@ Define the `Scene` abstract base class with pure virtual methods: `on_enter()`, 
 
 ## Story ID: US-SCN-003 - Boot Scene with Logo Display
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 2)
 **Estimate**: 3 points
 
 **Story Card:**
@@ -157,7 +157,7 @@ Implement `BootScene` that displays a static or animated logo (either the openit
 
 ## Story ID: US-SCN-004 - Title Scene with Attract Mode Loop
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 2)
 **Estimate**: 3 points
 
 **Story Card:**
@@ -204,7 +204,7 @@ Implement `TitleScene` that loops a BGA animation continuously and listens for c
 
 ## Story ID: US-SCN-005 - Mode Select Scene
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 2)
 **Estimate**: 5 points
 
 **Story Card:**
@@ -251,7 +251,7 @@ Implement `ModeSelectScene` with a visual layout displaying all four play modes.
 
 ## Story ID: US-SCN-006 - Song Select Scene with Music Wheel
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 3)
 **Estimate**: 8 points
 
 **Story Card:**
@@ -316,76 +316,110 @@ Implement `SongSelectScene` that displays a vertical scrolling music wheel listi
 
 ---
 
-## Story ID: US-SCN-007 - Gameplay Scene Orchestration
+## Story ID: US-SCN-007a - Minimal Gameplay Scene
 
-**Status**: PLANNED  
-**Estimate**: 8 points
+**Status**: PLANNED (Phase 1)
+**Estimate**: 5 points
 
 **Story Card:**
-> **As a** Developer
-> **I want** a GameplayScene that coordinates judge, note renderer, audio, BGA, and UI overlays
-> **So that** all gameplay subsystems run in sync and produce the core rhythm game experience
+> **As a** Player
+> **I want** a gameplay screen that loads a chart, plays audio, renders placeholder notes, accepts keyboard input, runs the judge, and shows text-based timing feedback
+> **So that** I can play a song and see how I'm doing
 
 ### 📝 Description
-Implement `GameplayScene` that owns or references the judge, note renderer, BGA animation, audio player, and UI elements (combo, judgment, life gauge). Each frame, it queries audio position, advances the BGA tick counter, updates the judge with input, updates note scroll, and renders all layers in correct order. Transitions to `ResultScene` when the song ends or the player fails.
+Implement a minimal `GameplayScene` for Phase 1 that the engine runs directly (no scene stack). Loads a chart from a CLI-provided path, plays audio synchronized to the judge, renders placeholder rectangle notes, accepts keyboard input, and displays judgment text on screen. This is the Phase 1 first playable build.
 
 ### ✅ Acceptance Criteria
 
-*   **Scenario 1: Audio position drives gameplay timing**
-    *   **Given** the audio is playing at position 5.250 seconds
-    *   **When** `update()` is called
-    *   **Then** the judge receives song time 5.250 and the BGA renders at the corresponding tick (60 × 5.250 = tick 315)
+*   **Scenario 1: Chart loads from CLI path**
+    *   **Given** the engine is launched with `--chart /path/to/song.ksf`
+    *   **When** the gameplay scene initializes
+    *   **Then** the chart loads successfully and audio path is resolved relative to the chart directory
 
-*   **Scenario 2: Judge processes input each frame**
-    *   **Given** the player pressed panel 2 this frame
-    *   **When** `update()` is called with the input snapshot
-    *   **Then** `judge.update(input_snapshot, audio_position)` is called and judgment events are emitted
+*   **Scenario 2: Audio plays synchronized to judge**
+    *   **Given** the chart is loaded and audio is playing
+    *   **When** the judge processes notes each tick
+    *   **Then** audio position is queried and used for timing calculations
 
-*   **Scenario 3: Note renderer scrolls based on position**
-    *   **Given** the audio is at beat 16.0
-    *   **When** `render()` is called
-    *   **Then** notes at beats 16–24 are visible on screen with correct vertical positions based on scroll speed
+*   **Scenario 3: Placeholder notes scroll on screen**
+    *   **Given** notes are defined in the chart
+    *   **When** the scene renders
+    *   **Then** colored rectangles appear at positions calculated from beat-to-screen conversion
 
-*   **Scenario 4: BGA renders behind note field**
-    *   **Given** the song has a BGA animation
-    *   **When** `render()` is called
-    *   **Then** the BGA is rendered first (back layer), then the note field composites on top
+*   **Scenario 4: Keyboard input produces judgments**
+    *   **Given** a note is within the judgment window
+    *   **When** the player presses the corresponding key
+    *   **Then** a judgment is issued and timing error is calculated
 
-*   **Scenario 5: UI overlays render on top**
-    *   **Given** the player has a combo of 42 and the last judgment was "Perfect"
-    *   **When** `render()` is called
-    *   **Then** the combo text "42" and judgment text "Perfect" are rendered above the note field
+*   **Scenario 5: Judgment text visible on screen**
+    *   **Given** a judgment has been issued
+    *   **When** the scene renders
+    *   **Then** the most recent judgment ("Perfect", "Great", etc.) appears as colored text or rectangle on screen
 
-*   **Scenario 6: Song completion transitions to result**
-    *   **Given** the audio position has reached the song's end time
-    *   **When** `update()` is called
-    *   **Then** the scene stack replaces GameplayScene with ResultScene, passing the final GameplayState
-
-*   **Scenario 7: Life gauge failure ends gameplay**
-    *   **Given** the life gauge has reached 0
-    *   **When** `update()` is called
-    *   **Then** the audio stops, a "FAILED" message displays for 2 seconds, then transitions to ResultScene with a failed grade
-
-*   **Scenario 8: Scene initializes all subsystems on entry**
-    *   **Given** GameplayScene is about to be entered with a selected chart
-    *   **When** `on_enter()` is called
-    *   **Then** the chart is loaded, audio file is opened, BGA is loaded, judge is initialized, and note renderer is prepared
-
-*   **Scenario 9: Scene cleans up on exit**
-    *   **Given** GameplayScene is active
-    *   **When** `on_exit()` is called
-    *   **Then** audio stops, textures are released, and all gameplay objects are destroyed
+*   **Scenario 6: Song completes without transitions**
+    *   **Given** the audio has reached the end of the song
+    *   **When** the scene updates
+    *   **Then** the scene remains active (no scene stack transitions in Phase 1)
 
 ### 📊 Technical Notes & Constraints
-*   **Estimation Pointer**: Large — integrates all major gameplay systems, requires careful orchestration timing
-*   **Dependencies**: US-SCN-001 (scene stack), US-JDG-001 (judge), US-REN-007 (note renderer), US-AUD-002 (position query), US-REN-004 (BGA), US-CHT-001 (chart loading)
-*   **Implementation Notes**: Render order is: BGA → note field → combo/judgment/life gauge. Use audio position as the authoritative clock. Fixed-step update at 60 Hz with interpolation for rendering.
+*   **Estimation Pointer**: 5 points
+*   **Dependencies**: US-ENG-011 (engine runs this scene directly), US-INP-021 (keyboard input), US-AUD-092 (audio playback + position), US-CHT-005 (KSF parser), US-JDG-001 (judge), US-REN-020 (placeholder note renderer)
+*   **Phase**: 1
+*   **Implementation Notes**: No scene stack in Phase 1. Engine::run_gameplay_scene() constructs this directly. Render order: clear → notes → judgment text. Use audio position as authoritative clock.
+
+---
+
+## Story ID: US-SCN-007b - Full Gameplay Scene Orchestration
+
+**Status**: PLANNED (Phase 2)
+**Estimate**: 8 points
+
+**Story Card:**
+> **As a** Player
+> **I want** full gameplay visuals with BGA behind the note field, sprite-based notes, combo/judgment sprites, and transitions to result
+> **So that** gameplay has visual polish and complete flow
+
+### 📝 Description
+Upgrade the minimal gameplay scene to orchestrate BGA behind the note field, sprite-based notes (replacing placeholders), sprite-based combo/judgment display, and transition to `ResultScene` when the song ends or player fails. This version uses the scene stack.
+
+### ✅ Acceptance Criteria
+
+*   **Scenario 1: BGA renders behind note field**
+    *   **Given** the song has a BGA file
+    *   **When** gameplay renders
+    *   **Then** BGA is drawn first (background layer), then notes composite on top
+
+*   **Scenario 2: Sprite-based notes replace placeholders**
+    *   **Given** a note skin is loaded
+    *   **When** notes are rendered
+    *   **Then** sprite-based arrows appear instead of colored rectangles
+
+*   **Scenario 3: Combo displayed as sprite numbers**
+    *   **Given** the player has a combo of 42
+    *   **When** the scene renders
+    *   **Then** combo "42" appears using sprite-based digit graphics
+
+*   **Scenario 4: Scene transitions to result on completion**
+    *   **Given** the song has finished playing
+    *   **When** the scene updates
+    *   **Then** the scene stack replaces GameplayScene with ResultScene
+
+*   **Scenario 5: Scene transitions to result on failure**
+    *   **Given** the life gauge has reached 0
+    *   **When** the scene updates
+    *   **Then** audio stops, "FAILED" displays for 2 seconds, then transitions to ResultScene
+
+### 📊 Technical Notes & Constraints
+*   **Estimation Pointer**: 8 points
+*   **Dependencies**: US-SCN-001 (scene stack), US-SCN-007a (minimal gameplay scene), US-REN-021 (sprite notes), US-REN-024 (combo display), US-REN-027 (BGA during gameplay)
+*   **Phase**: 2
+*   **Implementation Notes**: Render order: BGA → note field → combo/judgment/life gauge. Scene stack handles transitions.
 
 ---
 
 ## Story ID: US-SCN-008 - Result Scene with Grade and Breakdown
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 3)
 **Estimate**: 5 points
 
 **Story Card:**
@@ -442,7 +476,7 @@ Implement `ResultScene` that receives the final `GameplayState` from `GameplaySc
 
 ## Story ID: US-SCN-009 - Name Entry Scene for High Scores
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 5)
 **Estimate**: 5 points
 
 **Story Card:**
@@ -504,7 +538,7 @@ Implement `NameEntryScene` that appears when the player achieves a new high scor
 
 ## Story ID: US-SCN-010 - Pause Overlay Scene
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 5)
 **Estimate**: 5 points
 
 **Story Card:**
@@ -561,7 +595,7 @@ Implement `PauseOverlayScene` that is pushed on top of `GameplayScene` when the 
 
 ## Story ID: US-SCN-011 - Scene Transitions with BGA Animations
 
-**Status**: PLANNED  
+**Status**: PLANNED (Phase 5)
 **Estimate**: 5 points
 
 **Story Card:**

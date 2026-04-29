@@ -276,7 +276,7 @@ The renderer must show hit effects when notes are successfully judged (particle 
 ---
 
 ## REQ-REN-017: High Refresh Rate Rendering
-**Status**: [PLANNED Phase 1]  
+**Status**: [PLANNED Phase 2]  
 **Priority**: Should Have
 
 The renderer must support high refresh rate displays (120Hz, 144Hz) with smooth interpolation between logic ticks.
@@ -286,6 +286,8 @@ The renderer must support high refresh rate displays (120Hz, 144Hz) with smooth 
 - Note positions interpolated between 60Hz logic ticks
 - No stuttering on high refresh rate displays
 - Interpolation does not introduce input lag
+- Phase 1 only needs rendering decoupled from logic tick (covered by REQ-ENG-001)
+- Interpolation requires sprite state to be meaningful (Phase 2+)
 
 **Dependencies**: REQ-ENG-001, REQ-REN-002  
 **Source**: Roadmap architecture decisions
@@ -306,3 +308,21 @@ The note renderer must maintain 60 FPS with 100+ notes visible on screen simulta
 
 **Dependencies**: REQ-REN-009  
 **Source**: Roadmap performance targets (implied)
+
+---
+
+## REQ-REN-019: Minimal Timing Feedback Display
+**Status**: [PLANNED Phase 1]  
+**Priority**: Must Have
+
+During gameplay, show the most recent judgment result on screen using minimal text or colored rectangles.
+
+**Acceptance Criteria**:
+- Displays the most recent judgment result ("PERFECT", "GREAT", "GOOD", "BAD", "MISS")
+- Phase 1 implementation: render judgment text as colored rectangles or SDL debug text
+- Fixed screen position (e.g., center or near receptor line)
+- Visible for at least 0.5 seconds after judgment issued
+- Sprite-based judgment display is Phase 2 (REQ-REN-008)
+
+**Dependencies**: REQ-JDG-002  
+**Source**: Roadmap subsystem 6, Phase 1 scope

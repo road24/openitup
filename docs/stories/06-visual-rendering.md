@@ -1375,7 +1375,7 @@ M-mod multiplies the base scroll speed by a factor (typically 1x-8x). Visual scr
 > **I want** smooth rendering at my display's refresh rate
 > **So that** note scrolling is fluid without stuttering
 
-**Status**: PLANNED (Phase 1)
+**Status**: PLANNED (Phase 2)
 
 ### 📝 Description
 The renderer runs at the display's refresh rate (120Hz, 144Hz, etc.) while game logic runs at 60Hz. Note positions are interpolated between logic ticks for smooth visuals without introducing input lag.
@@ -1404,9 +1404,47 @@ The renderer runs at the display's refresh rate (120Hz, 144Hz, etc.) while game 
 
 ### 📊 Technical Notes & Constraints
 *   **Estimation Pointer**: 5
-*   **Dependencies**: REQ-ENG-001 (fixed-step loop), US-REN-002
+*   **Dependencies**: REQ-ENG-001 (fixed-step loop), US-REN-002, US-REN-021 (needs sprite state for meaningful interpolation)
+*   **Phase**: 2 (Phase 1 runs at vsync refresh only)
 *   **Related Stories**: US-REN-019 (note rendering)
 *   **NFR**: Frame time must be stable within ±1ms on target hardware
+
+---
+
+### Story ID: US-REN-036 - Minimal Timing Feedback Display
+
+**Story Card:**
+> **As a** Player
+> **I want** to see my most recent judgment on screen
+> **So that** I get immediate feedback on my timing accuracy
+
+**Status**: PLANNED (Phase 1)
+
+### 📝 Description
+Render the most recent judgment as colored text or a colored rectangle on screen during Phase 1 gameplay. This provides minimal timing feedback before sprite-based judgment display is implemented in Phase 2.
+
+### ✅ Acceptance Criteria (Confirmation)
+
+*   **Scenario 1: Judgment text rendered on screen**
+    *   **Given** the judge issues a "Perfect" judgment
+    *   **When** the gameplay scene renders
+    *   **Then** the text "Perfect" appears in green at the center-top of the screen
+
+*   **Scenario 2: Judgment updates each hit**
+    *   **Given** the player hits three notes in sequence (Perfect, Great, Miss)
+    *   **When** each judgment is issued
+    *   **Then** the displayed judgment updates to show the most recent result
+
+*   **Scenario 3: Distinct colors per judgment type**
+    *   **Given** judgments for Perfect, Great, Good, Bad, Miss
+    *   **When** each is displayed
+    *   **Then** each uses a distinct color (e.g., green, blue, yellow, orange, red)
+
+### 📊 Technical Notes & Constraints
+*   **Estimation Pointer**: 2
+*   **Dependencies**: US-JDG-002 (judgment types)
+*   **Phase**: 1
+*   **Implementation Note**: SDL_Renderer can draw colored rectangles or use simple text rendering. Replaced by US-REN-023 (sprite-based) in Phase 2.
 
 ---
 

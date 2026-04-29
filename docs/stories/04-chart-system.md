@@ -197,6 +197,11 @@ Implement a parser for the Kick It Up .ksf text format. KSF is the simplest PIU 
     *   **When** the parser reads the file
     *   **Then** an error is logged and the parser either throws an exception or sets a default title
 
+*   **Scenario 6: Audio filename extracted and resolved**
+    *   **Given** a .ksf file with `#AUDIOFILE:pumptris.ogg;` in the chart directory `/data/Pumptris/`
+    *   **When** the parser processes the file
+    *   **Then** the Chart metadata audio_path is set to `/data/Pumptris/pumptris.ogg` (resolved relative to chart directory)
+
 ### 📊 Technical Notes & Constraints
 *   **Estimation Pointer**: Medium (5 points)
 *   **Dependencies**: US-CHT-001, US-CHT-002, US-CHT-003, US-CHT-004

@@ -40,11 +40,14 @@ The audio system must provide `get_position_ms()` returning current playback pos
 
 The gameplay judge must read audio position, not wall-clock time, eliminating drift between what the player hears and what the game judges.
 
+**Note**: The authoritative requirement for judge-reads-audio-position is REQ-JDG-001. This requirement specifies the audio system's obligation to provide accurate position data.
+
 **Acceptance Criteria**:
 - Judge queries audio position each tick
 - No separate timing drift accumulates
 - Pausing audio pauses judge correctly
 - Seeking audio updates judge position correctly
+- Cumulative timing drift between reported position and actual playback must not exceed 1ms over a 5-minute song
 
 **Dependencies**: REQ-AUD-002, REQ-JDG-001  
 **Source**: Roadmap subsystem 3, architecture decisions
@@ -155,16 +158,17 @@ Initial audio implementation must use SDL3's audio API (SDL_AudioStream) for pus
 ---
 
 ## REQ-AUD-010: Audio Backend Swappable
-**Status**: [PLANNED Phase 1]  
+**Status**: [PLANNED Phase 3]  
 **Priority**: Should Have
 
-The audio backend must be swappable (SDL3, SoLoud, miniaudio) behind a common interface without changing calling code.
+The audio backend must be swappable (SDL3, SoLoud, miniaudio) behind a common interface without changing calling code. Phase 1 implements SDL3 backend only. The swappable interface is designed in Phase 1 but proving a second backend is deferred.
 
 **Acceptance Criteria**:
-- AudioSystem interface hides backend details
-- Backend selection at compile time or runtime
-- All backends pass same test suite
-- Backend switching does not break saved profiles
+- AudioSystem interface hides backend details (Phase 1)
+- SDL3 backend fully functional (Phase 1)
+- Backend selection at compile time or runtime (Phase 3)
+- All backends pass same test suite (Phase 3)
+- Backend switching does not break saved profiles (Phase 3)
 
 **Dependencies**: REQ-AUD-001  
 **Source**: Roadmap subsystem 3

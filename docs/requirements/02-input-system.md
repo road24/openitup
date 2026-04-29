@@ -43,10 +43,11 @@ The engine must support keyboard input via a `KeyboardDriver` mapping SDL key ev
 **Acceptance Criteria**:
 - All 10 panels plus menu actions mappable to keyboard keys
 - Default keymap provided for QWEASDZXC layout
-- Keymap persists in settings file
+- Phase 1 uses a hardcoded default keymap
+- Configurable keymap persistence deferred to Phase 3 when settings file exists
 - Simultaneous key presses registered correctly (10+ key rollover)
 
-**Dependencies**: REQ-INP-001, REQ-DAT-002  
+**Dependencies**: REQ-INP-001  
 **Source**: Roadmap subsystem 2, Phase 1
 
 ---

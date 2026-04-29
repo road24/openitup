@@ -81,6 +81,8 @@ The engine must parse Kick It Up .ksf chart files.
 - Extracts all metadata fields
 - Parses BPM and timing information
 - Converts note data to internal format
+- KSF parser extracts the audio filename from the chart metadata
+- Engine resolves audio filename relative to the song directory
 - Handles malformed files with error logging
 
 **Dependencies**: REQ-CHT-001  

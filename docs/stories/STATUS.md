@@ -1,6 +1,6 @@
 # Story Tracking Matrix
 
-Generated: 2026-04-26
+Generated: 2026-04-28
 
 ---
 
@@ -9,18 +9,18 @@ Generated: 2026-04-26
 | Phase | Stories | Total Points |
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
-| Phase 1 | 56 | 186 |
-| Phase 2 | 12 | 42 |
-| Phase 3 | 37 | 99 |
+| Phase 1 | 48 | 134 |
+| Phase 2 | 19 | 74 |
+| Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
-| Phase 5 | 49 | 139 |
+| Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
 | Phase 7 | 18 | 43 |
 | Phase 8 | 15 | 54 |
 | Phase 9 | 17 | 67 |
-| FUTURE (unphased) | 3 | 7 |
-| NFR | 25 | 5 (most validated via testing) |
-| **TOTAL** | **290** | **832+** |
+| FUTURE (unphased) | 2 | 5 |
+| NFR | 30 | 5 (most validated via testing) |
+| **TOTAL** | **298** | **841+** |
 
 ---
 
@@ -83,7 +83,6 @@ Generated: 2026-04-26
 | US-INP-013 | Verify no input events lost | PLANNED | 1 | 3 | US-INP-012 |
 | US-INP-021 | KeyboardDriver w/ configurable keymap | PLANNED | 1 | 5 | US-INP-003, US-INP-012 |
 | US-INP-022 | Default QWEASDZXC keymap | PLANNED | 1 | 1 | US-INP-021 |
-| US-INP-023 | Persist keymap to settings file | PLANNED | 1 | 3 | US-INP-022 |
 | US-INP-024 | Support 10+ key rollover | PLANNED | 1 | 2 | US-INP-021 |
 | US-AUD-001 | Load OGG Vorbis music files | PLANNED | 1 | 3 | None |
 | US-AUD-002 | Load MP3 music files | PLANNED | 1 | 3 | US-AUD-001 |
@@ -99,6 +98,7 @@ Generated: 2026-04-26
 | US-CHT-003 | Implement timing data model | PLANNED | 1 | 5 | US-CHT-001 |
 | US-CHT-004 | Implement note data model | PLANNED | 1 | 3 | US-CHT-001 |
 | US-CHT-005 | Parse KSF chart format | PLANNED | 1 | 5 | US-CHT-001, US-CHT-002, US-CHT-003, US-CHT-004 |
+| US-JDG-019 | Default hardcoded timing profile | PLANNED | 1 | 2 | US-JDG-001 |
 | US-JDG-001 | Deterministic pure logic judge | PLANNED | 1 | 4 | US-CHT-001, US-INP-001, US-AUD-001 |
 | US-JDG-002 | Five-tier judgment classification | PLANNED | 1 | 4 | US-JDG-001 |
 | US-JDG-003 | Automatic miss assignment | PLANNED | 1 | 2 | US-JDG-002 |
@@ -109,20 +109,12 @@ Generated: 2026-04-26
 | US-JDG-012 | No RNG in judge | PLANNED | 1 | 2 | US-JDG-001 |
 | US-REN-019 | Beat-space to screen-space conversion | PLANNED | 1 | 5 | None |
 | US-REN-020 | Placeholder rectangle note rendering | PLANNED | 1 | 2 | US-REN-019 |
-| US-REN-034 | High refresh rate rendering | PLANNED | 1 | 5 | US-REN-002 |
-| US-SCN-001 | Scene stack core infrastructure | PLANNED | 1 | 5 | US-ENG-001 |
-| US-SCN-002 | Scene lifecycle interface | PLANNED | 1 | 3 | US-SCN-001, US-INP-001 |
-| US-SCN-003 | Boot scene with logo display | PLANNED | 1 | 3 | US-SCN-001 |
-| US-SCN-004 | Title scene with attract mode loop | PLANNED | 1 | 3 | US-SCN-001 |
-| US-SCN-005 | Mode select scene | PLANNED | 1 | 5 | US-SCN-001 |
-| US-SCN-006 | Song select scene with music wheel | PLANNED | 1 | 8 | US-SCN-001 |
-| US-SCN-007 | Gameplay scene orchestration | PLANNED | 1 | 8 | US-SCN-001, US-JDG-001 |
-| US-SCN-008 | Result scene w/ grade & breakdown | PLANNED | 1 | 5 | US-SCN-001 |
-| US-SCN-009 | Name entry scene for high scores | PLANNED | 1 | 5 | US-SCN-001 |
-| US-SCN-010 | Pause overlay scene | PLANNED | 1 | 5 | US-SCN-001, US-AUD-001 |
-| US-SCN-011 | Scene transitions w/ BGA animations | PLANNED | 1 | 5 | US-SCN-001 |
+| US-REN-036 | Minimal timing feedback display | PLANNED | 1 | 2 | US-JDG-002 |
+| US-SCN-007a | Minimal gameplay scene | PLANNED | 1 | 5 | US-ENG-011, US-INP-021, US-AUD-092, US-CHT-005, US-JDG-001, US-REN-020 |
 | US-AST-009 | Command-line data directory argument | PLANNED | 1 | 2 | None |
 | US-AST-010 | Env variable for data directory | PLANNED | 1 | 1 | US-AST-009 |
+| US-AST-032 | Missing BGA allows gameplay w/o bg | PLANNED | 1 | 1 | None |
+| US-AST-033 | All missing assets logged | PLANNED | 1 | 1 | US-AST-001 |
 
 ---
 
@@ -135,7 +127,14 @@ Generated: 2026-04-26
 | US-REN-023 | Judgment display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-024 | Combo display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-027 | BGA background during gameplay | PLANNED | 2 | 3 | US-REN-010 |
+| US-REN-034 | High refresh rate rendering | PLANNED | 2 | 5 | US-REN-002 |
 | US-REN-035 | Note field rendering performance | PLANNED | 2 | 8 | US-REN-021 |
+| US-SCN-001 | Scene stack core infrastructure | PLANNED | 2 | 5 | US-ENG-001 |
+| US-SCN-002 | Scene lifecycle interface | PLANNED | 2 | 3 | US-SCN-001, US-INP-001 |
+| US-SCN-003 | Boot scene with logo display | PLANNED | 2 | 3 | US-SCN-001 |
+| US-SCN-004 | Title scene with attract mode loop | PLANNED | 2 | 3 | US-SCN-001 |
+| US-SCN-005 | Mode select scene | PLANNED | 2 | 5 | US-SCN-001 |
+| US-SCN-007b | Full gameplay scene orchestration | PLANNED | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
 | US-AST-017 | Chart loaded on song selection | PLANNED | 2 | 2 | US-AST-013 |
 | US-AST-018 | Texture cache LRU eviction | PLANNED | 2 | 5 | US-AST-001 |
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 2 | 2 | US-AST-017 |
@@ -149,6 +148,7 @@ Generated: 2026-04-26
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
+| US-INP-023 | Persist keymap to settings file | PLANNED | 3 | 3 | US-INP-022 |
 | US-AUD-031 | Load short audio samples to memory | PLANNED | 3 | 3 | US-AUD-001, US-AUD-002 |
 | US-AUD-032 | Play sound effects with low latency | PLANNED | 3 | 5 | US-AUD-031 |
 | US-AUD-033 | Independent SFX volume control | PLANNED | 3 | 2 | US-AUD-032 |
@@ -156,6 +156,7 @@ Generated: 2026-04-26
 | US-AUD-042 | Support per-column key sounds | PLANNED | 3 | 2 | US-AUD-041 |
 | US-AUD-051 | Play judgment sounds based on timing | PLANNED | 3 | 2 | US-AUD-032 |
 | US-AUD-052 | Configurable judgment sound volume | PLANNED | 3 | 2 | US-AUD-051 |
+| US-AUD-093 | Select audio backend at compile time | PLANNED | 3 | 2 | US-AUD-092 |
 | US-CHT-018 | Store preview audio information | PLANNED | 3 | 2 | US-CHT-002 |
 | US-JDG-007 | Hold note head judgment | PLANNED | 3 | 4 | US-JDG-002 |
 | US-JDG-008 | Hold body continuous scoring | PLANNED | 3 | 4 | US-JDG-007 |
@@ -165,6 +166,8 @@ Generated: 2026-04-26
 | US-REN-026 | Hold note cap rendering | PLANNED | 3 | 2 | US-REN-025 |
 | US-REN-028 | Hit effects and receptor flash | PLANNED | 3 | 3 | US-REN-021 |
 | US-REN-029 | Life gauge visual rendering | PLANNED | 3 | 3 | None |
+| US-SCN-006 | Song select scene with music wheel | PLANNED | 3 | 8 | US-SCN-001 |
+| US-SCN-008 | Result scene w/ grade & breakdown | PLANNED | 3 | 5 | US-SCN-001 |
 | US-DAT-001 | Platform-appropriate user data dir | PLANNED | 3 | 2 | None |
 | US-DAT-002 | Automatic user data dir creation | PLANNED | 3 | 2 | US-DAT-001 |
 | US-DAT-003 | Settings JSON file structure | PLANNED | 3 | 3 | US-DAT-002 |
@@ -182,12 +185,8 @@ Generated: 2026-04-26
 | US-AST-015 | Banner and audio file discovery | PLANNED | 3 | 2 | US-AST-012 |
 | US-AST-016 | BGA file discovery per song | PLANNED | 3 | 2 | US-AST-012 |
 | US-AST-023 | Judgment and menu sound effects | PLANNED | 3 | 2 | US-AST-021 |
-| US-AST-030 | Missing chart/audio excludes song | PLANNED | 1 | 1 | US-AST-012 |
-| US-AST-031 | Missing banner shows placeholder | PLANNED | 1 | 1 | US-AST-015 |
-| US-AST-032 | Missing BGA allows gameplay w/o bg | PLANNED | 1 | 1 | US-AST-016 |
-| US-AST-033 | All missing assets logged | PLANNED | 1 | 1 | US-AST-001 |
-
-**Note**: US-AST-030 through US-AST-033 are listed as Phase 1 in their source file but depend on Phase 3 stories. Included here under Phase 3 group for dependency clarity; their source file says Phase 1.
+| US-AST-030 | Missing chart/audio excludes song | PLANNED | 3 | 1 | US-AST-012 |
+| US-AST-031 | Missing banner shows placeholder | PLANNED | 3 | 1 | US-AST-015 |
 
 ---
 
@@ -233,6 +232,9 @@ Generated: 2026-04-26
 | US-REN-031 | Double mode note field layout | PLANNED | 5 | 3 | US-REN-030 |
 | US-REN-032 | C-Mod speed modifier | PLANNED | 5 | 5 | US-REN-019 |
 | US-REN-033 | M-Mod speed modifier | PLANNED | 5 | 3 | US-REN-019 |
+| US-SCN-009 | Name entry scene for high scores | PLANNED | 5 | 5 | US-SCN-001 |
+| US-SCN-010 | Pause overlay scene | PLANNED | 5 | 5 | US-SCN-001, US-AUD-001 |
+| US-SCN-011 | Scene transitions w/ BGA animations | PLANNED | 5 | 5 | US-SCN-001 |
 | US-SCN-012 | Settings scene for configuration | PLANNED | 5 | 8 | US-SCN-001 |
 | US-SCN-013 | Profile selection scene | PLANNED | 5 | 5 | US-SCN-001 |
 | US-LUA-001 | Integrate sol2 Lua binding library | PLANNED | 5 | 2 | None |
@@ -284,8 +286,6 @@ Generated: 2026-04-26
 | US-INP-073 | Calibration feedback screen | PLANNED | 6 | 5 | US-INP-072 |
 | US-INP-081 | Merge input from multiple drivers | PLANNED | 6 | 3 | US-INP-003, US-INP-021, US-INP-031 |
 | US-INP-082 | Configure driver priority | PLANNED | 6 | 2 | US-INP-081 |
-
-**Note**: The input system source file groups some Phase 6 stories differently. Listed here per the explicit phase markers in the file.
 
 ---
 
@@ -364,7 +364,6 @@ Generated: 2026-04-26
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-AUD-093 | Select audio backend at compile time | FUTURE | N/A | 2 | US-AUD-092 |
 | US-DAT-034 | Export profile to single file | FUTURE | 7 | 2 | US-DAT-008, US-DAT-023 |
 | US-DAT-035 | Import profile from single file | FUTURE | 7 | 3 | US-DAT-034 |
 
@@ -432,11 +431,11 @@ NFRs are tracked separately. Some have story points (spike/research tasks); most
 |------|-----------|---------|------|---------|--------|
 | 01-core-engine.md | Engine (ENG) | 14 | 6 | 8 | 0 |
 | 02-input-system.md | Input (INP) | 26 | 0 | 26 | 0 |
-| 03-audio-system.md | Audio (AUD) | 23 | 0 | 22 | 1 |
+| 03-audio-system.md | Audio (AUD) | 23 | 0 | 23 | 0 |
 | 04-chart-system.md | Chart (CHT) | 19 | 0 | 19 | 0 |
-| 05-gameplay-judge.md | Judge (JDG) | 22 | 0 | 22 | 0 |
-| 06-visual-rendering.md | Rendering (REN) | 35 | 18 | 17 | 0 |
-| 07-screen-flow.md | Scenes (SCN) | 13 | 0 | 13 | 0 |
+| 05-gameplay-judge.md | Judge (JDG) | 23 | 0 | 23 | 0 |
+| 06-visual-rendering.md | Rendering (REN) | 36 | 18 | 18 | 0 |
+| 07-screen-flow.md | Scenes (SCN) | 14 | 0 | 14 | 0 |
 | 08-scripting-system.md | Lua (LUA) | 22 | 0 | 22 | 0 |
 | 09-data-management.md | Data (DAT) | 37 | 0 | 33 | 2 |
 | 10-network-system.md | Network (NET) | 27 | 0 | 0 | 27 |

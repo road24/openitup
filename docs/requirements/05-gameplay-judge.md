@@ -236,3 +236,24 @@ GameplayState must calculate current grade (SSS, SS, S, A, B, C, D, F) based on 
 
 **Dependencies**: REQ-JDG-011, REQ-JDG-005  
 **Source**: Roadmap subsystem 5, Phase 3
+
+---
+
+## REQ-JDG-015: Default Timing Profile
+**Status**: [PLANNED Phase 1]  
+**Priority**: Must Have
+
+Phase 1 uses a single hardcoded timing window set for tap-note judging.
+
+**Acceptance Criteria**:
+- Perfect window: ±16ms
+- Great window: ±33ms
+- Good window: ±66ms
+- Bad window: ±100ms
+- Miss: >100ms
+- These values are constants in code for Phase 1
+- Data-driven JSON profiles are Phase 4 (REQ-JDG-003)
+- Timing windows based on standard PIU timing
+
+**Dependencies**: None  
+**Source**: Roadmap subsystem 5, Phase 1 scope
