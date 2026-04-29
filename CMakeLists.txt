@@ -85,7 +85,10 @@ add_library(openitup_engine STATIC
     src/openitup/sprite/sprite_loader.cpp
 )
 
-target_include_directories(openitup_engine PUBLIC src)
+target_include_directories(openitup_engine PUBLIC
+    src
+    third_party
+)
 target_link_libraries(openitup_engine PUBLIC
     SDL3::SDL3-static
     SDL3_image::SDL3_image-static
@@ -129,6 +132,7 @@ add_executable(openitup_tests
     test/test_clock.cpp
     test/test_engine.cpp
     test/test_input.cpp
+    test/test_vendor_headers.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
