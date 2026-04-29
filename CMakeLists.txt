@@ -85,6 +85,7 @@ add_library(openitup_engine STATIC
     src/openitup/sprite/sprite_loader.cpp
     src/openitup/chart/note_type.cpp
     src/openitup/chart/play_mode.cpp
+    src/openitup/chart/note_data.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
