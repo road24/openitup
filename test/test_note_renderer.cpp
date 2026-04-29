@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <openitup/render/note_renderer.h>
+#include <openitup/render/judgment_display.h>
 #include <openitup/chart/note_data.h>
 #include <openitup/chart/timing_data.h>
 #include <openitup/chart/note_type.h>
@@ -145,4 +146,74 @@ TEST(NoteRenderer, ColumnColorsDistinct) {
             EXPECT_FALSE(same) << "Colors at indices " << i << " and " << j << " are the same";
         }
     }
+}
+
+// --- JudgmentDisplay Tests ---
+
+TEST(JudgmentDisplay, InitiallyInvisible) {
+    // Default-constructed display should be invisible
+    JudgmentDisplay display;
+    EXPECT_FALSE(display.is_visible());
+}
+
+TEST(JudgmentDisplay, OnJudgmentMakesVisible) {
+    // After on_judgment, display should be visible
+    JudgmentDisplay display;
+    display.on_judgment(JudgmentTier::PERFECT);
+    EXPECT_TRUE(display.is_visible());
+}
+
+TEST(JudgmentDisplay, CurrentTierUpdates) {
+    // on_judgment should update the current tier
+    JudgmentDisplay display;
+    display.on_judgment(JudgmentTier::GREAT);
+    EXPECT_EQ(display.current_tier(), JudgmentTier::GREAT);
+}
+
+TEST(JudgmentDisplay, FadesAfterDuration) {
+    // After DISPLAY_DURATION (0.5s), display should be invisible
+    // Simulate 31 frames at 60 fps (1/60 = ~0.01667s per frame)
+    // 31 frames = ~0.517s > 0.5s
+    JudgmentDisplay display;
+    display.on_judgment(JudgmentTier::PERFECT);
+
+    constexpr double dt = 1.0 / 60.0;
+    for (int i = 0; i < 31; i++) {
+        display.render(nullptr, dt);
+    }
+
+    EXPECT_FALSE(display.is_visible());
+}
+
+TEST(JudgmentDisplay, StaysVisibleBeforeDuration) {
+    // Before DISPLAY_DURATION, display should still be visible
+    // Simulate 29 frames at 60 fps = ~0.483s < 0.5s
+    JudgmentDisplay display;
+    display.on_judgment(JudgmentTier::PERFECT);
+
+    constexpr double dt = 1.0 / 60.0;
+    for (int i = 0; i < 29; i++) {
+        display.render(nullptr, dt);
+    }
+
+    EXPECT_TRUE(display.is_visible());
+}
+
+TEST(JudgmentDisplay, NewJudgmentResetsTimer) {
+    // New judgment should reset the timer
+    JudgmentDisplay display;
+    display.on_judgment(JudgmentTier::PERFECT);
+
+    // Advance time by 0.3s
+    constexpr double dt = 1.0 / 60.0;
+    for (int i = 0; i < 18; i++) {  // 18 * (1/60) = 0.3s
+        display.render(nullptr, dt);
+    }
+
+    // Issue new judgment
+    display.on_judgment(JudgmentTier::MISS);
+
+    // Should be visible again
+    EXPECT_TRUE(display.is_visible());
+    EXPECT_EQ(display.current_tier(), JudgmentTier::MISS);
 }

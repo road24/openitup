@@ -96,6 +96,7 @@ add_library(openitup_engine STATIC
     src/openitup/judge/judge.cpp
     src/openitup/judge/gameplay_state.cpp
     src/openitup/render/note_renderer.cpp
+    src/openitup/render/judgment_display.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
