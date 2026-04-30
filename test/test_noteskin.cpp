@@ -1,12 +1,15 @@
 #include <gtest/gtest.h>
 #include <filesystem>
 #include <fstream>
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 #include <openitup/render/noteskin.h>
 #include <openitup/render/noteskin_loader.h>
 #include <openitup/render/noteskin_anim.h>
 #include <openitup/render/note_renderer.h>
 #include <openitup/chart/note_data.h>
 #include <openitup/chart/timing_data.h>
+#include <openitup/gfx/texture_cache.h>
 
 using namespace openitup;
 namespace fs = std::filesystem;
@@ -387,4 +390,47 @@ TEST(NoteSkinIntegration, FullPipelineNoSDL) {
     EXPECT_FLOAT_EQ(y1, config.receptor_y);  // At receptor line
     EXPECT_GT(y2, y1);  // Below receptor line
     EXPECT_LT(y3, y1);  // Above receptor line
+}
+
+TEST(NoteSkinIntegration, ReceptorSpriteLoadsFromFixture) {
+    // This is an integration test that verifies receptor sprite loading
+    // from the test fixture created for US-REN-022.
+
+    // Create temporary skin directory with receptor sprite
+    fs::path temp_dir = fs::temp_directory_path() / "test_receptor_skin";
+    fs::create_directories(temp_dir);
+
+    // Copy receptor sprite fixture to temp dir
+    fs::path fixtures_dir = fs::path(__FILE__).parent_path() / "fixtures";
+    fs::copy_file(
+        fixtures_dir / "ARROW_RECEPTOR_SINGLE.sprj",
+        temp_dir / "ARROW_RECEPTOR_SINGLE.sprj",
+        fs::copy_options::overwrite_existing
+    );
+    fs::copy_file(
+        fixtures_dir / "receptor_single.png",
+        temp_dir / "receptor_single.png",
+        fs::copy_options::overwrite_existing
+    );
+
+    // Load noteskin with receptor sprite
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window* window = SDL_CreateWindow("test", 640, 480, SDL_WINDOW_HIDDEN);
+    ASSERT_NE(window, nullptr);
+    SDL_Renderer* sdl_renderer = SDL_CreateRenderer(window, nullptr);
+    ASSERT_NE(sdl_renderer, nullptr);
+
+    TextureCache cache(sdl_renderer, [](const fs::path& p) -> SDL_Surface* {
+        return IMG_Load(p.string().c_str());
+    });
+    auto skin = NoteSkinLoader::load(temp_dir, cache);
+
+    // Verify receptor sprite loaded
+    EXPECT_NE(skin->receptor(PlayMode::SINGLE), nullptr);
+
+    // Cleanup
+    SDL_DestroyRenderer(sdl_renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    fs::remove_all(temp_dir);
 }

@@ -143,15 +143,27 @@ void NoteRenderer::render_receptors(SDL_Renderer* renderer,
         xform.translate_x = x;
         xform.translate_y = y;
 
-        // Layer 1: Receptor background (deferred — use placeholder rectangle for now)
-        // Phase 1 fallback: dim gray outlined rectangle
-        SDL_SetRenderDrawColor(renderer, 80, 80, 80, 180);
-        SDL_FRect rect;
-        rect.x = config_.column_x[col] - config_.note_width / 2.0f;
-        rect.y = config_.receptor_y - config_.note_height / 2.0f;
-        rect.w = config_.note_width;
-        rect.h = config_.note_height;
-        SDL_RenderRect(renderer, &rect);
+        // Layer 1: Receptor background
+        bool receptor_drawn = false;
+        if (skin_ && cache_) {
+            const Sprite* receptor_sprite = skin_->receptor(PlayMode::SINGLE);
+            if (receptor_sprite) {
+                float t = noteskin_loop_t(global_time_ms);
+                receptor_sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+                receptor_drawn = true;
+            }
+        }
+
+        // Fallback: dim gray outlined rectangle
+        if (!receptor_drawn) {
+            SDL_SetRenderDrawColor(renderer, 80, 80, 80, 180);
+            SDL_FRect rect;
+            rect.x = config_.column_x[col] - config_.note_width / 2.0f;
+            rect.y = config_.receptor_y - config_.note_height / 2.0f;
+            rect.w = config_.note_width;
+            rect.h = config_.note_height;
+            SDL_RenderRect(renderer, &rect);
+        }
 
         // Layer 2: Press overlay (loops while pressed)
         if (pressed_columns && pressed_columns[col] && skin_ && cache_) {
