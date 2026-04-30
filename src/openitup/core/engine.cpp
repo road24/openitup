@@ -26,6 +26,20 @@ Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::un
     init_renderer(config_);
     init_audio();
 
+    // Initialize system assets
+    // TODO: Pass binary path for heuristic search
+    system_asset_mgr_ = core::SystemAssetManager::create({}, {});
+    if (!system_asset_mgr_) {
+        spdlog::warn("system asset manager not initialized (system assets not found)");
+        // For now, continue without system assets (they're not strictly required yet)
+        // In Phase 2+, this may become a fatal error once UI sprites are required
+    } else {
+        // Note: SystemAssetManager needs a TextureCache to load sprites/animations.
+        // Since Engine doesn't own a TextureCache yet, sprites won't load.
+        // This will be resolved when TextureCache is integrated into Engine (future work).
+        spdlog::info("system asset manager initialized (asset loading deferred until TextureCache integration)");
+    }
+
     // Initialize scene stack
     scene_stack_ = std::make_unique<SceneStack>();
     spdlog::debug("scene stack initialized");
