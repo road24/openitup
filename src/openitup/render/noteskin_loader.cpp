@@ -82,6 +82,13 @@ std::unique_ptr<NoteSkin> NoteSkinLoader::load(
     skin->receptor_[static_cast<size_t>(PlayMode::HALF)] =
         try_load_sprj(skin_dir, "ARROW_RECEPTOR_HALF.sprj", cache);
 
+    // Load judgment tier sprites
+    skin->judgment_perfect_ = try_load_sprj(skin_dir, "judge-perfect.sprj", cache);
+    skin->judgment_great_ = try_load_sprj(skin_dir, "judge-great.sprj", cache);
+    skin->judgment_good_ = try_load_sprj(skin_dir, "judge-good.sprj", cache);
+    skin->judgment_bad_ = try_load_sprj(skin_dir, "judge-bad.sprj", cache);
+    skin->judgment_miss_ = try_load_sprj(skin_dir, "judge-miss.sprj", cache);
+
     spdlog::info("NoteSkin '{}' loaded: {}/{} sprites",
                  skin->name, skin->loaded_count(), NoteSkin::EXPECTED_COUNT);
 

@@ -1,0 +1,96 @@
+{
+  "source_format": "sm2noteskin",
+  "mode": "ANI",
+  "pictures": [
+    {
+      "texture": "ARROW00_LONG_HEAD_f00.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "texture": "ARROW00_LONG_HEAD_f01.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "texture": "ARROW00_LONG_HEAD_f02.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "texture": "ARROW00_LONG_HEAD_f03.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "texture": "ARROW00_LONG_HEAD_f04.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "texture": "ARROW00_LONG_HEAD_f05.png",
+      "rect": [
+        0,
+        0,
+        64,
+        64
+      ],
+      "uv": [
+        0.0,
+        0.0,
+        1.0,
+        1.0
+      ]
+    }
+  ]
+}

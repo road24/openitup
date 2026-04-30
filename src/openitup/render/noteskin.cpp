@@ -48,6 +48,26 @@ const Sprite* NoteSkin::receptor(PlayMode mode) const {
     return receptor_[index].get();
 }
 
+const Sprite* NoteSkin::judgment_perfect() const {
+    return judgment_perfect_.get();
+}
+
+const Sprite* NoteSkin::judgment_great() const {
+    return judgment_great_.get();
+}
+
+const Sprite* NoteSkin::judgment_good() const {
+    return judgment_good_.get();
+}
+
+const Sprite* NoteSkin::judgment_bad() const {
+    return judgment_bad_.get();
+}
+
+const Sprite* NoteSkin::judgment_miss() const {
+    return judgment_miss_.get();
+}
+
 bool NoteSkin::is_complete() const {
     return loaded_count() == EXPECTED_COUNT;
 }

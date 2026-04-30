@@ -51,6 +51,14 @@ public:
 
     const Sprite* receptor(PlayMode mode) const;
 
+    // --- Judgment tier sprites (one per tier) ---
+
+    const Sprite* judgment_perfect() const;
+    const Sprite* judgment_great() const;
+    const Sprite* judgment_good() const;
+    const Sprite* judgment_bad() const;
+    const Sprite* judgment_miss() const;
+
     // --- Completeness query ---
 
     // True if all Phase 2 required sprites are loaded (all TAP, LONG, etc.).
@@ -76,6 +84,13 @@ private:
     std::array<std::unique_ptr<Sprite>, NUM_TRACKS> press_;
     std::array<std::unique_ptr<Sprite>, NUM_TRACKS> judge_;
     std::array<std::unique_ptr<Sprite>, 3> receptor_;  // SINGLE, DOUBLE, HALF
+
+    // Judgment tier sprites
+    std::unique_ptr<Sprite> judgment_perfect_;
+    std::unique_ptr<Sprite> judgment_great_;
+    std::unique_ptr<Sprite> judgment_good_;
+    std::unique_ptr<Sprite> judgment_bad_;
+    std::unique_ptr<Sprite> judgment_miss_;
 };
 
 } // namespace openitup

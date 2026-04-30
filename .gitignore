@@ -40,3 +40,4 @@ build/
 .claude/settings.local.json
 .claude/agent-memory/
 .claude/logs/
+test/artifacts/*
