@@ -3,6 +3,7 @@
 #include <fstream>
 #include <openitup/render/noteskin.h>
 #include <openitup/render/noteskin_loader.h>
+#include <openitup/render/noteskin_anim.h>
 
 using namespace openitup;
 namespace fs = std::filesystem;
@@ -257,4 +258,65 @@ TEST(NoteSkinLoader, LoadWithFallbackThrowsWhenBothFail) {
     EXPECT_THROW({
         NoteSkinLoader::load_with_fallback(nonexistent1, nonexistent2, cache);
     }, std::runtime_error);
+}
+
+// --- NoteSkin Animation Timer Tests (Pure Math) ---
+
+TEST(NoteSkinAnimTimer, LoopTAtZero) {
+    EXPECT_FLOAT_EQ(noteskin_loop_t(0.0), 0.0f);
+}
+
+TEST(NoteSkinAnimTimer, LoopTAtHalfCycle) {
+    EXPECT_FLOAT_EQ(noteskin_loop_t(150.0), 0.5f);
+}
+
+TEST(NoteSkinAnimTimer, LoopTWrapsAt300) {
+    EXPECT_FLOAT_EQ(noteskin_loop_t(300.0), 0.0f);
+}
+
+TEST(NoteSkinAnimTimer, LoopTWrapsAt600) {
+    EXPECT_FLOAT_EQ(noteskin_loop_t(600.0), 0.0f);
+}
+
+TEST(NoteSkinAnimTimer, LoopTHandlesNegative) {
+    // -150ms should wrap to 150ms in the cycle (0.5)
+    float t = noteskin_loop_t(-150.0);
+    EXPECT_GE(t, 0.0f);
+    EXPECT_LT(t, 1.0f);
+    EXPECT_FLOAT_EQ(t, 0.5f);
+}
+
+TEST(NoteSkinAnimTimer, OneshotTBeforeTrigger) {
+    EXPECT_FLOAT_EQ(noteskin_oneshot_t(50.0, 100.0), 0.0f);
+}
+
+TEST(NoteSkinAnimTimer, OneshotTAtMiddle) {
+    // 150ms elapsed from trigger at 100ms -> 150/300 = 0.5
+    EXPECT_FLOAT_EQ(noteskin_oneshot_t(250.0, 100.0), 0.5f);
+}
+
+TEST(NoteSkinAnimTimer, OneshotTAfterDuration) {
+    // 300ms+ elapsed -> clamped to 1.0
+    EXPECT_FLOAT_EQ(noteskin_oneshot_t(500.0, 100.0), 1.0f);
+    EXPECT_FLOAT_EQ(noteskin_oneshot_t(1000.0, 100.0), 1.0f);
+}
+
+TEST(NoteSkinAnimTimer, OneshotTLinear) {
+    // 100ms elapsed -> 100/300 ≈ 0.333
+    EXPECT_NEAR(noteskin_oneshot_t(100.0, 0.0), 0.333f, 0.001f);
+}
+
+TEST(NoteSkinAnimTimer, OneshotActiveWithin300) {
+    EXPECT_TRUE(noteskin_oneshot_active(200.0, 0.0));
+    EXPECT_TRUE(noteskin_oneshot_active(299.0, 0.0));
+}
+
+TEST(NoteSkinAnimTimer, OneshotInactiveAfter300) {
+    EXPECT_FALSE(noteskin_oneshot_active(300.0, 0.0));
+    EXPECT_FALSE(noteskin_oneshot_active(301.0, 0.0));
+    EXPECT_FALSE(noteskin_oneshot_active(1000.0, 0.0));
+}
+
+TEST(NoteSkinAnimTimer, OneshotInactiveBeforeTrigger) {
+    EXPECT_FALSE(noteskin_oneshot_active(50.0, 100.0));
 }
