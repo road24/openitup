@@ -31,16 +31,37 @@ MinimalGameplayScene::MinimalGameplayScene(
 
     // Load audio
     if (audio_) {
+        std::filesystem::path audio_path;
+
         std::string audio_file = chart_.metadata().audio_path;
         if (!audio_file.empty()) {
-            auto audio_path = data_dir / std::filesystem::path(audio_file).filename();
+            audio_path = data_dir / std::filesystem::path(audio_file).filename();
+        }
+
+        // Fallback: probe for common filenames when chart has no audio reference
+        if (audio_path.empty() || !std::filesystem::exists(audio_path)) {
+            static const char* probes[] = {
+                "song.ogg", "song.mp3", "Song.ogg", "Song.mp3",
+                "SONG.OGG", "SONG.MP3",
+            };
+            for (const char* name : probes) {
+                auto candidate = data_dir / name;
+                if (std::filesystem::exists(candidate)) {
+                    audio_path = candidate;
+                    spdlog::info("Audio discovered by convention: {}", audio_path.string());
+                    break;
+                }
+            }
+        }
+
+        if (!audio_path.empty() && std::filesystem::exists(audio_path)) {
             if (!audio_->load_music(audio_path)) {
                 spdlog::warn("Failed to load audio '{}', proceeding without",
                              audio_path.string());
                 audio_ = nullptr;
             }
         } else {
-            spdlog::warn("Chart has no audio file reference");
+            spdlog::warn("No audio file found in '{}'", data_dir.string());
             audio_ = nullptr;
         }
     }
