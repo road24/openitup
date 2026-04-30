@@ -71,6 +71,7 @@ add_library(openitup_engine STATIC
     src/openitup/asset/data_directory.cpp
     src/openitup/core/clock.cpp
     src/openitup/core/engine.cpp
+    src/openitup/core/system_paths.cpp
     src/openitup/input/pad_input.cpp
     src/openitup/input/input_snapshot.cpp
     src/openitup/input/input_system.cpp
@@ -166,6 +167,7 @@ add_executable(openitup_tests
     test/test_keyframe_interp.cpp
     test/test_texture_cache.cpp
     test/test_texture_cache_pinning.cpp
+    test/test_system_paths.cpp
     test/test_sprite_modes.cpp
     test/test_integration.cpp
     test/test_regression.cpp
