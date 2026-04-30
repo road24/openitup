@@ -47,6 +47,10 @@ public:
     // Destroy all cached textures.
     void clear();
 
+    // Pin a texture so it is never evicted by LRU (future: US-AST-018).
+    // If the texture path is not currently cached, logs a warning and does nothing.
+    void pin_texture(const std::string& canonical_path);
+
     // Probe for the actual image file given a .tga base-name hint.
     // Returns the resolved path or throws if no file is found.
     // Public for testing.
@@ -61,6 +65,7 @@ private:
         SDL_Texture* texture;
         int width;
         int height;
+        bool pinned = false;
     };
 
     std::vector<Entry> entries_;

@@ -118,4 +118,15 @@ void TextureCache::clear() {
     path_to_index_.clear();
 }
 
+void TextureCache::pin_texture(const std::string& canonical_path) {
+    auto it = path_to_index_.find(canonical_path);
+    if (it == path_to_index_.end()) {
+        spdlog::warn("cannot pin texture '{}': not in cache", canonical_path);
+        return;
+    }
+    auto idx = it->second;
+    entries_[idx].pinned = true;
+    spdlog::debug("pinned texture '{}' (handle {})", canonical_path, idx);
+}
+
 } // namespace openitup
