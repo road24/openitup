@@ -134,39 +134,56 @@ The pipeline skills (`/new-feature`, `/pipeline`, `/revise`) should delegate orc
 
 ## Dev Loop Execution Protocol (MANDATORY)
 
-When a story reaches Stage 7 (dev loop), you MUST follow this exact protocol for each IP step. **You are the orchestrator, not the developer.** You invoke the skills; you do not write code yourself.
+When a story reaches Stage 7 (dev loop), you use the **step-executor** agent. This is the simplest and most reliable approach: one agent per IP step, and that agent MUST commit before returning.
 
 ### Per IP Step:
 
-1. **Invoke `/code <IP-id> step <N>`** — This writes the code and tests. You do NOT write code directly. Wait for the code skill to complete and report what was written.
+**Spawn `step-executor`** with this prompt pattern:
 
-2. **Invoke `/compile`** — Run the build. If it fails, invoke `/code` to fix, then `/compile` again. Loop until the build passes.
+```
+Execute IP-XXX-NNN step N.
 
-3. **Invoke `/test`** — Run tests. If they fail, invoke `/code` to fix, then `/compile` → `/test` again. Loop until all tests pass.
+Read the implementation plan at docs/implementation-plans/IP-XXX-NNN.md.
+Read the technical design it references.
+Read CLAUDE.md for build and test commands.
 
-4. **Invoke `/review`** — Code review. If Critical issues found, invoke `/code` to fix, then `/compile` → `/test` → `/review` again. Loop until review passes.
+Implement the step: write code, write tests, compile, fix any errors,
+run all tests, fix any failures, then commit with the message from the IP.
 
-5. **Invoke `/commit`** — Present the diff to the PO. The PO approves. **One commit per IP step.** This is non-negotiable.
+You MUST create a git commit before you return.
+```
 
-6. **Report**: "Step N of M committed. Continue to step N+1?"
+The step-executor handles the entire code → compile → fix → test → fix → commit cycle internally. It returns with a commit hash or a failure report.
 
-7. **Repeat** for the next IP step until all steps are done.
+**If step-executor reports success**: Read its report, note the commit hash, move to the next step.
 
-### After all IP steps for a story:
+**If step-executor reports a scope discovery**: Evaluate the issue. Either:
+- It's minor: note it and continue
+- It needs upstream revision: report to PO, update the upstream docs (TD, IP, story), then re-run the step
 
-8. **Invoke `/integrate`** — Full build + full test suite. Verify cross-component behavior.
+**If step-executor fails after retrying**: Report to PO: "Step N is stuck. [Details]. Need PO input."
 
-9. **Invoke `/accept`** — Acceptance testing against Gherkin criteria. Traceability check.
+### After All IP Steps for a Story:
 
-10. **Update STATUS.md** — Mark the story as DONE only after `/accept` passes.
+1. **Verify commits**: Run `git log --oneline` to confirm one commit per step.
+2. **Integration**: Run the build and full test suite yourself (you can run bash commands for verification).
+3. **Acceptance**: Read the story's Gherkin AC. Map each scenario to a test. Run those tests. Report coverage.
+4. **Update STATUS.md**: Mark the story as DONE. Commit the STATUS.md change yourself.
+5. **Report to PO**: "Story US-XXX-NNN complete. N commits, all tests pass, acceptance verified."
 
-### What you NEVER do:
+### What You Do Directly:
 
-- **Never write code directly.** Always delegate to `/code`.
-- **Never batch multiple steps into one commit.** One step = one commit.
-- **Never skip `/compile`, `/test`, or `/review`.** Every step goes through the full cycle.
-- **Never mark a story DONE without `/integrate` and `/accept`.**
-- **Never commit without PO approval via `/commit`.**
+- **Read files**: STATUS.md, IPs, TDs, requirements, stories, CLAUDE.md
+- **Assess state**: Determine pipeline position for each story
+- **Spawn step-executor**: One spawn per IP step
+- **Run verification commands**: cmake, ctest for integration checks
+- **Update tracking docs**: Edit STATUS.md, commit tracking changes
+- **Report to PO**: Progress, blockers, scope changes
+
+### What You NEVER Do:
+
+- **Never write source code or test code.** That's step-executor's job.
+- **Never skip the commit verification.** After each step-executor returns, check `git log` to confirm the commit exists.
 
 ## Critical Rules
 
