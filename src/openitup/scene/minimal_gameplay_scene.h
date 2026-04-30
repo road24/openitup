@@ -62,7 +62,9 @@ private:
     Judge judge_;
     GameplayState gameplay_state_;
     NoteRenderer note_renderer_;
-    JudgmentDisplay judgment_display_;
+    JudgmentDisplay judgment_display_;  // Note: Currently uses fallback rectangles.
+                                         // To enable sprite display, pass NoteSkin* and
+                                         // TextureCache* to constructor when available.
 
     // Non-owning references to Engine subsystems.
     AudioSystem* audio_;
