@@ -98,6 +98,7 @@ add_library(openitup_engine STATIC
     src/openitup/judge/gameplay_state.cpp
     src/openitup/render/note_renderer.cpp
     src/openitup/render/judgment_display.cpp
+    src/openitup/render/noteskin.cpp
     src/openitup/scene/minimal_gameplay_scene.cpp
 )
 
@@ -178,6 +179,7 @@ add_executable(openitup_tests
     test/test_gameplay_state.cpp
     test/test_note_renderer.cpp
     test/test_minimal_gameplay_scene.cpp
+    test/test_noteskin.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
