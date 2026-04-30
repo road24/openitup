@@ -182,6 +182,7 @@ add_executable(openitup_tests
     test/test_note_renderer.cpp
     test/test_minimal_gameplay_scene.cpp
     test/test_noteskin.cpp
+    test/test_scene_stack.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
