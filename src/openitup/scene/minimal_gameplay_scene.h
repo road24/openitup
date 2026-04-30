@@ -10,6 +10,7 @@
 #include <openitup/input/input_system.h>
 #include <openitup/judge/gameplay_state.h>
 #include <openitup/judge/judge.h>
+#include <openitup/render/combo_display.h>
 #include <openitup/render/judgment_display.h>
 #include <openitup/render/note_renderer.h>
 
@@ -63,6 +64,9 @@ private:
     GameplayState gameplay_state_;
     NoteRenderer note_renderer_;
     JudgmentDisplay judgment_display_;  // Note: Currently uses fallback rectangles.
+                                         // To enable sprite display, pass NoteSkin* and
+                                         // TextureCache* to constructor when available.
+    ComboDisplay combo_display_;        // Note: Currently uses fallback rectangles.
                                          // To enable sprite display, pass NoteSkin* and
                                          // TextureCache* to constructor when available.
 

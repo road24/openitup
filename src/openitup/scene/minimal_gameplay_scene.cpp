@@ -20,6 +20,7 @@ MinimalGameplayScene::MinimalGameplayScene(
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
+      combo_display_(),
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer)
@@ -77,6 +78,7 @@ MinimalGameplayScene::MinimalGameplayScene(
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
+      combo_display_(),
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer)
@@ -170,6 +172,9 @@ void MinimalGameplayScene::render(double /*alpha*/) {
     // Render judgment feedback
     // Use FIXED_STEP as dt approximation for the fade timer
     judgment_display_.render(sdl_renderer, 1.0 / 60.0);
+
+    // Render combo counter
+    combo_display_.render(sdl_renderer, gameplay_state_.current_combo(), global_time_ms_);
 }
 
 bool MinimalGameplayScene::is_complete() const {
