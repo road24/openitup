@@ -1,6 +1,6 @@
 # Story Tracking Matrix
 
-Generated: 2026-04-28
+Generated: 2026-04-29
 
 ---
 
@@ -9,10 +9,10 @@ Generated: 2026-04-28
 | Phase | Stories | Total Points |
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
-| DONE (Phase 1) | 16 | 38 |
-| DONE (Phase 2) | 5 | 17 |
-| Phase 1 | 32 | 96 |
-| Phase 2 | 15 | 59 |
+| DONE (Phase 1) | 48 | 134 |
+| DONE (Phase 2) | 10 | 38 |
+| Phase 1 | 0 | 0 |
+| Phase 2 | 10 | 38 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
@@ -84,44 +84,37 @@ Generated: 2026-04-28
 | US-SCN-001 | Scene stack core infrastructure | DONE | 2 | 5 | US-ENG-001 |
 | US-SCN-002 | Scene lifecycle interface | DONE | 2 | 3 | US-SCN-001, US-INP-001 |
 | US-AST-021 | System asset directory structure | DONE | 2 | 2 | US-AST-001, US-AST-009 |
-
----
-
-## Phase 1
-
-| Story ID | Title | Status | Phase | Points | Dependencies |
-|----------|-------|--------|-------|--------|--------------|
-| US-AUD-001 | Load OGG Vorbis music files | PLANNED | 1 | 3 | None |
-| US-AUD-002 | Load MP3 music files | PLANNED | 1 | 3 | US-AUD-001 |
-| US-AUD-003 | Music playback controls | PLANNED | 1 | 2 | US-AUD-001, US-AUD-002 |
-| US-AUD-004 | Seek to millisecond position | PLANNED | 1 | 3 | US-AUD-003 |
-| US-AUD-011 | Report HW sample-accurate position | PLANNED | 1 | 5 | US-AUD-003 |
-| US-AUD-021 | Provide audio position to judge | PLANNED | 1 | 2 | US-AUD-011 |
-| US-AUD-081 | Initialize SDL3 audio subsystem | PLANNED | 1 | 3 | US-ENG-011 |
-| US-AUD-091 | Define AudioSystem interface | PLANNED | 1 | 2 | None |
-| US-AUD-092 | Implement SDL3AudioSystem backend | PLANNED | 1 | 5 | US-AUD-091, US-AUD-081 |
-| US-CHT-001 | Define internal chart structure | PLANNED | 1 | 3 | None |
-| US-CHT-002 | Implement chart metadata model | PLANNED | 1 | 2 | US-CHT-001 |
-| US-CHT-003 | Implement timing data model | PLANNED | 1 | 5 | US-CHT-001 |
-| US-CHT-004 | Implement note data model | PLANNED | 1 | 3 | US-CHT-001 |
-| US-CHT-005 | Parse KSF chart format | PLANNED | 1 | 5 | US-CHT-001, US-CHT-002, US-CHT-003, US-CHT-004 |
-| US-JDG-019 | Default hardcoded timing profile | PLANNED | 1 | 2 | US-JDG-001 |
-| US-JDG-001 | Deterministic pure logic judge | PLANNED | 1 | 4 | US-CHT-001, US-INP-001, US-AUD-001 |
-| US-JDG-002 | Five-tier judgment classification | PLANNED | 1 | 4 | US-JDG-001 |
-| US-JDG-003 | Automatic miss assignment | PLANNED | 1 | 2 | US-JDG-002 |
-| US-JDG-004 | Judgment event emission | PLANNED | 1 | 2 | US-JDG-002, US-INP-001 |
-| US-JDG-005 | GameplayState separation | PLANNED | 1 | 4 | US-JDG-004 |
-| US-JDG-006 | Combo tracking | PLANNED | 1 | 2 | US-JDG-005 |
-| US-JDG-011 | Judge frame independence | PLANNED | 1 | 4 | US-ENG-001, US-AUD-002 |
-| US-JDG-012 | No RNG in judge | PLANNED | 1 | 2 | US-JDG-001 |
-| US-REN-019 | Beat-space to screen-space conversion | PLANNED | 1 | 5 | None |
-| US-REN-020 | Placeholder rectangle note rendering | PLANNED | 1 | 2 | US-REN-019 |
-| US-REN-036 | Minimal timing feedback display | PLANNED | 1 | 2 | US-JDG-002 |
-| US-SCN-007a | Minimal gameplay scene | PLANNED | 1 | 5 | US-ENG-011, US-INP-021, US-AUD-092, US-CHT-005, US-JDG-001, US-REN-020 |
-| US-AST-009 | Command-line data directory argument | PLANNED | 1 | 2 | None |
-| US-AST-010 | Env variable for data directory | PLANNED | 1 | 1 | US-AST-009 |
-| US-AST-032 | Missing BGA allows gameplay w/o bg | PLANNED | 1 | 1 | None |
-| US-AST-033 | All missing assets logged | PLANNED | 1 | 1 | US-AST-001 |
+| US-AUD-001 | Load OGG Vorbis music files | DONE | 1 | 3 | None |
+| US-AUD-002 | Load MP3 music files | DONE | 1 | 3 | US-AUD-001 |
+| US-AUD-003 | Music playback controls | DONE | 1 | 2 | US-AUD-001, US-AUD-002 |
+| US-AUD-004 | Seek to millisecond position | DONE | 1 | 3 | US-AUD-003 |
+| US-AUD-011 | Report HW sample-accurate position | DONE | 1 | 5 | US-AUD-003 |
+| US-AUD-021 | Provide audio position to judge | DONE | 1 | 2 | US-AUD-011 |
+| US-AUD-081 | Initialize SDL3 audio subsystem | DONE | 1 | 3 | US-ENG-011 |
+| US-AUD-091 | Define AudioSystem interface | DONE | 1 | 2 | None |
+| US-AUD-092 | Implement SDL3AudioSystem backend | DONE | 1 | 5 | US-AUD-091, US-AUD-081 |
+| US-CHT-001 | Define internal chart structure | DONE | 1 | 3 | None |
+| US-CHT-002 | Implement chart metadata model | DONE | 1 | 2 | US-CHT-001 |
+| US-CHT-003 | Implement timing data model | DONE | 1 | 5 | US-CHT-001 |
+| US-CHT-004 | Implement note data model | DONE | 1 | 3 | US-CHT-001 |
+| US-CHT-005 | Parse KSF chart format | DONE | 1 | 5 | US-CHT-001, US-CHT-002, US-CHT-003, US-CHT-004 |
+| US-JDG-001 | Deterministic pure logic judge | DONE | 1 | 4 | US-CHT-001, US-INP-001, US-AUD-001 |
+| US-JDG-002 | Five-tier judgment classification | DONE | 1 | 4 | US-JDG-001 |
+| US-JDG-003 | Automatic miss assignment | DONE | 1 | 2 | US-JDG-002 |
+| US-JDG-004 | Judgment event emission | DONE | 1 | 2 | US-JDG-002, US-INP-001 |
+| US-JDG-005 | GameplayState separation | DONE | 1 | 4 | US-JDG-004 |
+| US-JDG-006 | Combo tracking | DONE | 1 | 2 | US-JDG-005 |
+| US-JDG-011 | Judge frame independence | DONE | 1 | 4 | US-ENG-001, US-AUD-002 |
+| US-JDG-012 | No RNG in judge | DONE | 1 | 2 | US-JDG-001 |
+| US-JDG-019 | Default hardcoded timing profile | DONE | 1 | 2 | US-JDG-001 |
+| US-REN-019 | Beat-space to screen-space conversion | DONE | 1 | 5 | None |
+| US-REN-020 | Placeholder rectangle note rendering | DONE | 1 | 2 | US-REN-019 |
+| US-REN-036 | Minimal timing feedback display | DONE | 1 | 2 | US-JDG-002 |
+| US-SCN-007a | Minimal gameplay scene | DONE | 1 | 5 | US-ENG-011, US-INP-021, US-AUD-092, US-CHT-005, US-JDG-001, US-REN-020 |
+| US-AST-009 | Command-line data directory argument | DONE | 1 | 2 | None |
+| US-AST-010 | Env variable for data directory | DONE | 1 | 1 | US-AST-009 |
+| US-AST-032 | Missing BGA allows gameplay w/o bg | DONE | 1 | 1 | None |
+| US-AST-033 | All missing assets logged | DONE | 1 | 1 | US-AST-001 |
 
 ---
 
@@ -129,7 +122,6 @@ Generated: 2026-04-28
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-REN-023 | Judgment display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-024 | Combo display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-027 | BGA background during gameplay | PLANNED | 2 | 3 | US-REN-010 |
 | US-REN-034 | High refresh rate rendering | PLANNED | 2 | 5 | US-REN-002 |
@@ -143,6 +135,7 @@ Generated: 2026-04-28
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 2 | 2 | US-AST-017 |
 | US-AST-020 | BGA loaded on song selection | PLANNED | 2 | 2 | US-AST-016 |
 | US-AST-022 | Font loading for text rendering | PLANNED | 2 | 5 | US-AST-021 |
+| US-REN-023 | Judgment display | PLANNED | 2 | 3 | US-REN-021 |
 
 ---
 
@@ -433,12 +426,12 @@ NFRs are tracked separately. Some have story points (spike/research tasks); most
 |------|-----------|---------|------|---------|--------|
 | 01-core-engine.md | Engine (ENG) | 14 | 6 | 8 | 0 |
 | 02-input-system.md | Input (INP) | 26 | 0 | 26 | 0 |
-| 03-audio-system.md | Audio (AUD) | 23 | 0 | 23 | 0 |
-| 04-chart-system.md | Chart (CHT) | 19 | 0 | 19 | 0 |
-| 05-gameplay-judge.md | Judge (JDG) | 23 | 0 | 23 | 0 |
-| 06-visual-rendering.md | Rendering (REN) | 36 | 18 | 18 | 0 |
-| 07-screen-flow.md | Scenes (SCN) | 14 | 0 | 14 | 0 |
+| 03-audio-system.md | Audio (AUD) | 23 | 9 | 14 | 0 |
+| 04-chart-system.md | Chart (CHT) | 19 | 5 | 14 | 0 |
+| 05-gameplay-judge.md | Judge (JDG) | 23 | 9 | 14 | 0 |
+| 06-visual-rendering.md | Rendering (REN) | 36 | 23 | 13 | 0 |
+| 07-screen-flow.md | Scenes (SCN) | 14 | 3 | 11 | 0 |
 | 08-scripting-system.md | Lua (LUA) | 22 | 0 | 22 | 0 |
 | 09-data-management.md | Data (DAT) | 37 | 0 | 33 | 2 |
 | 10-network-system.md | Network (NET) | 27 | 0 | 0 | 27 |
-| 11-asset-management.md | Assets (AST) | 33 | 8 | 25 | 0 |
+| 11-asset-management.md | Assets (AST) | 33 | 12 | 21 | 0 |
