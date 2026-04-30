@@ -11,7 +11,7 @@ struct SDL_Renderer;
 namespace openitup {
 
 struct NoteFieldConfig {
-    float receptor_y = 400.0f;
+    float receptor_y = 80.0f;
     float note_width = 48.0f;
     float note_height = 48.0f;
     float pixels_per_beat = 80.0f;

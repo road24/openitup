@@ -30,37 +30,37 @@ TEST(NoteRenderer, BeatToYAtReceptor) {
     NoteRenderer renderer(empty_notes, timing, config);
 
     float y = renderer.beat_to_y(10.0, 10.0);
-    EXPECT_FLOAT_EQ(y, 400.0f);
+    EXPECT_FLOAT_EQ(y, config.receptor_y);
 }
 
-TEST(NoteRenderer, BeatToYFourBeatsAbove) {
-    // Note 4 beats in the future should be 320 pixels above receptor
-    // y = 400 - 4.0 * 80 = 80
+TEST(NoteRenderer, BeatToYFourBeatsAhead) {
+    // Note 4 beats in the future should be 320 pixels below receptor (scrolls up)
+    // y = 80 + 4.0 * 80 = 400
     NoteData empty_notes(std::vector<NoteEvent>{});
     TimingData timing = make_simple_timing();
     NoteFieldConfig config = default_single_config();
     NoteRenderer renderer(empty_notes, timing, config);
 
     float y = renderer.beat_to_y(14.0, 10.0);
-    EXPECT_FLOAT_EQ(y, 80.0f);
+    EXPECT_FLOAT_EQ(y, 400.0f);
 }
 
-TEST(NoteRenderer, BeatToYOneBeatBelow) {
-    // Note 1 beat in the past should be 80 pixels below receptor
-    // y = 400 - (-1.0) * 80 = 480
+TEST(NoteRenderer, BeatToYOneBeatPast) {
+    // Note 1 beat in the past should be 80 pixels above receptor
+    // y = 80 + (-1.0) * 80 = 0
     NoteData empty_notes(std::vector<NoteEvent>{});
     TimingData timing = make_simple_timing();
     NoteFieldConfig config = default_single_config();
     NoteRenderer renderer(empty_notes, timing, config);
 
     float y = renderer.beat_to_y(9.0, 10.0);
-    EXPECT_FLOAT_EQ(y, 480.0f);
+    EXPECT_FLOAT_EQ(y, 0.0f);
 }
 
 TEST(NoteRenderer, BeatToYScrollSpeedDoubled) {
     // With scroll_speed = 2.0, distance doubles
     // 4 beats * 80 pixels_per_beat * 2.0 speed = 640 pixels
-    // y = 400 - 640 = -240
+    // y = 80 + 640 = 720
     NoteData empty_notes(std::vector<NoteEvent>{});
     TimingData timing = make_simple_timing();
     NoteFieldConfig config = default_single_config();
@@ -68,13 +68,13 @@ TEST(NoteRenderer, BeatToYScrollSpeedDoubled) {
     NoteRenderer renderer(empty_notes, timing, config);
 
     float y = renderer.beat_to_y(14.0, 10.0);
-    EXPECT_FLOAT_EQ(y, -240.0f);
+    EXPECT_FLOAT_EQ(y, 720.0f);
 }
 
 TEST(NoteRenderer, BeatToYScrollSpeedHalf) {
     // With scroll_speed = 0.5, distance halves
     // 4 beats * 80 pixels_per_beat * 0.5 speed = 160 pixels
-    // y = 400 - 160 = 240
+    // y = 80 + 160 = 240
     NoteData empty_notes(std::vector<NoteEvent>{});
     TimingData timing = make_simple_timing();
     NoteFieldConfig config = default_single_config();
@@ -244,12 +244,10 @@ TEST(JudgmentDisplay, TierColorsDistinct) {
 // --- Integration Tests ---
 
 TEST(NoteRenderer, VisibleRangeAt120BPM) {
-    // At 120 BPM, current_beat=10: notes at beats 5-15 should have y values within [0, 480]
-    // With pixels_per_beat=80, receptor_y=400:
-    // - beat 10 (current) -> y=400
-    // - beat 5 (5 beats back) -> y=400+400=800 (below screen)
-    // - beat 15 (5 beats ahead) -> y=400-400=0 (top of screen)
-    // - beat 10±5 represents the visible range (approximately)
+    // Bottom-to-top scrolling with receptor_y=80:
+    // - beat 10 (current) -> y=80 (at receptor)
+    // - beat 13 (3 ahead) -> y=80+240=320 (below receptor, approaching)
+    // - beat 7 (3 past) -> y=80-240=-160 (above receptor, already passed)
 
     std::vector<NoteEvent> notes;
     notes.push_back({5.0, 0, NoteType::TAP});
@@ -265,23 +263,22 @@ TEST(NoteRenderer, VisibleRangeAt120BPM) {
 
     constexpr double current_beat = 10.0;
 
-    // Notes near current beat should be in visible range [0, 480]
     float y10 = renderer.beat_to_y(10.0, current_beat);
-    EXPECT_FLOAT_EQ(y10, 400.0f);
+    EXPECT_FLOAT_EQ(y10, 80.0f);
     EXPECT_GE(y10, 0.0f);
     EXPECT_LE(y10, 480.0f);
 
     float y13 = renderer.beat_to_y(13.0, current_beat);
-    EXPECT_FLOAT_EQ(y13, 160.0f);  // 400 - 3*80 = 160
+    EXPECT_FLOAT_EQ(y13, 320.0f);  // 80 + 3*80 = 320
     EXPECT_GE(y13, 0.0f);
     EXPECT_LE(y13, 480.0f);
 
     float y7 = renderer.beat_to_y(7.0, current_beat);
-    EXPECT_FLOAT_EQ(y7, 640.0f);  // 400 - (-3)*80 = 640 (below screen but close)
+    EXPECT_FLOAT_EQ(y7, -160.0f);  // 80 + (-3)*80 = -160 (above screen, passed)
 }
 
 TEST(NoteRenderer, NoteBeyondScreenIgnored) {
-    // Note at beat 100 while current_beat=0: y should be far above screen (very negative)
+    // Note at beat 100 while current_beat=0: y should be far below screen
     std::vector<NoteEvent> notes;
     notes.push_back({100.0, 0, NoteType::TAP});
 
@@ -293,13 +290,13 @@ TEST(NoteRenderer, NoteBeyondScreenIgnored) {
     constexpr double current_beat = 0.0;
     float y = renderer.beat_to_y(100.0, current_beat);
 
-    // 400 - 100*80 = 400 - 8000 = -7600
-    EXPECT_FLOAT_EQ(y, -7600.0f);
-    EXPECT_LT(y, -48.0f);  // Far above screen (less than one note height above top)
+    // 80 + 100*80 = 8080
+    EXPECT_FLOAT_EQ(y, 8080.0f);
+    EXPECT_GT(y, 480.0f + 48.0f);
 }
 
 TEST(NoteRenderer, FourConsecutiveQuarterNotes) {
-    // 4 notes at beats 0,1,2,3. With current_beat=0, y spacing should be exactly pixels_per_beat (80px)
+    // 4 notes at beats 0,1,2,3. Bottom-to-top: future notes below receptor, spacing 80px
     std::vector<NoteEvent> notes;
     notes.push_back({0.0, 0, NoteType::TAP});
     notes.push_back({1.0, 1, NoteType::TAP});
@@ -318,16 +315,16 @@ TEST(NoteRenderer, FourConsecutiveQuarterNotes) {
     float y2 = renderer.beat_to_y(2.0, current_beat);
     float y3 = renderer.beat_to_y(3.0, current_beat);
 
-    // Verify exact y values
-    EXPECT_FLOAT_EQ(y0, 400.0f);
-    EXPECT_FLOAT_EQ(y1, 320.0f);  // 400 - 80
-    EXPECT_FLOAT_EQ(y2, 240.0f);  // 400 - 160
-    EXPECT_FLOAT_EQ(y3, 160.0f);  // 400 - 240
+    // y = 80 + beat * 80
+    EXPECT_FLOAT_EQ(y0, 80.0f);
+    EXPECT_FLOAT_EQ(y1, 160.0f);
+    EXPECT_FLOAT_EQ(y2, 240.0f);
+    EXPECT_FLOAT_EQ(y3, 320.0f);
 
-    // Verify equal spacing of 80px
-    EXPECT_FLOAT_EQ(y0 - y1, 80.0f);
-    EXPECT_FLOAT_EQ(y1 - y2, 80.0f);
-    EXPECT_FLOAT_EQ(y2 - y3, 80.0f);
+    // Equal spacing of 80px (notes further in future are lower on screen)
+    EXPECT_FLOAT_EQ(y1 - y0, 80.0f);
+    EXPECT_FLOAT_EQ(y2 - y1, 80.0f);
+    EXPECT_FLOAT_EQ(y3 - y2, 80.0f);
 }
 
 TEST(NoteRenderer, StopFreezesNotes) {
@@ -362,7 +359,7 @@ TEST(NoteRenderer, StopFreezesNotes) {
     float y2 = renderer.beat_to_y(4.0, beat2);
 
     EXPECT_FLOAT_EQ(y1, y2);
-    EXPECT_FLOAT_EQ(y1, 400.0f);  // Note at beat 4, current at beat 4 -> receptor y
+    EXPECT_FLOAT_EQ(y1, config.receptor_y);
 }
 
 TEST(NoteRenderer, JudgmentDisplayIntegration) {

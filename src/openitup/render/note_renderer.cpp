@@ -44,18 +44,18 @@ NoteRenderer::NoteRenderer(const NoteData& note_data, const TimingData& timing_d
 float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
     double beat_delta = note_beat - current_beat;
     return config_.receptor_y
-         - static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
+         + static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
 }
 
 void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms) const {
     // Convert song position to current beat
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
-    // Compute visible beat range
-    double beats_above = config_.receptor_y / (config_.pixels_per_beat * config_.scroll_speed);
-    double beats_below = (480.0f - config_.receptor_y) / (config_.pixels_per_beat * config_.scroll_speed);
-    double top_beat = current_beat + beats_above;
-    double bottom_beat = current_beat - beats_below;
+    // Compute visible beat range (notes scroll bottom-to-top)
+    double beats_below_receptor = config_.receptor_y / (config_.pixels_per_beat * config_.scroll_speed);
+    double beats_above_receptor = (480.0f - config_.receptor_y) / (config_.pixels_per_beat * config_.scroll_speed);
+    double top_beat = current_beat + beats_above_receptor;
+    double bottom_beat = current_beat - beats_below_receptor;
 
     // Get notes in visible range
     auto [begin_it, end_it] = note_data_.notes_in_range(bottom_beat, top_beat);
