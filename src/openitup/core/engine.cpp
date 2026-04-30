@@ -25,6 +25,10 @@ Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::un
     init_sdl();
     init_renderer(config_);
     init_audio();
+
+    // Initialize scene stack
+    scene_stack_ = std::make_unique<SceneStack>();
+    spdlog::debug("scene stack initialized");
 }
 
 Engine::~Engine() {
@@ -81,7 +85,7 @@ int Engine::run() {
     accumulator_ = 0.0;
     clock_->reset();
 
-    while (running_) {
+    while (running_ && !scene_stack_->empty()) {
         process_events();
 
         double delta = clock_->tick();
@@ -96,18 +100,22 @@ int Engine::run() {
 
         for (int i = 0; i < result.num_steps; i++) {
             try {
-                update(FIXED_STEP);
+                if (input_system_) {
+                    input_system_->poll(tick_count_);
+                    scene_stack_->handle_input(input_system_->snapshot());
+                }
+                scene_stack_->update(FIXED_STEP);
             } catch (const std::exception& e) {
-                spdlog::error("exception in update: {}", e.what());
+                spdlog::error("exception in scene update: {}", e.what());
             }
             tick_count_++;
         }
 
         renderer_->begin_frame();
         try {
-            render(render_alpha_);
+            scene_stack_->render();
         } catch (const std::exception& e) {
-            spdlog::error("exception in render: {}", e.what());
+            spdlog::error("exception in scene render: {}", e.what());
         }
         renderer_->end_frame();
 
@@ -120,6 +128,7 @@ int Engine::run() {
         }
     }
 
+    spdlog::info("scene stack empty or quit requested, exiting");
     return 0;
 }
 

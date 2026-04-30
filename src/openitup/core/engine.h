@@ -8,6 +8,7 @@
 #include <openitup/core/clock.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/input/input_system.h>
+#include <openitup/scene/scene_stack.h>
 
 namespace openitup {
 
@@ -39,6 +40,7 @@ public:
     Clock* get_clock() const { return clock_.get(); }
     InputSystem* get_input_system() const { return input_system_.get(); }
     AudioSystem* get_audio() const { return audio_.get(); }
+    SceneStack* get_scene_stack() const { return scene_stack_.get(); }
     uint64_t tick_count() const { return tick_count_; }
     double render_alpha() const { return render_alpha_; }
     bool is_running() const { return running_; }
@@ -59,6 +61,7 @@ private:
     std::unique_ptr<Renderer> renderer_;
     std::unique_ptr<InputSystem> input_system_;
     std::unique_ptr<AudioSystem> audio_;
+    std::unique_ptr<SceneStack> scene_stack_;
 
     bool running_ = false;
     uint64_t tick_count_ = 0;
