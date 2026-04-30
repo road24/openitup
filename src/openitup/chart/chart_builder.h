@@ -30,6 +30,7 @@ public:
     void set_difficulty_rating(int rating);
     void set_mode(PlayMode mode);
     void set_audio_path(std::string path);
+    void set_intro_path(std::string path);
     void set_banner_path(std::string path);
     void set_background_path(std::string path);
     void set_display_bpm(double bpm);

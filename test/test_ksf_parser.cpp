@@ -196,6 +196,38 @@ TEST(KsfParser, TickCountAffectsBeatPositions) {
     EXPECT_DOUBLE_EQ(notes[1].beat, 1.0);
 }
 
+TEST(KsfParser, SongfileTagResolved) {
+    const char* songfile_ksf = R"(#TITLE:Songfile Test;
+#ARTIST:Test;
+#BPM:120;
+#SONGFILE:music.ogg;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(songfile_ksf));
+    auto chart = parser.parse("/data/Song/chart.ksf");
+
+    EXPECT_EQ(chart.metadata().audio_path, "/data/Song/music.ogg");
+}
+
+TEST(KsfParser, IntrofileTagResolved) {
+    const char* introfile_ksf = R"(#TITLE:Introfile Test;
+#ARTIST:Test;
+#BPM:120;
+#SONGFILE:music.ogg;
+#INTROFILE:preview.ogg;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(introfile_ksf));
+    auto chart = parser.parse("/data/Song/chart.ksf");
+
+    EXPECT_EQ(chart.metadata().audio_path, "/data/Song/music.ogg");
+    EXPECT_EQ(chart.metadata().intro_path, "/data/Song/preview.ogg");
+}
+
 TEST(KsfParser, MissingTitleLogsWarning) {
     // This test verifies that a chart without TITLE still loads
     const char* no_title = R"(#ARTIST:Test Artist;

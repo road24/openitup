@@ -161,11 +161,14 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
             } catch (const std::exception& e) {
                 spdlog::warn("KSF parser: invalid TICKCOUNT value '{}': {}", value, e.what());
             }
-        } else if (tag == "AUDIOFILE") {
-            // Resolve audio path relative to chart directory
+        } else if (tag == "AUDIOFILE" || tag == "SONGFILE") {
             auto chart_dir = chart_path.parent_path();
             auto audio_resolved = chart_dir / value;
             builder.set_audio_path(audio_resolved.string());
+        } else if (tag == "INTROFILE") {
+            auto chart_dir = chart_path.parent_path();
+            auto intro_resolved = chart_dir / value;
+            builder.set_intro_path(intro_resolved.string());
         } else if (tag == "DIFFICULTY") {
             builder.set_difficulty_name(value);
         } else if (tag == "STEP") {

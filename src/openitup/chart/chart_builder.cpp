@@ -40,6 +40,10 @@ void ChartBuilder::set_audio_path(std::string path) {
     metadata_.audio_path = std::move(path);
 }
 
+void ChartBuilder::set_intro_path(std::string path) {
+    metadata_.intro_path = std::move(path);
+}
+
 void ChartBuilder::set_banner_path(std::string path) {
     metadata_.banner_path = std::move(path);
 }

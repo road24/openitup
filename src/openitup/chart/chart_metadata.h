@@ -21,7 +21,8 @@ struct ChartMetadata {
     PlayMode mode = PlayMode::SINGLE;
 
     // File paths (relative to chart directory, resolved by parser)
-    std::string audio_path;        // primary audio file
+    std::string audio_path;        // primary audio file (SONGFILE / AUDIOFILE)
+    std::string intro_path;        // demo/intro music (INTROFILE)
     std::string banner_path;       // song banner image
     std::string background_path;   // background image
 
