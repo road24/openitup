@@ -4,6 +4,9 @@
 #include <openitup/render/noteskin.h>
 #include <openitup/render/noteskin_loader.h>
 #include <openitup/render/noteskin_anim.h>
+#include <openitup/render/note_renderer.h>
+#include <openitup/chart/note_data.h>
+#include <openitup/chart/timing_data.h>
 
 using namespace openitup;
 namespace fs = std::filesystem;
@@ -319,4 +322,69 @@ TEST(NoteSkinAnimTimer, OneshotInactiveAfter300) {
 
 TEST(NoteSkinAnimTimer, OneshotInactiveBeforeTrigger) {
     EXPECT_FALSE(noteskin_oneshot_active(50.0, 100.0));
+}
+
+// --- Integration Verification Tests (No SDL Required) ---
+
+TEST(NoteSkinIntegration, AnimTimerLoopTAt600ms) {
+    // 600ms is exactly two full cycles (300ms each)
+    EXPECT_FLOAT_EQ(noteskin_loop_t(600.0), 0.0f);
+}
+
+TEST(NoteSkinIntegration, AnimTimerOneshotCompletesAt300ms) {
+    // At trigger_time=100, global_time=400 means 300ms elapsed
+    // oneshot should be inactive (>=300ms)
+    EXPECT_FALSE(noteskin_oneshot_active(400.0, 100.0));
+}
+
+TEST(NoteSkinIntegration, NoteRendererAcceptsSkin) {
+    // Create empty note data and default timing
+    NoteData note_data;
+    TimingData timing_data;
+    NoteFieldConfig config = default_single_config();
+
+    // Construct NoteRenderer with nullptr skin
+    NoteRenderer renderer(note_data, timing_data, config, nullptr, nullptr);
+
+    // Verify beat_to_y still works
+    float y = renderer.beat_to_y(4.0, 0.0);
+    EXPECT_GT(y, 0.0f);  // Should be below receptor line (higher y value)
+}
+
+TEST(NoteSkinIntegration, NoteRendererAcceptsSkinWithConfig) {
+    // Create empty note data and default timing
+    NoteData note_data;
+    TimingData timing_data;
+    NoteFieldConfig config = default_single_config();
+
+    // Construct NoteRenderer with nullptr skin
+    NoteRenderer renderer(note_data, timing_data, config, nullptr, nullptr);
+
+    // Verify config is accessible
+    const auto& renderer_config = renderer.config();
+    EXPECT_EQ(renderer_config.num_columns, 5);
+    EXPECT_FLOAT_EQ(renderer_config.receptor_y, 80.0f);
+}
+
+TEST(NoteSkinIntegration, FullPipelineNoSDL) {
+    // Create empty NoteSkin
+    NoteSkin skin;
+
+    // Create empty note data and default timing
+    NoteData note_data;
+    TimingData timing_data;
+    NoteFieldConfig config = default_single_config();
+
+    // Construct NoteRenderer with empty skin
+    NoteRenderer renderer(note_data, timing_data, config, &skin, nullptr);
+
+    // Call beat_to_y - should not crash
+    float y1 = renderer.beat_to_y(0.0, 0.0);
+    float y2 = renderer.beat_to_y(4.0, 0.0);
+    float y3 = renderer.beat_to_y(-1.0, 0.0);
+
+    // Verify reasonable values
+    EXPECT_FLOAT_EQ(y1, config.receptor_y);  // At receptor line
+    EXPECT_GT(y2, y1);  // Below receptor line
+    EXPECT_LT(y3, y1);  // Above receptor line
 }
