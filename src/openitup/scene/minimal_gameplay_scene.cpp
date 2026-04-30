@@ -200,6 +200,13 @@ void MinimalGameplayScene::render(double /*alpha*/) {
 
     SDL_Renderer* sdl_renderer = renderer_->get();
 
+    // Render BGA background (z-order: below everything else)
+    if (bga_ && texture_cache_) {
+        // Convert audio position (ms) to BGA tick (60 ticks/sec)
+        float tick = static_cast<float>(last_song_ms_ / (1000.0 / 60.0));
+        bga_->render(sdl_renderer, *texture_cache_, tick, resolve_blend_mode);
+    }
+
     // Render note field
     note_renderer_.render_receptors(sdl_renderer, global_time_ms_, pressed_columns_, judge_trigger_times_);
     note_renderer_.render(sdl_renderer, last_song_ms_, global_time_ms_);
