@@ -169,6 +169,7 @@ add_executable(openitup_tests
     test/test_texture_cache.cpp
     test/test_texture_cache_pinning.cpp
     test/test_system_paths.cpp
+    test/test_system_asset_manager.cpp
     test/test_sprite_modes.cpp
     test/test_integration.cpp
     test/test_regression.cpp
