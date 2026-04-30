@@ -10,9 +10,9 @@ Generated: 2026-04-28
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 16 | 38 |
-| DONE (Phase 2) | 4 | 15 |
+| DONE (Phase 2) | 5 | 17 |
 | Phase 1 | 32 | 96 |
-| Phase 2 | 16 | 61 |
+| Phase 2 | 15 | 59 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
@@ -80,6 +80,7 @@ Generated: 2026-04-28
 | US-AST-007 | SP2 to SPRJ converter | DONE | N/A | ? | None |
 | US-AST-008 | BGA binary to JSON converter | DONE | N/A | ? | None |
 | US-REN-021 | Sprite-based note skins | DONE | 2 | 5 | US-REN-003, US-REN-020 |
+| US-REN-022 | Receptor rendering | DONE | 2 | 2 | US-REN-021 |
 | US-SCN-001 | Scene stack core infrastructure | DONE | 2 | 5 | US-ENG-001 |
 | US-SCN-002 | Scene lifecycle interface | DONE | 2 | 3 | US-SCN-001, US-INP-001 |
 | US-AST-021 | System asset directory structure | DONE | 2 | 2 | US-AST-001, US-AST-009 |
@@ -128,7 +129,6 @@ Generated: 2026-04-28
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-REN-022 | Receptor rendering | PLANNED | 2 | 2 | US-REN-021 |
 | US-REN-023 | Judgment display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-024 | Combo display | PLANNED | 2 | 3 | US-REN-021 |
 | US-REN-027 | BGA background during gameplay | PLANNED | 2 | 3 | US-REN-010 |
