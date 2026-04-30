@@ -73,6 +73,12 @@ private:
     bool audio_started_ = false;
     bool complete_ = false;
     double last_song_ms_ = 0.0;
+
+    // Press and judge overlay state for receptors.
+    bool pressed_columns_[10] = {};
+    double judge_trigger_times_[10] = {-1000.0, -1000.0, -1000.0, -1000.0, -1000.0,
+                                        -1000.0, -1000.0, -1000.0, -1000.0, -1000.0};
+    double global_time_ms_ = 0.0;
 };
 
 } // namespace openitup

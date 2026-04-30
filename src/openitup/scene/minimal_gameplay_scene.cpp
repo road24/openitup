@@ -86,7 +86,10 @@ MinimalGameplayScene::MinimalGameplayScene(
 
 MinimalGameplayScene::~MinimalGameplayScene() = default;
 
-void MinimalGameplayScene::update(double /*dt*/) {
+void MinimalGameplayScene::update(double dt) {
+    // Accumulate global time (convert fixed step seconds to milliseconds)
+    global_time_ms_ += dt * 1000.0;
+
     // Start audio on first tick
     if (!audio_started_ && audio_) {
         audio_->play();
@@ -104,7 +107,14 @@ void MinimalGameplayScene::update(double /*dt*/) {
     // Get input (InputSystem was already polled by Engine before this call)
     uint32_t pressed = 0;
     if (input_) {
-        pressed = input_->snapshot().pressed_mask() & 0x03FF;
+        const auto& snapshot = input_->snapshot();
+        pressed = snapshot.pressed_mask() & 0x03FF;
+        uint32_t held = snapshot.held_mask() & 0x03FF;
+
+        // Update pressed_columns_ from held_mask bits
+        for (int col = 0; col < 10; ++col) {
+            pressed_columns_[col] = (held & (1u << col)) != 0;
+        }
     }
 
     // Run judge
@@ -113,6 +123,11 @@ void MinimalGameplayScene::update(double /*dt*/) {
     // Feed events to displays and state
     for (const auto& event : events) {
         judgment_display_.on_judgment(event.tier());
+
+        // Update judge trigger time for this column
+        if (event.column() < 10) {
+            judge_trigger_times_[event.column()] = global_time_ms_;
+        }
 
         if (spdlog::should_log(spdlog::level::debug)) {
             spdlog::debug("Judgment: {} col={} error={:.1f}ms {}",
@@ -149,9 +164,8 @@ void MinimalGameplayScene::render(double /*alpha*/) {
     SDL_Renderer* sdl_renderer = renderer_->get();
 
     // Render note field
-    // TODO: pass actual global_time_ms from SDL_GetTicks() when sprite support is added
-    note_renderer_.render_receptors(sdl_renderer, 0.0);
-    note_renderer_.render(sdl_renderer, last_song_ms_, 0.0);
+    note_renderer_.render_receptors(sdl_renderer, global_time_ms_, pressed_columns_, judge_trigger_times_);
+    note_renderer_.render(sdl_renderer, last_song_ms_, global_time_ms_);
 
     // Render judgment feedback
     // Use FIXED_STEP as dt approximation for the fade timer
