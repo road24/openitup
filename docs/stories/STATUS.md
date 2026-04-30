@@ -10,9 +10,9 @@ Generated: 2026-04-29
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
-| DONE (Phase 2) | 12 | 44 |
+| DONE (Phase 2) | 13 | 47 |
 | Phase 1 | 0 | 0 |
-| Phase 2 | 8 | 32 |
+| Phase 2 | 7 | 29 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
@@ -86,6 +86,7 @@ Generated: 2026-04-29
 | US-AST-021 | System asset directory structure | DONE | 2 | 2 | US-AST-001, US-AST-009 |
 | US-REN-023 | Judgment display | DONE | 2 | 3 | US-REN-021 |
 | US-REN-024 | Combo display | DONE | 2 | 3 | US-REN-021 |
+| US-REN-027 | BGA background during gameplay | DONE | 2 | 3 | US-REN-010 |
 | US-AUD-001 | Load OGG Vorbis music files | DONE | 1 | 3 | None |
 | US-AUD-002 | Load MP3 music files | DONE | 1 | 3 | US-AUD-001 |
 | US-AUD-003 | Music playback controls | DONE | 1 | 2 | US-AUD-001, US-AUD-002 |
@@ -124,7 +125,6 @@ Generated: 2026-04-29
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-REN-027 | BGA background during gameplay | PLANNED | 2 | 3 | US-REN-010 |
 | US-REN-034 | High refresh rate rendering | PLANNED | 2 | 5 | US-REN-002 |
 | US-REN-035 | Note field rendering performance | PLANNED | 2 | 8 | US-REN-021 |
 | US-SCN-003 | Boot scene with logo display | PLANNED | 2 | 3 | US-SCN-001 |
