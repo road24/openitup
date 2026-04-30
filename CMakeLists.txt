@@ -99,6 +99,7 @@ add_library(openitup_engine STATIC
     src/openitup/render/note_renderer.cpp
     src/openitup/render/judgment_display.cpp
     src/openitup/render/noteskin.cpp
+    src/openitup/render/noteskin_loader.cpp
     src/openitup/scene/minimal_gameplay_scene.cpp
 )
 
