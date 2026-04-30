@@ -9,15 +9,16 @@ This directory contains the formal business requirements for the openitup Pump I
 | Core Engine | [01-core-engine.md](01-core-engine.md) | 8 | 3 | 5 | 0 |
 | Input System | [02-input-system.md](02-input-system.md) | 12 | 1 | 10 | 1 |
 | Audio System | [03-audio-system.md](03-audio-system.md) | 11 | 0 | 11 | 0 |
-| Chart System | [04-chart-system.md](04-chart-system.md) | 15 | 1 | 13 | 1 |
+| Chart System | [04-chart-system.md](04-chart-system.md) | 23 | 1 | 21 | 1 |
 | Gameplay Judge | [05-gameplay-judge.md](05-gameplay-judge.md) | 15 | 0 | 15 | 0 |
-| Visual Rendering | [06-visual-rendering.md](06-visual-rendering.md) | 19 | 7 | 12 | 0 |
+| Visual Rendering | [06-visual-rendering.md](06-visual-rendering.md) | 20 | 7 | 13 | 0 |
 | Screen Flow | [07-screen-flow.md](07-screen-flow.md) | 14 | 0 | 14 | 0 |
 | Scripting System | [08-scripting-system.md](08-scripting-system.md) | 10 | 0 | 10 | 0 |
 | Data Management | [09-data-management.md](09-data-management.md) | 13 | 0 | 13 | 0 |
 | Network System | [10-network-system.md](10-network-system.md) | 11 | 0 | 0 | 11 |
 | Asset Management | [11-asset-management.md](11-asset-management.md) | 11 | 3 | 8 | 0 |
-| **TOTAL** | | **139** | **15** | **111** | **13** |
+| Gameplay Design | [12-gameplay-design.md](12-gameplay-design.md) | 11 | 0 | 11 | 0 |
+| **TOTAL** | | **159** | **15** | **131** | **13** |
 
 ## Status Definitions
 
@@ -47,11 +48,12 @@ Source: Roadmap section reference
 ## Coverage
 
 These requirements cover:
-- All 11 subsystems defined in the roadmap
+- All 12 subsystems (11 from roadmap + gameplay design specifications)
 - All 9 implementation phases
 - Current state (BGA subsystem complete with 82 tests)
 - Architecture decisions and their rationale
 - Implicit requirements derived from technical constraints
+- Gameplay mechanics specifications (formal design documents)
 
 ## Notes
 

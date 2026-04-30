@@ -85,7 +85,7 @@ The engine must parse Kick It Up .ksf chart files.
 - Engine resolves audio filename relative to the song directory
 - Handles malformed files with error logging
 
-**Dependencies**: REQ-CHT-001  
+**Dependencies**: REQ-CHT-001, REQ-CHT-016  
 **Source**: Roadmap subsystem 4, Phase 1
 
 ---
@@ -102,7 +102,7 @@ The engine must parse StepMania .ssc chart files.
 - Parses pump-single5 and pump-double10 charts
 - Ignores unsupported chart types gracefully
 
-**Dependencies**: REQ-CHT-001  
+**Dependencies**: REQ-CHT-001, REQ-CHT-018  
 **Source**: Roadmap subsystem 4, Phase 4
 
 ---
@@ -119,7 +119,7 @@ The engine must parse .sma (StepMania legacy), .stx (PIU Pro/Pro2), .see (PIU Ex
 - .nx parser handles multiple sub-variants (NX, NX2, NXA, etc)
 - All parsers log errors for unsupported features
 
-**Dependencies**: REQ-CHT-001  
+**Dependencies**: REQ-CHT-001, REQ-CHT-019, REQ-CHT-020, REQ-CHT-021, REQ-CHT-022  
 **Source**: Roadmap subsystem 4, Phase 4
 
 ---
@@ -259,3 +259,139 @@ The .osf format must be designed to support future chart editor implementation.
 
 **Dependencies**: REQ-CHT-008  
 **Source**: Roadmap scope notes
+
+---
+
+## REQ-CHT-016: KSF Format Specification Documentation
+**Status**: [PLANNED Phase 1]  
+**Priority**: Must Have
+
+The KSF (Kick It Up) chart format must be documented with a formal specification covering syntax, semantics, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering file structure, metadata fields, timing sections, note encoding
+- Specification includes examples of valid KSF files
+- Edge cases documented (empty measures, BPM changes, file encoding)
+- Spec references original Kick It Up behavior where applicable
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-017: KSF Parser Specification Compliance
+**Status**: [PLANNED Phase 2]  
+**Priority**: Must Have
+
+The existing KSF parser must be audited against the formal specification and any deviations must be fixed.
+
+**Acceptance Criteria**:
+- Audit identifies all spec deviations in current parser implementation
+- Critical deviations (incorrect note placement, timing errors) are fixed
+- Non-critical deviations (metadata handling differences) are documented with rationale
+- All spec compliance issues are tracked and resolved
+
+**Dependencies**: REQ-CHT-005, REQ-CHT-016  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-018: SSC Format Specification Documentation
+**Status**: [PLANNED Phase 4]  
+**Priority**: Must Have
+
+The SSC (StepMania 5) chart format must be documented with a formal specification covering syntax, semantics, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering file structure, metadata tags, timing events, note encoding
+- Specification includes examples of valid SSC files
+- Specification covers pump-single5 and pump-double10 chart types specifically
+- Edge cases documented (nested timing changes, warp handling, chart-specific vs song-global tags)
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-019: SMA Format Specification Documentation
+**Status**: [PLANNED Phase 4]  
+**Priority**: Should Have
+
+The SMA (StepMania legacy) chart format must be documented with a formal specification covering syntax, semantics, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering file structure, metadata fields, timing sections, note encoding
+- Specification includes examples of valid SMA files
+- Differences from SSC format clearly documented
+- Edge cases documented (legacy BPM handling, measure length variations)
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-020: STX Format Specification Documentation
+**Status**: [PLANNED Phase 4]  
+**Priority**: Should Have
+
+The STX (PIU Pro/Pro2) chart format must be documented with a formal specification covering syntax, semantics, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering file structure, metadata fields, timing sections, note encoding
+- Specification includes examples of valid STX files
+- Pro vs Pro2 format variations documented
+- Edge cases documented (BPM change handling, difficulty encoding)
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-021: SEE Format Specification Documentation
+**Status**: [PLANNED Phase 4]  
+**Priority**: Should Have
+
+The SEE (PIU Exceed/Exceed2 encrypted) chart format must be documented with a formal specification covering encryption, syntax, semantics, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering encryption scheme, decrypted file structure, metadata fields, timing sections, note encoding
+- Specification includes decryption algorithm and key management approach
+- Specification includes examples of decrypted SEE file structure
+- Edge cases documented (corrupted encryption, partial decryption failures)
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-022: NX Format Specification Documentation
+**Status**: [PLANNED Phase 4]  
+**Priority**: Should Have
+
+The NX (PIU NX-Phoenix) chart format must be documented with a formal specification covering syntax, semantics, sub-variant differences, and expected parser behavior.
+
+**Acceptance Criteria**:
+- Complete format spec written in docs/ covering file structure, metadata fields, timing sections, note encoding
+- Specification covers all NX sub-variants (NX, NX2, NXA, etc.) and their differences
+- Specification includes examples of valid NX files for each sub-variant
+- Edge cases documented (variant detection, backward compatibility)
+
+**Dependencies**: None  
+**Source**: PO conversation 2026-04-29, requirements gap analysis
+
+---
+
+## REQ-CHT-023: Unified Step Format Design
+**Status**: [PLANNED Phase 5 or later]  
+**Priority**: Must Have
+
+After all legacy format specifications are complete, the engine must design a unified step file format that captures all features from legacy formats and serves as the foundation for gameplay polishing.
+
+**Acceptance Criteria**:
+- Design integrates all features from documented legacy formats (KSF, SSC, SMA, STX, SEE, NX)
+- Format design addresses gaps and limitations of legacy formats
+- Format specification written in docs/ before any gameplay polishing begins
+- Format serves as canonical template for OSF implementation (REQ-CHT-008)
+
+**Dependencies**: REQ-CHT-016, REQ-CHT-018, REQ-CHT-019, REQ-CHT-020, REQ-CHT-021, REQ-CHT-022  
+**Source**: PO conversation 2026-04-29, PO directive: "make sure we do not start polishing gameplay until we have the format defined"

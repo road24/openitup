@@ -151,8 +151,38 @@ The note renderer must support sprite-based note skins loaded from directories w
 - Hold body and cap sprites
 - Judgment and combo number sprites
 
-**Dependencies**: REQ-REN-003, REQ-REN-008  
+**Dependencies**: REQ-REN-003, REQ-REN-008, REQ-REN-020  
 **Source**: Roadmap subsystem 6, Phase 2
+
+---
+
+## REQ-REN-020: Noteskin Format Specification
+
+**Status**: [PLANNED Phase 2]  
+**Priority**: Must Have
+
+The noteskin format must be formally documented before implementing sprite-based note rendering. A noteskin defines the visual representation of all arrow types, receptors, and hit feedback animations.
+
+**Description**: Create a specification document at `docs/noteskin-format-spec.md` describing the noteskin directory structure, sprite layout, animation timing, and all required assets. This spec follows the pattern established by BGA and sprite format specifications.
+
+**Acceptance Criteria**:
+- Specification document created at `docs/noteskin-format-spec.md`
+- Documents the 5 arrow categories (down-left, up-left, center, up-right, down-right)
+- Documents all 8 note types per arrow: tap, fake, mine, hold head, hold body, hold end, tap W (division up), tap G (division down)
+- Documents the 6-frame animation cycle per note type (50ms per frame, 300ms full loop)
+- Documents the receptor area as 3 overlapping animation layers rendered in order:
+  1. Receptor background animation (always playing, one per arrow direction)
+  2. Press animation (plays on column when user presses button, visual input acknowledgment)
+  3. Judged animation (plays on column when arrow is judged Perfect/Great/Good)
+- All three layers render simultaneously when active — they overlay, not replace each other
+- Specifies 64x64 pixel dimensions for all note graphics
+- Documents that noteskins are sprite animations loaded directly (no BGA file)
+- Documents directory structure and file naming convention
+- Documents how skins are discovered and selected
+- Includes example directory layout with all required files listed
+
+**Dependencies**: None  
+**Source**: PO specification 2026-04-29
 
 ---
 
