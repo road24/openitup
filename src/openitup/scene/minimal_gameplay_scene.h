@@ -4,9 +4,11 @@
 #include <memory>
 
 #include <openitup/audio/audio_system.h>
+#include <openitup/bga/animation.h>
 #include <openitup/chart/chart.h>
 #include <openitup/chart/ksf_parser.h>
 #include <openitup/gfx/renderer.h>
+#include <openitup/gfx/texture_cache.h>
 #include <openitup/input/input_system.h>
 #include <openitup/judge/gameplay_state.h>
 #include <openitup/judge/judge.h>
@@ -69,6 +71,8 @@ private:
     ComboDisplay combo_display_;        // Note: Currently uses fallback rectangles.
                                          // To enable sprite display, pass NoteSkin* and
                                          // TextureCache* to constructor when available.
+    std::unique_ptr<TextureCache> texture_cache_;  // Owned — needed for BGA/sprite loading
+    std::unique_ptr<BgaAnimation> bga_;  // Optional BGA animation (nullable)
 
     // Non-owning references to Engine subsystems.
     AudioSystem* audio_;

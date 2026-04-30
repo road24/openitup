@@ -2,6 +2,9 @@
 
 #include <spdlog/spdlog.h>
 
+#include <openitup/bga/bga_loader.h>
+#include <openitup/gfx/blend_modes.h>
+#include <openitup/gfx/image_loader.h>
 #include <openitup/input/input_snapshot.h>
 #include <openitup/judge/judgment_event.h>
 #include <openitup/judge/timing_profile.h>
@@ -21,6 +24,8 @@ MinimalGameplayScene::MinimalGameplayScene(
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
       combo_display_(),
+      texture_cache_(renderer ? std::make_unique<TextureCache>(renderer->get(), load_image) : nullptr),
+      bga_(),
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer)
@@ -66,6 +71,33 @@ MinimalGameplayScene::MinimalGameplayScene(
             audio_ = nullptr;
         }
     }
+
+    // Load BGA (optional, graceful degradation, requires texture_cache_)
+    if (texture_cache_) {
+        std::filesystem::path bga_path;
+        static const char* bga_probes[] = {
+            "song.bgaj", "song.bga", "Song.bgaj", "Song.bga",
+            "SONG.BGAJ", "SONG.BGA",
+        };
+        for (const char* name : bga_probes) {
+            auto candidate = data_dir / name;
+            if (std::filesystem::exists(candidate)) {
+                bga_path = candidate;
+                spdlog::info("BGA discovered by convention: {}", bga_path.string());
+                break;
+            }
+        }
+
+        if (!bga_path.empty()) {
+            try {
+                bga_ = load_bga_auto(bga_path, *texture_cache_);
+                spdlog::info("BGA loaded successfully");
+            } catch (const std::exception& e) {
+                spdlog::warn("Failed to load BGA '{}': {}", bga_path.string(), e.what());
+                bga_ = nullptr;
+            }
+        }
+    }
 }
 
 MinimalGameplayScene::MinimalGameplayScene(
@@ -79,11 +111,14 @@ MinimalGameplayScene::MinimalGameplayScene(
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
       combo_display_(),
+      texture_cache_(renderer ? std::make_unique<TextureCache>(renderer->get(), load_image) : nullptr),
+      bga_(),
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer)
 {
-    // No logging or audio loading for test-friendly constructor
+    // No logging, audio loading, or BGA loading for test-friendly constructor.
+    // Texture cache and BGA are only available if renderer is non-null.
 }
 
 MinimalGameplayScene::~MinimalGameplayScene() = default;
