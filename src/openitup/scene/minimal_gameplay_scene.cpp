@@ -149,8 +149,9 @@ void MinimalGameplayScene::render(double /*alpha*/) {
     SDL_Renderer* sdl_renderer = renderer_->get();
 
     // Render note field
-    note_renderer_.render_receptors(sdl_renderer);
-    note_renderer_.render(sdl_renderer, last_song_ms_);
+    // TODO: pass actual global_time_ms from SDL_GetTicks() when sprite support is added
+    note_renderer_.render_receptors(sdl_renderer, 0.0);
+    note_renderer_.render(sdl_renderer, last_song_ms_, 0.0);
 
     // Render judgment feedback
     // Use FIXED_STEP as dt approximation for the fade timer

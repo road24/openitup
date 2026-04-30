@@ -10,10 +10,14 @@ struct SDL_Renderer;
 
 namespace openitup {
 
+class NoteSkin;
+class TextureCache;
+
 struct NoteFieldConfig {
     float receptor_y = 80.0f;
     float note_width = 48.0f;
     float note_height = 48.0f;
+    float note_sprite_size = 64.0f;
     float pixels_per_beat = 80.0f;
     float scroll_speed = 1.0f;
     int num_columns = 5;
@@ -29,8 +33,12 @@ struct ColumnColor {
 class NoteRenderer {
 public:
     // Construct for a chart. note_data and timing_data must outlive the renderer.
+    // skin: optional noteskin pointer (nullable, non-owning) for sprite rendering.
+    // cache: required when skin is non-null, for texture resolution during sprite draw.
     NoteRenderer(const NoteData& note_data, const TimingData& timing_data,
-                 const NoteFieldConfig& config);
+                 const NoteFieldConfig& config,
+                 const NoteSkin* skin = nullptr,
+                 TextureCache* cache = nullptr);
 
     // Convert a beat position to a Y screen coordinate given the current song beat.
     // Pure function — testable without SDL.
@@ -38,10 +46,17 @@ public:
 
     // Render all visible notes for the current song position.
     // song_position_ms: current audio playback position from AudioSystem.
-    void render(SDL_Renderer* renderer, double song_position_ms) const;
+    // global_time_ms: wall-clock time for noteskin animation (from SDL_GetTicks()).
+    void render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms) const;
 
     // Render receptor indicators at the receptor line.
-    void render_receptors(SDL_Renderer* renderer) const;
+    // global_time_ms: wall-clock time for noteskin animation.
+    // pressed_columns: bool array of size num_columns (nullable), true if panel pressed.
+    // judge_trigger_times: double array of size num_columns (nullable), timestamp of last judge trigger.
+    void render_receptors(SDL_Renderer* renderer,
+                          double global_time_ms = 0.0,
+                          const bool* pressed_columns = nullptr,
+                          const double* judge_trigger_times = nullptr) const;
 
     // Access config for external queries (e.g., judgment display positioning).
     const NoteFieldConfig& config() const;
@@ -50,6 +65,8 @@ private:
     const NoteData& note_data_;
     const TimingData& timing_data_;
     NoteFieldConfig config_;
+    const NoteSkin* skin_;
+    TextureCache* cache_;
 };
 
 // Build a default single-mode config (5 columns centered in 640px).

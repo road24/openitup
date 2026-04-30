@@ -2,6 +2,11 @@
 
 #include <SDL3/SDL.h>
 #include <openitup/chart/note_type.h>
+#include <openitup/render/noteskin.h>
+#include <openitup/render/noteskin_anim.h>
+#include <openitup/gfx/texture_cache.h>
+#include <openitup/sprite/sprite.h>
+#include <openitup/math/types.h>
 
 namespace openitup {
 
@@ -37,8 +42,11 @@ NoteFieldConfig default_single_config() {
 }
 
 NoteRenderer::NoteRenderer(const NoteData& note_data, const TimingData& timing_data,
-                           const NoteFieldConfig& config)
-    : note_data_(note_data), timing_data_(timing_data), config_(config) {
+                           const NoteFieldConfig& config,
+                           const NoteSkin* skin,
+                           TextureCache* cache)
+    : note_data_(note_data), timing_data_(timing_data), config_(config),
+      skin_(skin), cache_(cache) {
 }
 
 float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
@@ -47,7 +55,7 @@ float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
          + static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
 }
 
-void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms) const {
+void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms) const {
     // Convert song position to current beat
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
@@ -81,34 +89,87 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms) const
             continue;
         }
 
-        float x = config_.column_x[note.column] - config_.note_width / 2.0f;
+        // Try sprite rendering if noteskin is available
+        const Sprite* sprite = nullptr;
+        int track = note.column % NUM_TRACKS;
 
-        // Set color from column
-        const auto& color = COLUMN_COLORS[note.column];
-        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+        if (skin_ && cache_) {
+            switch (note.type) {
+                case NoteType::TAP:
+                    sprite = skin_->tap(track);
+                    break;
+                case NoteType::HOLD_HEAD:
+                    sprite = skin_->hold(track, HoldPart::HEAD);
+                    break;
+                default:
+                    break;
+            }
+        }
 
-        // Draw filled rectangle
-        SDL_FRect rect;
-        rect.x = x;
-        rect.y = y - config_.note_height / 2.0f;
-        rect.w = config_.note_width;
-        rect.h = config_.note_height;
-        SDL_RenderFillRect(renderer, &rect);
+        if (sprite) {
+            // Sprite rendering path
+            float t = noteskin_loop_t(global_time_ms);
+            LayerTransform xform{};
+            xform.translate_x = config_.column_x[note.column] - (config_.note_sprite_size / 2.0f);
+            xform.translate_y = y - (config_.note_sprite_size / 2.0f);
+            sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+        } else {
+            // Phase 1 fallback: colored rectangle
+            float x = config_.column_x[note.column] - config_.note_width / 2.0f;
+
+            const auto& color = COLUMN_COLORS[note.column];
+            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+
+            SDL_FRect rect;
+            rect.x = x;
+            rect.y = y - config_.note_height / 2.0f;
+            rect.w = config_.note_width;
+            rect.h = config_.note_height;
+            SDL_RenderFillRect(renderer, &rect);
+        }
     }
 }
 
-void NoteRenderer::render_receptors(SDL_Renderer* renderer) const {
-    // Set draw color to dim gray
-    SDL_SetRenderDrawColor(renderer, 80, 80, 80, 180);
+void NoteRenderer::render_receptors(SDL_Renderer* renderer,
+                                    double global_time_ms,
+                                    const bool* pressed_columns,
+                                    const double* judge_trigger_times) const {
+    for (int col = 0; col < config_.num_columns; ++col) {
+        int track = col % NUM_TRACKS;
+        float x = config_.column_x[col] - (config_.note_sprite_size / 2.0f);
+        float y = config_.receptor_y - (config_.note_sprite_size / 2.0f);
 
-    // Draw outlined rectangle at receptor position for each column
-    for (int col = 0; col < config_.num_columns; col++) {
+        LayerTransform xform{};
+        xform.translate_x = x;
+        xform.translate_y = y;
+
+        // Layer 1: Receptor background (deferred — use placeholder rectangle for now)
+        // Phase 1 fallback: dim gray outlined rectangle
+        SDL_SetRenderDrawColor(renderer, 80, 80, 80, 180);
         SDL_FRect rect;
         rect.x = config_.column_x[col] - config_.note_width / 2.0f;
         rect.y = config_.receptor_y - config_.note_height / 2.0f;
         rect.w = config_.note_width;
         rect.h = config_.note_height;
         SDL_RenderRect(renderer, &rect);
+
+        // Layer 2: Press overlay (loops while pressed)
+        if (pressed_columns && pressed_columns[col] && skin_ && cache_) {
+            const Sprite* press_sprite = skin_->press(track);
+            if (press_sprite) {
+                float t = noteskin_loop_t(global_time_ms);
+                press_sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+            }
+        }
+
+        // Layer 3: Judge overlay (one-shot, 300ms)
+        if (judge_trigger_times && noteskin_oneshot_active(global_time_ms, judge_trigger_times[col]) && skin_ && cache_) {
+            const Sprite* judge_sprite = skin_->judge(track);
+            if (judge_sprite) {
+                float t = noteskin_oneshot_t(global_time_ms, judge_trigger_times[col]);
+                judge_sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+            }
+        }
     }
 }
 
