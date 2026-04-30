@@ -68,6 +68,11 @@ const Sprite* NoteSkin::judgment_miss() const {
     return judgment_miss_.get();
 }
 
+const Sprite* NoteSkin::combo_digit(int digit) const {
+    if (digit < 0 || digit > 9) return nullptr;
+    return combo_digits_[digit].get();
+}
+
 bool NoteSkin::is_complete() const {
     return loaded_count() == EXPECTED_COUNT;
 }

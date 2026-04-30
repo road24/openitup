@@ -89,6 +89,12 @@ std::unique_ptr<NoteSkin> NoteSkinLoader::load(
     skin->judgment_bad_ = try_load_sprj(skin_dir, "judge-bad.sprj", cache);
     skin->judgment_miss_ = try_load_sprj(skin_dir, "judge-miss.sprj", cache);
 
+    // Load combo digit sprites (0-9)
+    for (int digit = 0; digit < 10; ++digit) {
+        skin->combo_digits_[digit] = try_load_sprj(
+            skin_dir, std::format("combo-{}.sprj", digit), cache);
+    }
+
     spdlog::info("NoteSkin '{}' loaded: {}/{} sprites",
                  skin->name, skin->loaded_count(), NoteSkin::EXPECTED_COUNT);
 

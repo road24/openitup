@@ -59,6 +59,10 @@ public:
     const Sprite* judgment_bad() const;
     const Sprite* judgment_miss() const;
 
+    // --- Combo digit sprites (0-9) ---
+
+    const Sprite* combo_digit(int digit) const;
+
     // --- Completeness query ---
 
     // True if all Phase 2 required sprites are loaded (all TAP, LONG, etc.).
@@ -91,6 +95,9 @@ private:
     std::unique_ptr<Sprite> judgment_good_;
     std::unique_ptr<Sprite> judgment_bad_;
     std::unique_ptr<Sprite> judgment_miss_;
+
+    // Combo digit sprites (0-9)
+    std::array<std::unique_ptr<Sprite>, 10> combo_digits_;
 };
 
 } // namespace openitup
