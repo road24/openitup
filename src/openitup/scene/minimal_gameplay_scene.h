@@ -16,6 +16,7 @@
 #include <openitup/render/judgment_display.h>
 #include <openitup/render/life_gauge.h>
 #include <openitup/render/note_renderer.h>
+#include <openitup/render/noteskin.h>
 #include <openitup/scene/scene.h>
 
 namespace openitup {
@@ -97,6 +98,7 @@ private:
     LifeGauge life_gauge_;              // Visual life gauge rendering
     std::unique_ptr<TextureCache> texture_cache_;  // Owned — needed for BGA/sprite loading
     std::unique_ptr<BgaAnimation> bga_;  // Optional BGA animation (nullable)
+    std::unique_ptr<NoteSkin> noteskin_; // Loaded noteskin (nullable)
 
     // Non-owning references to Engine subsystems.
     AudioSystem* audio_;

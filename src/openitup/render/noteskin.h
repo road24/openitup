@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include <openitup/chart/play_mode.h>
 #include <openitup/sprite/sprite.h>
 
 namespace openitup {
@@ -15,8 +16,7 @@ inline constexpr int NUM_TRACKS = 5;
 // Hold sub-parts.
 enum class HoldPart : uint8_t { HEAD = 0, BODY = 1, TAIL = 2 };
 
-// Play mode for receptor sprites.
-enum class PlayMode : uint8_t { SINGLE = 0, DOUBLE = 1, HALF = 2 };
+// PlayMode is defined in chart/play_mode.h
 
 class NoteSkin {
 public:

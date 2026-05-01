@@ -345,6 +345,11 @@ void NoteRenderer::render_receptors(SDL_Renderer* renderer,
     }
 }
 
+void NoteRenderer::set_skin(const NoteSkin* skin, TextureCache* cache) {
+    skin_ = skin;
+    cache_ = cache;
+}
+
 const NoteFieldConfig& NoteRenderer::config() const {
     return config_;
 }

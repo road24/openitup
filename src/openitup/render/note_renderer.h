@@ -77,6 +77,9 @@ public:
     // global_time_ms: current wall-clock time for fade-out calculation
     void render_hit_effects(SDL_Renderer* renderer, double global_time_ms) const;
 
+    // Set or replace the noteskin after construction.
+    void set_skin(const NoteSkin* skin, TextureCache* cache);
+
     // Access config for external queries (e.g., judgment display positioning).
     const NoteFieldConfig& config() const;
 

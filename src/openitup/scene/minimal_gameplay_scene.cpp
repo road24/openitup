@@ -10,6 +10,7 @@
 #include <openitup/judge/judgment_event.h>
 #include <openitup/judge/timing_profile.h>
 #include <openitup/render/note_renderer.h>
+#include <openitup/render/noteskin_loader.h>
 #include <openitup/render/text_renderer.h>
 #include <openitup/scene/result_scene.h>
 #include <openitup/scene/title_scene.h>
@@ -108,6 +109,25 @@ MinimalGameplayScene::MinimalGameplayScene(
                 spdlog::warn("Failed to load BGA '{}': {}", bga_path.string(), e.what());
                 bga_ = nullptr;
             }
+        }
+    }
+
+    // Load noteskin
+    if (texture_cache_) {
+        auto skin_dir = std::filesystem::path("noteskin/default");
+        if (!skin_dir.is_absolute() && !data_dir.empty()) {
+            // Try relative to data dir first, then relative to CWD
+            auto candidate = data_dir / skin_dir;
+            if (std::filesystem::exists(candidate)) {
+                skin_dir = candidate;
+            }
+        }
+        try {
+            noteskin_ = NoteSkinLoader::load(skin_dir, *texture_cache_);
+            note_renderer_.set_skin(noteskin_.get(), texture_cache_.get());
+            spdlog::info("NoteSkin loaded: {} ({} sprites)", noteskin_->name, noteskin_->loaded_count());
+        } catch (const std::exception& e) {
+            spdlog::warn("Failed to load noteskin: {} — using placeholder rectangles", e.what());
         }
     }
 }

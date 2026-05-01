@@ -8,6 +8,7 @@ namespace openitup {
 enum class PlayMode : uint8_t {
     SINGLE = 0,  // 5 panels, columns 0-4
     DOUBLE = 1,  // 10 panels, columns 0-9
+    HALF = 2,    // Half-double mode
 };
 
 // Maximum valid column index for the mode.
