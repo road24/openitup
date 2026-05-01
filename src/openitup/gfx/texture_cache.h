@@ -48,6 +48,12 @@ public:
     // Destroy all cached textures.
     void clear();
 
+    // Get current GPU memory usage estimate in bytes.
+    size_t get_memory_usage_bytes() const { return current_memory_usage_; }
+
+    // Get configured memory threshold in bytes.
+    size_t get_memory_threshold_bytes() const { return memory_threshold_bytes_; }
+
     // Pin a texture so it is never evicted by LRU (future: US-AST-018).
     // If the texture path is not currently cached, logs a warning and does nothing.
     void pin_texture(const std::string& canonical_path);
@@ -59,6 +65,9 @@ public:
                                        const std::filesystem::path& base_dir);
 
 private:
+    // Evict least-recently-used unpinned textures until memory usage + bytes_needed
+    // is below the threshold.
+    void evict_lru_until_below_threshold(size_t bytes_needed);
     SDL_Renderer* renderer_;
     ImageLoaderFn loader_;
 

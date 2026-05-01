@@ -267,3 +267,105 @@ TEST_F(TextureCacheTest, LastAccessTickUpdatesOnCacheHit) {
     EXPECT_EQ(r1.handle, r2.handle);
     EXPECT_EQ(cache.size(), 2u);
 }
+
+// --- LRU Eviction Tests ---
+
+TEST_F(TextureCacheTest, EvictionTriggeredByMemoryThreshold) {
+    if (!has_renderer()) GTEST_SKIP() << "No SDL renderer available";
+
+    auto loader = [](const fs::path& path) -> SDL_Surface* {
+        return SDL_LoadBMP(path.string().c_str());
+    };
+
+    // Set threshold to 1 MB (small to force eviction with many textures)
+    size_t threshold_mb = 1;
+    TextureCache cache(renderer_, loader, threshold_mb);
+
+    // Create larger textures to exceed 1MB threshold
+    // Each 128x128 texture is ~64KB (128*128*4 = 65536 bytes)
+    // 20 textures = ~1.25 MB, which exceeds 1MB threshold
+    for (int i = 0; i < 20; i++) {
+        std::string name = "tex" + std::to_string(i) + ".bmp";
+        write_bmp(name, 128, 128);
+        fs::rename(tmp_dir_ / name, tmp_dir_ / (std::string("tex") + std::to_string(i) + ".tga"));
+    }
+
+    // Load textures - eviction should kick in
+    for (int i = 0; i < 20; i++) {
+        cache.load(std::string("tex") + std::to_string(i) + ".tga", tmp_dir_);
+    }
+
+    // Memory usage should be below threshold due to eviction
+    EXPECT_LE(cache.get_memory_usage_bytes(), cache.get_memory_threshold_bytes());
+
+    // Cache size should be less than 20 (some evicted)
+    EXPECT_LT(cache.size(), 20u);
+}
+
+TEST_F(TextureCacheTest, PinnedTexturesNotEvicted) {
+    if (!has_renderer()) GTEST_SKIP() << "No SDL renderer available";
+
+    auto loader = [](const fs::path& path) -> SDL_Surface* {
+        return SDL_LoadBMP(path.string().c_str());
+    };
+
+    // Set small threshold to force eviction
+    size_t threshold_mb = 1;
+    TextureCache cache(renderer_, loader, threshold_mb);
+
+    // Create and load first texture (128x128 = 64KB)
+    write_bmp("pinned.bmp", 128, 128);
+    fs::rename(tmp_dir_ / "pinned.bmp", tmp_dir_ / "pinned.tga");
+    auto r1 = cache.load("pinned.tga", tmp_dir_);
+
+    // Pin it using canonical path
+    auto pinned_path = fs::canonical(tmp_dir_ / "pinned.tga").string();
+    cache.pin_texture(pinned_path);
+
+    // Load more textures to trigger eviction (20x 128x128 = ~1.25MB)
+    for (int i = 0; i < 20; i++) {
+        std::string name = "tex" + std::to_string(i) + ".bmp";
+        write_bmp(name, 128, 128);
+        fs::rename(tmp_dir_ / name, tmp_dir_ / (std::string("tex") + std::to_string(i) + ".tga"));
+        cache.load(std::string("tex") + std::to_string(i) + ".tga", tmp_dir_);
+    }
+
+    // Pinned texture should still be valid
+    EXPECT_NE(cache.get(r1.handle), nullptr);
+}
+
+TEST_F(TextureCacheTest, EvictedTextureReloadsAsCacheMiss) {
+    if (!has_renderer()) GTEST_SKIP() << "No SDL renderer available";
+
+    auto loader = [](const fs::path& path) -> SDL_Surface* {
+        return SDL_LoadBMP(path.string().c_str());
+    };
+
+    // Set small threshold to force eviction
+    size_t threshold_mb = 1;
+    TextureCache cache(renderer_, loader, threshold_mb);
+
+    // Load first texture (128x128 = 64KB)
+    write_bmp("first.bmp", 128, 128);
+    fs::rename(tmp_dir_ / "first.bmp", tmp_dir_ / "first.tga");
+    auto r1 = cache.load("first.tga", tmp_dir_);
+    auto original_handle = r1.handle;
+
+    // Load many more textures to force eviction of first (20x 128x128 = ~1.25MB)
+    for (int i = 0; i < 20; i++) {
+        std::string name = "tex" + std::to_string(i) + ".bmp";
+        write_bmp(name, 128, 128);
+        fs::rename(tmp_dir_ / name, tmp_dir_ / (std::string("tex") + std::to_string(i) + ".tga"));
+        cache.load(std::string("tex") + std::to_string(i) + ".tga", tmp_dir_);
+    }
+
+    // Original handle should be invalid (texture destroyed)
+    EXPECT_EQ(cache.get(original_handle), nullptr);
+
+    // Reload first texture - should succeed and get a new handle
+    auto r2 = cache.load("first.tga", tmp_dir_);
+    EXPECT_NE(r2.handle, TextureHandle::Invalid);
+    EXPECT_EQ(r2.width, 128);
+    EXPECT_EQ(r2.height, 128);
+    EXPECT_NE(cache.get(r2.handle), nullptr);
+}

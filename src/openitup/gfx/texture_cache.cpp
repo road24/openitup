@@ -81,6 +81,12 @@ TextureCache::LoadResult TextureCache::load(const std::string& name,
     int w = surface->w;
     int h = surface->h;
 
+    // Estimate memory needed for new texture: assume RGBA format (4 bytes per pixel)
+    size_t texture_bytes = static_cast<size_t>(w) * h * 4;
+
+    // Evict textures if needed before creating the SDL_Texture
+    evict_lru_until_below_threshold(texture_bytes);
+
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer_, surface);
     SDL_DestroySurface(surface);
 
@@ -92,8 +98,7 @@ TextureCache::LoadResult TextureCache::load(const std::string& name,
 
     auto idx = static_cast<uint16_t>(entries_.size());
 
-    // Estimate memory usage: assume RGBA format (4 bytes per pixel)
-    size_t texture_bytes = static_cast<size_t>(w) * h * 4;
+    // Update memory usage tracking
     current_memory_usage_ += texture_bytes;
 
     Entry entry;
@@ -121,7 +126,14 @@ SDL_Texture* TextureCache::get(TextureHandle h) const {
 }
 
 size_t TextureCache::size() const {
-    return entries_.size();
+    // Count only non-null textures (evicted entries have nullptr texture)
+    size_t count = 0;
+    for (const auto& entry : entries_) {
+        if (entry.texture != nullptr) {
+            count++;
+        }
+    }
+    return count;
 }
 
 void TextureCache::clear() {
@@ -145,6 +157,75 @@ void TextureCache::pin_texture(const std::string& canonical_path) {
     auto idx = it->second;
     entries_[idx].pinned = true;
     spdlog::debug("pinned texture '{}' (handle {})", canonical_path, idx);
+}
+
+void TextureCache::evict_lru_until_below_threshold(size_t bytes_needed) {
+    // Check if eviction is necessary
+    if (current_memory_usage_ + bytes_needed <= memory_threshold_bytes_) {
+        return; // No eviction needed
+    }
+
+    spdlog::debug("eviction triggered: current={}MB + needed={}MB > threshold={}MB",
+                  current_memory_usage_ / (1024.0 * 1024.0),
+                  bytes_needed / (1024.0 * 1024.0),
+                  memory_threshold_bytes_ / (1024.0 * 1024.0));
+
+    // Collect eviction candidates: (index, last_access_tick, size_bytes)
+    struct Candidate {
+        uint16_t index;
+        uint64_t tick;
+        size_t bytes;
+        std::string path;
+    };
+    std::vector<Candidate> candidates;
+
+    for (const auto& [path, idx] : path_to_index_) {
+        const auto& entry = entries_[idx];
+        if (!entry.pinned) {
+            size_t bytes = static_cast<size_t>(entry.width) * entry.height * 4;
+            candidates.push_back({idx, entry.last_access_tick, bytes, path});
+        }
+    }
+
+    // Sort by last_access_tick (oldest first)
+    std::sort(candidates.begin(), candidates.end(),
+              [](const Candidate& a, const Candidate& b) {
+                  return a.tick < b.tick;
+              });
+
+    // Evict oldest textures until we're below threshold
+    size_t target_usage = memory_threshold_bytes_ - bytes_needed;
+    for (const auto& candidate : candidates) {
+        if (current_memory_usage_ <= target_usage) {
+            break; // Evicted enough
+        }
+
+        spdlog::info("evicting texture: handle={}, tick={}, {}x{}, memory={}KB",
+                     candidate.index,
+                     candidate.tick,
+                     entries_[candidate.index].width,
+                     entries_[candidate.index].height,
+                     candidate.bytes / 1024);
+
+        // Destroy the texture
+        if (entries_[candidate.index].texture) {
+            SDL_DestroyTexture(entries_[candidate.index].texture);
+            entries_[candidate.index].texture = nullptr;
+        }
+
+        // Update memory usage
+        current_memory_usage_ -= candidate.bytes;
+
+        // Remove from path_to_index
+        path_to_index_.erase(candidate.path);
+
+        // Mark entry as deleted (we'll keep the slot to maintain handle stability)
+        entries_[candidate.index].width = 0;
+        entries_[candidate.index].height = 0;
+    }
+
+    spdlog::debug("eviction complete: memory={}MB",
+                  current_memory_usage_ / (1024.0 * 1024.0));
 }
 
 } // namespace openitup
