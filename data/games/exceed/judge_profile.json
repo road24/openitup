@@ -1,0 +1,25 @@
+{
+    "name": "Exceed",
+    "windows_ms": {
+        "perfect": 21,
+        "great": 43,
+        "good": 102,
+        "bad": 135,
+        "miss": 180
+    },
+    "scoring": {
+        "perfect": 1000,
+        "great": 500,
+        "good": 100,
+        "bad": 0,
+        "miss": 0
+    },
+    "life": {
+        "starting_hp": 40,
+        "perfect_hp": 1,
+        "great_hp": 0,
+        "good_hp": -1,
+        "bad_hp": -3,
+        "miss_hp": -5
+    }
+}

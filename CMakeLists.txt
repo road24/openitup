@@ -150,6 +150,10 @@ add_library(openitup_engine STATIC
     src/openitup/input/input_snapshot.cpp
     src/openitup/input/input_system.cpp
     src/openitup/input/keyboard_driver.cpp
+    src/openitup/input/hid_pad_driver.cpp
+    src/openitup/input/input_merger.cpp
+    src/openitup/input/piuio_driver.cpp
+    src/openitup/input/lamp_controller.cpp
     src/openitup/bga/layer.cpp
     src/openitup/bga/animation.cpp
     src/openitup/bga/bga_loader.cpp
@@ -205,6 +209,8 @@ add_library(openitup_engine STATIC
     src/openitup/scene/transition_scene.cpp
     src/openitup/scene/settings_scene.cpp
     src/openitup/scene/profile_selection_scene.cpp
+    src/openitup/scene/input_mapping_scene.cpp
+    src/openitup/scene/input_calibration_scene.cpp
     src/openitup/data/user_data_dir.cpp
     src/openitup/data/settings.cpp
     src/openitup/data/profile.cpp
@@ -214,6 +220,7 @@ add_library(openitup_engine STATIC
     src/openitup/data/song_cache.cpp
     src/openitup/lua/lua_engine.cpp
     src/openitup/lua/lua_bindings.cpp
+    src/openitup/lua/game_package.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -358,6 +365,8 @@ add_executable(openitup_tests
     test/test_cached_song_database.cpp
     test/test_song_select_scene.cpp
     test/test_keyboard_driver.cpp
+    test/test_hid_pad_driver.cpp
+    test/test_piuio_driver.cpp
     test/test_lua_engine.cpp
     test/test_lua_bindings.cpp
     test/test_note_field_config.cpp
@@ -367,6 +376,8 @@ add_executable(openitup_tests
     test/test_noteskin_manager.cpp
     test/test_chart_hash_integration.cpp
     test/test_new_scenes.cpp
+    test/test_game_package.cpp
+    test/test_input_config.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
