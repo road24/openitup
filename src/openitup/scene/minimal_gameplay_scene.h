@@ -14,6 +14,7 @@
 #include <openitup/judge/judge.h>
 #include <openitup/render/combo_display.h>
 #include <openitup/render/judgment_display.h>
+#include <openitup/render/life_gauge.h>
 #include <openitup/render/note_renderer.h>
 #include <openitup/scene/scene.h>
 
@@ -93,6 +94,7 @@ private:
     ComboDisplay combo_display_;        // Note: Currently uses fallback rectangles.
                                          // To enable sprite display, pass NoteSkin* and
                                          // TextureCache* to constructor when available.
+    LifeGauge life_gauge_;              // Visual life gauge rendering
     std::unique_ptr<TextureCache> texture_cache_;  // Owned — needed for BGA/sprite loading
     std::unique_ptr<BgaAnimation> bga_;  // Optional BGA animation (nullable)
 

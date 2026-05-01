@@ -101,6 +101,7 @@ add_library(openitup_engine STATIC
     src/openitup/render/note_renderer.cpp
     src/openitup/render/judgment_display.cpp
     src/openitup/render/combo_display.cpp
+    src/openitup/render/life_gauge.cpp
     src/openitup/render/noteskin.cpp
     src/openitup/render/noteskin_loader.cpp
     src/openitup/render/text_renderer.cpp
@@ -109,6 +110,7 @@ add_library(openitup_engine STATIC
     src/openitup/scene/boot_scene.cpp
     src/openitup/scene/title_scene.cpp
     src/openitup/scene/mode_select_scene.cpp
+    src/openitup/scene/result_scene.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -129,6 +131,7 @@ add_library(openitup_audio STATIC
     src/openitup/audio/vorbis_decoder.cpp
     src/openitup/audio/mp3_decoder.cpp
     src/openitup/audio/sdl3_audio_system.cpp
+    src/openitup/audio/sound_sample.cpp
 )
 
 target_include_directories(openitup_audio PUBLIC
@@ -184,6 +187,7 @@ add_executable(openitup_tests
     test/test_vendor_headers.cpp
     test/test_audio_system.cpp
     test/test_audio_decoder.cpp
+    test/test_sfx.cpp
     test/test_chart.cpp
     test/test_timing_data.cpp
     test/test_ksf_parser.cpp
@@ -198,6 +202,10 @@ add_executable(openitup_tests
     test/test_boot_scene.cpp
     test/test_title_scene.cpp
     test/test_mode_select_scene.cpp
+    test/test_life_gauge.cpp
+    test/test_result_scene.cpp
+    test/test_hit_effects.cpp
+    test/test_hold_body_rendering.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE

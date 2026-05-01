@@ -11,6 +11,7 @@
 #include <openitup/judge/timing_profile.h>
 #include <openitup/render/note_renderer.h>
 #include <openitup/render/text_renderer.h>
+#include <openitup/scene/result_scene.h>
 #include <openitup/scene/title_scene.h>
 
 namespace openitup {
@@ -30,6 +31,7 @@ MinimalGameplayScene::MinimalGameplayScene(
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
       combo_display_(),
+      life_gauge_(),
       texture_cache_(renderer ? std::make_unique<TextureCache>(renderer->get(), load_image) : nullptr),
       bga_(),
       audio_(audio_system),
@@ -124,6 +126,7 @@ MinimalGameplayScene::MinimalGameplayScene(
       note_renderer_(chart_.note_data(), chart_.timing_data(), default_single_config()),
       judgment_display_(),
       combo_display_(),
+      life_gauge_(),
       texture_cache_(renderer ? std::make_unique<TextureCache>(renderer->get(), load_image) : nullptr),
       bga_(),
       audio_(audio_system),
@@ -189,6 +192,9 @@ void MinimalGameplayScene::update(double dt) {
             judge_trigger_times_[event.column()] = global_time_ms_;
         }
 
+        // Trigger hit effect for visual feedback
+        note_renderer_.trigger_hit_effect(event.column(), event.tier(), global_time_ms_);
+
         if (spdlog::should_log(spdlog::level::debug)) {
             spdlog::debug("Judgment: {} col={} error={:.1f}ms {}",
                          judgment_tier_to_string(event.tier()),
@@ -210,14 +216,11 @@ void MinimalGameplayScene::update(double dt) {
                          gameplay_state_.max_combo(),
                          gameplay_state_.judgment_count(JudgmentTier::PERFECT));
 
-            // Transition to title if scene_stack is available (Phase 2 flow)
+            // Transition to ResultScene if scene_stack is available (Phase 3 flow)
             if (scene_stack_ && renderer_ && text_renderer_ && engine_) {
-                // In Phase 3, this will go to ResultScene → TitleScene
-                // For Phase 2, go directly to TitleScene
-                spdlog::info("Transitioning to TitleScene after completion");
-                // Find a test chart for the next potential gameplay
-                std::filesystem::path test_chart = data_dir_.empty() ? std::filesystem::path() : data_dir_ / "test.ksf";
-                scene_stack_->replace(std::make_unique<TitleScene>(renderer_, text_renderer_, scene_stack_, engine_, test_chart));
+                spdlog::info("Transitioning to ResultScene after completion");
+                scene_stack_->replace(std::make_unique<ResultScene>(
+                    renderer_, text_renderer_, scene_stack_, engine_, gameplay_state_));
             }
         }
     }
@@ -248,12 +251,19 @@ void MinimalGameplayScene::render(double alpha) {
     note_renderer_.render_receptors(sdl_renderer, global_time_ms_, pressed_columns_, judge_trigger_times_);
     note_renderer_.render(sdl_renderer, last_song_ms_, global_time_ms_, alpha);
 
+    // Render hit effects (burst overlays on top of receptors)
+    note_renderer_.render_hit_effects(sdl_renderer, global_time_ms_);
+
     // Render judgment feedback
     // Use FIXED_STEP as dt approximation for the fade timer
     judgment_display_.render(sdl_renderer, 1.0 / 60.0);
 
     // Render combo counter
     combo_display_.render(sdl_renderer, gameplay_state_.current_combo(), global_time_ms_);
+
+    // Render life gauge (use score percentage as HP proxy until Phase 3 life system)
+    float hp_ratio = static_cast<float>(gameplay_state_.score_percentage() / 100.0);
+    life_gauge_.render(sdl_renderer, hp_ratio);
 }
 
 bool MinimalGameplayScene::is_complete() const {
