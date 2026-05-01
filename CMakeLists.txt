@@ -101,9 +101,13 @@ add_library(openitup_engine STATIC
     src/openitup/chart/timing_data.cpp
     src/openitup/chart/chart.cpp
     src/openitup/chart/chart_builder.cpp
+    src/openitup/chart/chart_canonical.cpp
     src/openitup/chart/ksf_parser.cpp
+    src/openitup/chart/chart_validator.cpp
+    src/openitup/chart/chart_classifier.cpp
     src/openitup/judge/judgment_tier.cpp
     src/openitup/judge/timing_profile.cpp
+    src/openitup/judge/timing_profile_loader.cpp
     src/openitup/judge/judgment_event.cpp
     src/openitup/judge/judge.cpp
     src/openitup/judge/gameplay_state.cpp
@@ -227,8 +231,12 @@ add_executable(openitup_tests
     test/test_null_audio_backend.cpp
     test/test_chart.cpp
     test/test_timing_data.cpp
+    test/test_chart_canonical.cpp
     test/test_ksf_parser.cpp
+    test/test_chart_validator.cpp
+    test/test_chart_classifier.cpp
     test/test_judge.cpp
+    test/test_timing_profile_loader.cpp
     test/test_gameplay_state.cpp
     test/test_note_renderer.cpp
     test/test_note_renderer_perf.cpp

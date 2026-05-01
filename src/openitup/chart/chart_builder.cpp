@@ -104,10 +104,10 @@ Chart ChartBuilder::build() {
     // 2. Sort timing events
     std::sort(timing_events_.begin(), timing_events_.end());
 
-    // 3. Validate: negative BPM -> throw ChartLoadException
+    // 3. Validate: zero or negative BPM -> throw ChartLoadException
     for (const auto& event : timing_events_) {
-        if (event.type == TimingEventType::BPM_CHANGE && event.bpm < 0.0) {
-            throw ChartLoadException("Chart has negative BPM value");
+        if (event.type == TimingEventType::BPM_CHANGE && event.bpm <= 0.0) {
+            throw ChartLoadException("Chart has zero or negative BPM value");
         }
     }
 
