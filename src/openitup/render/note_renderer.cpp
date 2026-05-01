@@ -55,7 +55,7 @@ float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
          + static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
 }
 
-void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms) const {
+void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms, double render_alpha) const {
     // Convert song position to current beat
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
@@ -67,6 +67,13 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
 
     // Get notes in visible range
     auto [begin_it, end_it] = note_data_.notes_in_range(bottom_beat, top_beat);
+
+    // Compute next beat for interpolation (if render_alpha > 0)
+    constexpr double FIXED_STEP = 1.0 / 60.0;  // Fixed logic tick rate
+    double next_beat = current_beat;
+    if (render_alpha > 0.0) {
+        next_beat = timing_data_.beat_at_time((song_position_ms + FIXED_STEP * 1000.0) / 1000.0);
+    }
 
     // Render each visible note
     for (auto it = begin_it; it != end_it; ++it) {
@@ -81,8 +88,15 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
             continue;
         }
 
-        // Compute screen position
-        float y = beat_to_y(note.beat, current_beat);
+        // Compute screen position with optional interpolation
+        float y;
+        if (render_alpha > 0.0) {
+            float y_current = beat_to_y(note.beat, current_beat);
+            float y_next = beat_to_y(note.beat, next_beat);
+            y = y_current + (y_next - y_current) * static_cast<float>(render_alpha);
+        } else {
+            y = beat_to_y(note.beat, current_beat);
+        }
 
         // Skip if offscreen (with margin for note height)
         if (y < -config_.note_height || y > 480.0f + config_.note_height) {

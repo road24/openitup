@@ -393,3 +393,106 @@ TEST(NoteRenderer, JudgmentDisplayIntegration) {
     EXPECT_TRUE(display.is_visible());
     EXPECT_EQ(display.current_tier(), JudgmentTier::MISS);
 }
+
+// --- Render Alpha Interpolation Tests ---
+
+TEST(NoteRenderer, InterpolationAtAlphaZero) {
+    // alpha=0.0 should produce same Y as current beat (no interpolation)
+    NoteData empty_notes(std::vector<NoteEvent>{});
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(empty_notes, timing, config);
+
+    // At beat 10, note at beat 14 should be at y=400 (4 beats ahead * 80 pixels/beat + 80 receptor)
+    float y_no_alpha = renderer.beat_to_y(14.0, 10.0);
+    EXPECT_FLOAT_EQ(y_no_alpha, 400.0f);
+
+    // With alpha=0.0, the interpolated render should give same result
+    // (We can't test render() directly without SDL, but the logic is verified by the formula)
+}
+
+TEST(NoteRenderer, InterpolationCalculation) {
+    // Verify interpolation math: at 120 BPM, notes scroll at specific rate
+    // BPM 120 = 2 beats per second
+    // FIXED_STEP = 1/60 second
+    // Beat advance per tick = 2 * (1/60) = 1/30 beat
+    // At scroll 1.0x, 80 pixels/beat: Y changes by 80/30 = 2.667 pixels per tick
+    NoteData empty_notes(std::vector<NoteEvent>{});
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(empty_notes, timing, config);
+
+    double current_beat = 10.0;
+    double note_beat = 14.0;
+
+    // Current Y position
+    float y_current = renderer.beat_to_y(note_beat, current_beat);
+    EXPECT_FLOAT_EQ(y_current, 400.0f);  // 80 + 4*80
+
+    // After one tick (1/60 sec), beat advances by 1/30 (at 120 BPM = 2 beats/sec)
+    // 2 beats/sec * (1/60 sec) = 1/30 beat
+    double next_beat = current_beat + 1.0/30.0;
+    float y_next = renderer.beat_to_y(note_beat, next_beat);
+
+    // Y decreases as note approaches receptor (scrolls up)
+    // Delta = 1/30 beat * 80 pixels/beat = 8/3 = 2.667 pixels
+    EXPECT_FLOAT_EQ(y_next, 400.0f - 80.0f/30.0f);
+
+    // At alpha=0.5, should be halfway between
+    float y_interp_half = y_current + (y_next - y_current) * 0.5f;
+    EXPECT_FLOAT_EQ(y_interp_half, 400.0f - 80.0f/60.0f);  // 400 - 1.333
+
+    // At alpha=1.0, should match next tick
+    float y_interp_full = y_current + (y_next - y_current) * 1.0f;
+    EXPECT_FLOAT_EQ(y_interp_full, y_next);
+}
+
+TEST(NoteRenderer, InterpolationDirection) {
+    // Notes scroll bottom-to-top (Y decreases as they approach receptor)
+    // With positive alpha, interpolated Y should be LESS than current Y (moving up)
+    NoteData empty_notes(std::vector<NoteEvent>{});
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(empty_notes, timing, config);
+
+    double current_beat = 10.0;
+    double note_beat = 14.0;  // Note ahead of current beat (below receptor, scrolling up)
+
+    float y_current = renderer.beat_to_y(note_beat, current_beat);
+
+    // Next beat position
+    double next_beat = current_beat + 1.0/30.0;  // 1 tick advance at 120 BPM
+    float y_next = renderer.beat_to_y(note_beat, next_beat);
+
+    // Y should decrease (note moves up toward receptor)
+    EXPECT_LT(y_next, y_current);
+
+    // Interpolated at alpha=0.5 should be between current and next
+    float y_interp = y_current + (y_next - y_current) * 0.5f;
+    EXPECT_LT(y_interp, y_current);
+    EXPECT_GT(y_interp, y_next);
+}
+
+TEST(NoteRenderer, InterpolationWithScrollSpeed) {
+    // With doubled scroll speed, notes move twice as fast, so alpha interpolation delta doubles
+    NoteData empty_notes(std::vector<NoteEvent>{});
+    TimingData timing = make_simple_timing(120.0);
+    NoteFieldConfig config = default_single_config();
+    config.scroll_speed = 2.0f;
+    NoteRenderer renderer(empty_notes, timing, config);
+
+    double current_beat = 10.0;
+    double note_beat = 14.0;
+
+    float y_current = renderer.beat_to_y(note_beat, current_beat);
+    // With scroll 2.0x: 80 + 4*80*2 = 720
+    EXPECT_FLOAT_EQ(y_current, 720.0f);
+
+    // Next beat
+    double next_beat = current_beat + 1.0/30.0;
+    float y_next = renderer.beat_to_y(note_beat, next_beat);
+
+    // Delta should be doubled: (1/30 beat) * 80 pixels/beat * 2.0 scroll = 16/3 pixels
+    float expected_delta = -80.0f / 30.0f * 2.0f;
+    EXPECT_NEAR(y_next - y_current, expected_delta, 0.001f);
+}

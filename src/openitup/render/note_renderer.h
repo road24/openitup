@@ -47,7 +47,8 @@ public:
     // Render all visible notes for the current song position.
     // song_position_ms: current audio playback position from AudioSystem.
     // global_time_ms: wall-clock time for noteskin animation (from SDL_GetTicks()).
-    void render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms) const;
+    // render_alpha: interpolation factor [0.0, 1.0) for sub-tick note position smoothing (default 0.0).
+    void render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms, double render_alpha = 0.0) const;
 
     // Render receptor indicators at the receptor line.
     // global_time_ms: wall-clock time for noteskin animation.
