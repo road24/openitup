@@ -26,6 +26,10 @@ public:
     int total_judged() const;
     int total_notes() const { return total_notes_; }
 
+    // Life gauge (US-JDG-010)
+    float hp() const { return hp_; }
+    bool is_failed() const { return hp_ <= 0.0f; }
+
     void reset();
 
 private:
@@ -45,6 +49,7 @@ private:
     int64_t score_;
     int64_t hold_score_;
     std::array<int, JUDGMENT_TIER_COUNT> judgment_counts_;
+    float hp_;  // Life gauge: 0.0 to 1.0, starts at 1.0 (US-JDG-010)
 };
 
 } // namespace openitup

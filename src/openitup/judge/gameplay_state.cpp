@@ -10,7 +10,8 @@ GameplayState::GameplayState(int total_notes)
       max_combo_(0),
       score_(0),
       hold_score_(0),
-      judgment_counts_{} {
+      judgment_counts_{},
+      hp_(1.0f) {
 }
 
 void GameplayState::apply_single(const JudgmentEvent& event) {
@@ -27,6 +28,33 @@ void GameplayState::apply_single(const JudgmentEvent& event) {
         }
     } else {
         current_combo_ = 0;
+    }
+
+    // Life gauge (US-JDG-010): hardcoded values for Phase 3
+    // Phase 4 will load from judge profile (US-JDG-013)
+    switch (tier) {
+        case JudgmentTier::PERFECT:
+            hp_ += 0.02f;
+            break;
+        case JudgmentTier::GREAT:
+            hp_ += 0.01f;
+            break;
+        case JudgmentTier::GOOD:
+            // No change
+            break;
+        case JudgmentTier::BAD:
+            hp_ -= 0.05f;
+            break;
+        case JudgmentTier::MISS:
+            hp_ -= 0.10f;
+            break;
+    }
+
+    // Clamp to [0.0, 1.0] range
+    if (hp_ < 0.0f) {
+        hp_ = 0.0f;
+    } else if (hp_ > 1.0f) {
+        hp_ = 1.0f;
     }
 }
 
@@ -65,6 +93,7 @@ void GameplayState::reset() {
     score_ = 0;
     hold_score_ = 0;
     judgment_counts_.fill(0);
+    hp_ = 1.0f;
 }
 
 } // namespace openitup

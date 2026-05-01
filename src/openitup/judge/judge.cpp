@@ -175,13 +175,14 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
                     true,
                     tier,
                     0,
-                    ticks_required
+                    ticks_required,
+                    0  // grace_ticks_remaining starts at 0
                 });
             }
         }
     }
 
-    // Phase 3: Hold body scoring (US-JDG-008)
+    // Phase 3: Hold body scoring (US-JDG-008) with grace window (US-JDG-009)
     // Process active holds and track tick-by-tick scoring
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
@@ -200,13 +201,32 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
 
         // Check if the column is currently held
         bool column_held = (held_columns & (1u << hold.column)) != 0;
+        bool column_pressed = (pressed_columns & (1u << hold.column)) != 0;
 
         if (column_held) {
             // Player is holding - increment tick count
             hold.ticks_held++;
+
+            // US-JDG-009: If re-pressed during grace window, reset grace
+            if (hold.grace_ticks_remaining > 0) {
+                hold.grace_ticks_remaining = 0;
+            }
         } else {
-            // Player released early - mark hold as dropped
-            hold.active = false;
+            // Player released
+            // US-JDG-009: Grace window recovery
+            // Hardcoded 100ms grace = 6 ticks at 60Hz for Phase 3
+            // Phase 4 will load from judge profile
+            if (hold.grace_ticks_remaining == 0) {
+                // Just released - start grace window
+                hold.grace_ticks_remaining = 6;
+            } else {
+                // Already in grace period - decrement countdown
+                hold.grace_ticks_remaining--;
+                if (hold.grace_ticks_remaining == 0) {
+                    // Grace window expired - hold is permanently dropped
+                    hold.active = false;
+                }
+            }
         }
     }
 

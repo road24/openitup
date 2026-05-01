@@ -19,6 +19,7 @@ struct HoldState {
     JudgmentTier head_tier;      // judgment tier from the head hit
     int ticks_held;              // number of ticks the hold has been held
     int ticks_required;          // total ticks required for full hold (computed from beat duration)
+    int grace_ticks_remaining;   // grace window countdown (US-JDG-009)
 };
 
 class Judge {

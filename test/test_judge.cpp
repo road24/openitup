@@ -1084,7 +1084,9 @@ TEST(Judge, HoldBodyPartialScoreOnEarlyRelease) {
     const auto& holds = judge.active_holds();
     EXPECT_EQ(holds[0].ticks_held, 30);
     EXPECT_EQ(holds[0].ticks_required, 60);
-    EXPECT_FALSE(holds[0].active); // Hold should be dropped
+    // US-JDG-009: Hold enters grace window on release, not immediately dropped
+    EXPECT_TRUE(holds[0].active); // Hold should be in grace period
+    EXPECT_GT(holds[0].grace_ticks_remaining, 0); // Grace window active
 }
 
 TEST(Judge, HoldContinuesWhilePanelHeld) {
@@ -1182,4 +1184,335 @@ TEST(Judge, MultipleHoldsContinuously) {
     // Second hold: 1 (hit at 2500ms) + 30 (loop) = 31
     EXPECT_EQ(holds[1].ticks_held, 31);
     EXPECT_TRUE(holds[1].active);
+}
+
+// --- Life Gauge Tests (US-JDG-010) ---
+
+TEST(Judge, LifeStartsAtFull) {
+    // US-JDG-010 Scenario 1: Life starts at initial value
+    // Given a new GameplayState
+    // When gameplay begins
+    // Then hp() returns 1.0 (100%)
+    GameplayState state(10);
+    EXPECT_FLOAT_EQ(state.hp(), 1.0f);
+    EXPECT_FALSE(state.is_failed());
+}
+
+TEST(Judge, PerfectJudgmentRecoversHP) {
+    // US-JDG-010 Scenario 2: Perfect judgment recovers HP
+    // Given life at 0.5 (50%)
+    // When a "Perfect" judgment event is received
+    // Then life increases by 0.02 to 0.52
+    GameplayState state(10);
+
+    // Drain to 0.5
+    for (int i = 0; i < 5; i++) {
+        JudgmentEvent miss(i, 0, i * 2.0, JudgmentTier::MISS, 100.0, true);
+        state.apply_single(miss);
+    }
+    EXPECT_FLOAT_EQ(state.hp(), 0.5f);
+
+    // Apply Perfect
+    JudgmentEvent perfect(5, 0, 10.0, JudgmentTier::PERFECT, 0.0, false);
+    state.apply_single(perfect);
+
+    EXPECT_FLOAT_EQ(state.hp(), 0.52f);
+}
+
+TEST(Judge, GreatJudgmentRecoversHP) {
+    // US-JDG-010: Great judgment recovers HP (+0.01)
+    GameplayState state(10);
+
+    // Start at 0.5
+    for (int i = 0; i < 5; i++) {
+        JudgmentEvent miss(i, 0, i * 2.0, JudgmentTier::MISS, 100.0, true);
+        state.apply_single(miss);
+    }
+    EXPECT_FLOAT_EQ(state.hp(), 0.5f);
+
+    // Apply Great
+    JudgmentEvent great(5, 0, 10.0, JudgmentTier::GREAT, 0.0, false);
+    state.apply_single(great);
+
+    EXPECT_FLOAT_EQ(state.hp(), 0.51f);
+}
+
+TEST(Judge, GoodJudgmentNoHPChange) {
+    // US-JDG-010: Good judgment does not change HP
+    GameplayState state(10);
+    float initial_hp = state.hp();
+
+    JudgmentEvent good(0, 0, 4.0, JudgmentTier::GOOD, 50.0, false);
+    state.apply_single(good);
+
+    EXPECT_FLOAT_EQ(state.hp(), initial_hp);
+}
+
+TEST(Judge, BadJudgmentDrainsHP) {
+    // US-JDG-010: Bad judgment drains HP (-0.05)
+    GameplayState state(10);
+    float initial_hp = state.hp();
+
+    JudgmentEvent bad(0, 0, 4.0, JudgmentTier::BAD, 80.0, false);
+    state.apply_single(bad);
+
+    EXPECT_FLOAT_EQ(state.hp(), initial_hp - 0.05f);
+}
+
+TEST(Judge, MissJudgmentDrainsHP) {
+    // US-JDG-010 Scenario 3: Miss judgment drains HP
+    // Given life at 1.0
+    // When a "Miss" judgment event is received
+    // Then life decreases by 0.10 to 0.90
+    GameplayState state(10);
+
+    JudgmentEvent miss(0, 0, 4.0, JudgmentTier::MISS, 100.0, true);
+    state.apply_single(miss);
+
+    EXPECT_FLOAT_EQ(state.hp(), 0.90f);
+}
+
+TEST(Judge, FailTriggeredAtZeroLife) {
+    // US-JDG-010 Scenario 4: Fail triggered at zero life
+    // Given life at 0.05
+    // When a "Miss" judgment occurs
+    // Then life becomes 0 and is_failed() returns true
+    GameplayState state(10);
+
+    // Drain to 0.05 (95% drained = 9.5 misses, use 9 misses + 1 bad = 0.95 drain)
+    for (int i = 0; i < 9; i++) {
+        JudgmentEvent miss(i, 0, i * 2.0, JudgmentTier::MISS, 100.0, true);
+        state.apply_single(miss);
+    }
+    JudgmentEvent bad(9, 0, 18.0, JudgmentTier::BAD, 80.0, false);
+    state.apply_single(bad);
+
+    EXPECT_NEAR(state.hp(), 0.05f, 0.001f);
+    EXPECT_FALSE(state.is_failed());
+
+    // One more miss
+    JudgmentEvent miss(10, 0, 20.0, JudgmentTier::MISS, 100.0, true);
+    state.apply_single(miss);
+
+    EXPECT_NEAR(state.hp(), 0.0f, 0.001f);
+    EXPECT_TRUE(state.is_failed());
+}
+
+TEST(Judge, LifeClampedToRange) {
+    // US-JDG-010 Scenario 5: Life clamped to 0-1 range
+    // Given life at 0.95
+    // When multiple Perfect judgments occur
+    // Then life becomes 1.0 (not > 1.0)
+    GameplayState state(10);
+
+    // Apply 10 Perfects (10 * 0.02 = 0.20 recovery, but clamped at 1.0)
+    for (int i = 0; i < 10; i++) {
+        JudgmentEvent perfect(i, 0, i * 2.0, JudgmentTier::PERFECT, 0.0, false);
+        state.apply_single(perfect);
+    }
+
+    EXPECT_FLOAT_EQ(state.hp(), 1.0f);
+}
+
+TEST(Judge, LifeClampedAtZero) {
+    // Life should not go below 0.0
+    GameplayState state(10);
+
+    // Apply 20 misses (20 * 0.10 = 2.0 drain, but clamped at 0.0)
+    for (int i = 0; i < 20; i++) {
+        JudgmentEvent miss(i, 0, i * 2.0, JudgmentTier::MISS, 100.0, true);
+        state.apply_single(miss);
+    }
+
+    EXPECT_FLOAT_EQ(state.hp(), 0.0f);
+}
+
+TEST(Judge, LifeResetRestoresHP) {
+    // Verify reset() restores HP to 1.0
+    GameplayState state(10);
+
+    // Drain life
+    for (int i = 0; i < 5; i++) {
+        JudgmentEvent miss(i, 0, i * 2.0, JudgmentTier::MISS, 100.0, true);
+        state.apply_single(miss);
+    }
+    EXPECT_FLOAT_EQ(state.hp(), 0.5f);
+
+    // Reset
+    state.reset();
+    EXPECT_FLOAT_EQ(state.hp(), 1.0f);
+    EXPECT_FALSE(state.is_failed());
+}
+
+// --- Hold Grace Window Recovery Tests (US-JDG-009) ---
+
+TEST(Judge, HoldGraceWindowRepressWithinWindow) {
+    // US-JDG-009 Scenario 1: Re-press within grace window continues hold
+    // Given a hold in progress and grace window 6 ticks (100ms)
+    // When player releases for 3 ticks then re-presses
+    // Then hold scoring resumes and ticks during release are not scored
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit the head at 2000 ms
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold for 10 ticks
+    for (int tick = 0; tick < 10; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    // Verify 11 ticks held (1 initial + 10)
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 11);
+    EXPECT_TRUE(judge.active_holds()[0].active);
+
+    // Release for 3 ticks (within grace window)
+    for (int tick = 0; tick < 3; tick++) {
+        double time_ms = 2000.0 + (11 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, 0);
+    }
+
+    // Still active due to grace window
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 11);  // No ticks added during release
+    EXPECT_EQ(judge.active_holds()[0].grace_ticks_remaining, 4);  // 6 → 5 → 4 (2 decrements)
+
+    // Re-press and hold
+    double repress_time_ms = 2000.0 + 14 * (1000.0 / 60.0);
+    judge.update(repress_time_ms, press, hold);
+
+    // Hold should resume
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 12);  // 11 + 1 (re-press tick)
+    EXPECT_EQ(judge.active_holds()[0].grace_ticks_remaining, 0);  // Grace reset
+
+    // Continue holding
+    for (int tick = 0; tick < 5; tick++) {
+        double time_ms = 2000.0 + (15 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 17);  // 12 + 5
+}
+
+TEST(Judge, HoldGraceWindowReleaseBeyondWindow) {
+    // US-JDG-009 Scenario 2: Release beyond grace window breaks hold
+    // Given grace window 6 ticks
+    // When player releases for 7 ticks
+    // Then hold transitions to "Broken"
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit the head
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold for 5 ticks
+    for (int tick = 0; tick < 5; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 6);
+
+    // Release for 7 ticks (beyond grace window of 6)
+    for (int tick = 0; tick < 7; tick++) {
+        double time_ms = 2000.0 + (6 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, 0);
+    }
+
+    // Hold should be broken (inactive)
+    EXPECT_FALSE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 6);  // No ticks added during release
+}
+
+TEST(Judge, HoldGraceWindowMultipleReleases) {
+    // Test multiple short releases within grace window
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold for 5 ticks
+    for (int tick = 0; tick < 5; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    // Release for 2 ticks
+    for (int tick = 0; tick < 2; tick++) {
+        double time_ms = 2000.0 + (6 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, 0);
+    }
+
+    // Re-press and hold for 5 ticks
+    double repress1_time_ms = 2000.0 + 8 * (1000.0 / 60.0);
+    judge.update(repress1_time_ms, press, hold);
+    for (int tick = 0; tick < 4; tick++) {
+        double time_ms = 2000.0 + (9 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 11);  // 6 + 5
+
+    // Release for 2 ticks again
+    for (int tick = 0; tick < 2; tick++) {
+        double time_ms = 2000.0 + (13 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, 0);
+    }
+
+    // Re-press again
+    double repress2_time_ms = 2000.0 + 15 * (1000.0 / 60.0);
+    judge.update(repress2_time_ms, press, hold);
+
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 12);  // 11 + 1
+}
+
+TEST(Judge, HoldGraceWindowExactBoundary) {
+    // Test exact grace window boundary (6 ticks)
+    // Grace countdown: tick 1: 6->5, tick 2: 5->4, tick 3: 4->3, tick 4: 3->2, tick 5: 2->1, tick 6: 1->0 (expired)
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Release for 5 ticks (grace should still be active)
+    for (int tick = 0; tick < 5; tick++) {
+        double time_ms = 2000.0 + (1 + tick) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, 0);
+    }
+
+    // Still active after 5 ticks released
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].grace_ticks_remaining, 2);  // 6 → 5 → 4 → 3 → 2 (4 decrements)
+
+    // Re-press on the 6th tick (within grace window)
+    double repress_time_ms = 2000.0 + 6 * (1000.0 / 60.0);
+    judge.update(repress_time_ms, press, hold);
+
+    // Should still be active and grace reset
+    EXPECT_TRUE(judge.active_holds()[0].active);
+    EXPECT_EQ(judge.active_holds()[0].grace_ticks_remaining, 0);
+    EXPECT_EQ(judge.active_holds()[0].ticks_held, 2);  // 1 (initial) + 1 (re-press)
 }
