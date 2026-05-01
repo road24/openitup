@@ -1,6 +1,6 @@
 # Story Tracking Matrix
 
-Generated: 2026-04-29
+Generated: 2026-04-30
 
 ---
 
@@ -10,10 +10,10 @@ Generated: 2026-04-29
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
-| DONE (Phase 2) | 16 | 65 |
+| DONE (Phase 2) | 17 | 76 |
 | Phase 1 | 0 | 0 |
-| Phase 2 | 4 | 11 |
-| Phase 3 | 39 | 115 |
+| Phase 2 | 0 | 0 |
+| Phase 3 | 45 | 121 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
@@ -120,6 +120,7 @@ Generated: 2026-04-29
 | US-AST-010 | Env variable for data directory | DONE | 1 | 1 | US-AST-009 |
 | US-AST-032 | Missing BGA allows gameplay w/o bg | DONE | 1 | 1 | None |
 | US-AST-033 | All missing assets logged | DONE | 1 | 1 | US-AST-001 |
+| US-SCN-007b | Full gameplay scene orchestration | DONE | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
 
 ---
 
@@ -132,10 +133,7 @@ Generated: 2026-04-29
 | US-SCN-003 | Boot scene with logo display | DONE | 2 | 3 | US-SCN-001 |
 | US-SCN-004 | Title scene with attract mode loop | DONE | 2 | 3 | US-SCN-001 |
 | US-SCN-005 | Mode select scene | DONE | 2 | 5 | US-SCN-001 |
-| US-SCN-007b | Full gameplay scene orchestration | PLANNED | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
-| US-AST-017 | Chart loaded on song selection | PLANNED | 2 | 2 | US-AST-013 |
-| US-AST-019 | Audio loaded at gameplay start | PLANNED | 2 | 2 | US-AST-017 |
-| US-AST-020 | BGA loaded on song selection | PLANNED | 2 | 2 | US-AST-016 |
+| US-SCN-007b | Full gameplay scene orchestration | DONE | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
 
 ---
 
@@ -143,6 +141,9 @@ Generated: 2026-04-29
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
+| US-AST-017 | Chart loaded on song selection | PLANNED | 3 | 2 | US-AST-013 |
+| US-AST-019 | Audio loaded at gameplay start | PLANNED | 3 | 2 | US-AST-017 |
+| US-AST-020 | BGA loaded on song selection | PLANNED | 3 | 2 | US-AST-016 |
 | US-INP-023 | Persist keymap to settings file | PLANNED | 3 | 3 | US-INP-022 |
 | US-AUD-031 | Load short audio samples to memory | PLANNED | 3 | 3 | US-AUD-001, US-AUD-002 |
 | US-AUD-032 | Play sound effects with low latency | PLANNED | 3 | 5 | US-AUD-031 |
