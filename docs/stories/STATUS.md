@@ -10,9 +10,9 @@ Generated: 2026-04-29
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
-| DONE (Phase 2) | 15 | 57 |
+| DONE (Phase 2) | 16 | 65 |
 | Phase 1 | 0 | 0 |
-| Phase 2 | 5 | 19 |
+| Phase 2 | 4 | 11 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
@@ -128,7 +128,7 @@ Generated: 2026-04-29
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
 | US-REN-034 | High refresh rate rendering | DONE | 2 | 5 | US-REN-002 |
-| US-REN-035 | Note field rendering performance | PLANNED | 2 | 8 | US-REN-021 |
+| US-REN-035 | Note field rendering performance | DONE | 2 | 8 | US-REN-021 |
 | US-SCN-003 | Boot scene with logo display | DONE | 2 | 3 | US-SCN-001 |
 | US-SCN-004 | Title scene with attract mode loop | DONE | 2 | 3 | US-SCN-001 |
 | US-SCN-005 | Mode select scene | DONE | 2 | 5 | US-SCN-001 |
