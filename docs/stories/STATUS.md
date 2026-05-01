@@ -11,10 +11,10 @@ Generated: 2026-04-30
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
 | DONE (Phase 2) | 17 | 76 |
-| DONE (Phase 3) | 7 | 25 |
+| DONE (Phase 3) | 15 | 47 |
 | Phase 1 | 0 | 0 |
 | Phase 2 | 0 | 0 |
-| Phase 3 | 38 | 96 |
+| Phase 3 | 30 | 74 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
@@ -165,7 +165,7 @@ Generated: 2026-04-30
 | US-REN-029 | Life gauge visual rendering | DONE | 3 | 3 | None |
 | US-SCN-006 | Song select scene with music wheel | PLANNED | 3 | 8 | US-SCN-001 |
 | US-SCN-008 | Result scene w/ grade & breakdown | DONE | 3 | 5 | US-SCN-001 |
-| US-DAT-001 | Platform-appropriate user data dir | PLANNED | 3 | 2 | None |
+| US-DAT-001 | Platform-appropriate user data dir | DONE | 3 | 2 | None |
 | US-DAT-002 | Automatic user data dir creation | PLANNED | 3 | 2 | US-DAT-001 |
 | US-DAT-003 | Settings JSON file structure | PLANNED | 3 | 3 | US-DAT-002 |
 | US-DAT-004 | Settings load at startup | PLANNED | 3 | 2 | US-DAT-003 |
