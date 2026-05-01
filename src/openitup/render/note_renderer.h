@@ -5,6 +5,7 @@
 
 #include <openitup/chart/note_data.h>
 #include <openitup/chart/timing_data.h>
+#include <openitup/judge/judgment_tier.h>
 
 struct SDL_Renderer;
 
@@ -12,6 +13,12 @@ namespace openitup {
 
 class NoteSkin;
 class TextureCache;
+
+struct HitEffect {
+    uint8_t column;
+    double trigger_time_ms;
+    JudgmentTier tier;
+};
 
 struct NoteFieldConfig {
     float receptor_y = 80.0f;
@@ -60,6 +67,16 @@ public:
                           const bool* pressed_columns = nullptr,
                           const double* judge_trigger_times = nullptr) const;
 
+    // Trigger a hit effect for a column.
+    // column: the column index (0-9)
+    // tier: the judgment tier (Perfect, Great, Good, Bad, Miss)
+    // global_time_ms: current wall-clock time for tracking effect duration
+    void trigger_hit_effect(uint8_t column, JudgmentTier tier, double global_time_ms);
+
+    // Render active hit effects (burst/flash overlays at receptor positions).
+    // global_time_ms: current wall-clock time for fade-out calculation
+    void render_hit_effects(SDL_Renderer* renderer, double global_time_ms) const;
+
     // Access config for external queries (e.g., judgment display positioning).
     const NoteFieldConfig& config() const;
 
@@ -69,6 +86,7 @@ private:
     NoteFieldConfig config_;
     const NoteSkin* skin_;
     TextureCache* cache_;
+    mutable std::vector<HitEffect> active_hit_effects_;
 };
 
 // Build a default single-mode config (5 columns centered in 640px).

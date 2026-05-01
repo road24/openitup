@@ -1,5 +1,7 @@
 #include <openitup/render/note_renderer.h>
 
+#include <algorithm>
+
 #include <SDL3/SDL.h>
 #include <openitup/chart/note_type.h>
 #include <openitup/render/noteskin.h>
@@ -62,11 +64,13 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
     // Cache sprite lookups per frame (optimization: avoid repeated virtual calls)
     std::array<const Sprite*, 10> tap_sprite_cache = {nullptr};
     std::array<const Sprite*, 10> hold_head_sprite_cache = {nullptr};
+    std::array<const Sprite*, 10> hold_body_sprite_cache = {nullptr};
     if (skin_ && cache_) {
         for (int col = 0; col < config_.num_columns; ++col) {
             int track = col % NUM_TRACKS;
             tap_sprite_cache[col] = skin_->tap(track);
             hold_head_sprite_cache[col] = skin_->hold(track, HoldPart::HEAD);
+            hold_body_sprite_cache[col] = skin_->hold(track, HoldPart::BODY);
         }
     }
 
@@ -87,7 +91,100 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
         next_beat = timing_data_.beat_at_time((song_position_ms + FIXED_STEP * 1000.0) / 1000.0);
     }
 
-    // Render each visible note
+    // First pass: render hold bodies (behind everything)
+    for (auto it = begin_it; it != end_it; ++it) {
+        const auto& note = *it;
+
+        // Only process HOLD_HEAD notes in this pass
+        if (note.type != NoteType::HOLD_HEAD) {
+            continue;
+        }
+
+        // Skip if column is out of range
+        if (note.column >= config_.num_columns) {
+            continue;
+        }
+
+        // Find the matching HOLD_TAIL
+        auto tail_it = std::next(it);
+        const NoteEvent* tail = nullptr;
+        while (tail_it != end_it) {
+            if (tail_it->column == note.column && tail_it->type == NoteType::HOLD_TAIL) {
+                tail = &(*tail_it);
+                break;
+            }
+            ++tail_it;
+        }
+
+        if (!tail) {
+            // No tail found, skip this hold body
+            continue;
+        }
+
+        // Compute screen positions for head and tail
+        float head_y;
+        float tail_y;
+        if (render_alpha > 0.0) {
+            float head_y_current = beat_to_y(note.beat, current_beat);
+            float head_y_next = beat_to_y(note.beat, next_beat);
+            head_y = head_y_current + (head_y_next - head_y_current) * static_cast<float>(render_alpha);
+
+            float tail_y_current = beat_to_y(tail->beat, current_beat);
+            float tail_y_next = beat_to_y(tail->beat, next_beat);
+            tail_y = tail_y_current + (tail_y_next - tail_y_current) * static_cast<float>(render_alpha);
+        } else {
+            head_y = beat_to_y(note.beat, current_beat);
+            tail_y = beat_to_y(tail->beat, current_beat);
+        }
+
+        // Hold body spans from tail to head (tail beat is earlier, so tail_y < head_y)
+        float body_top = tail_y;
+        float body_bottom = head_y;
+        float body_height = body_bottom - body_top;
+
+        // Skip if hold body is completely offscreen
+        if (body_bottom < 0.0f || body_top > 480.0f) {
+            continue;
+        }
+
+        // Render hold body
+        const Sprite* body_sprite = hold_body_sprite_cache[note.column];
+        if (body_sprite && skin_ && cache_) {
+            // Sprite rendering: tile the body sprite vertically
+            float t = noteskin_loop_t(global_time_ms);
+
+            // Tile the body sprite to fill the gap between head and tail
+            // Use note_height as the tile size
+            float tile_height = config_.note_height;
+            int num_tiles = static_cast<int>(std::ceil(body_height / tile_height));
+
+            for (int tile = 0; tile < num_tiles; ++tile) {
+                float tile_y = body_top + tile * tile_height;
+
+                LayerTransform xform{};
+                xform.translate_x = config_.column_x[note.column] - (config_.note_sprite_size / 2.0f);
+                xform.translate_y = tile_y - (config_.note_sprite_size / 2.0f);
+
+                body_sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+            }
+        } else {
+            // Fallback: colored rectangle for hold body
+            float x = config_.column_x[note.column] - config_.note_width / 2.0f;
+            const auto& color = COLUMN_COLORS[note.column];
+
+            // Dimmer color for hold body (50% brightness)
+            SDL_SetRenderDrawColor(renderer, color.r / 2, color.g / 2, color.b / 2, 180);
+
+            SDL_FRect rect;
+            rect.x = x;
+            rect.y = body_top;
+            rect.w = config_.note_width;
+            rect.h = body_height;
+            SDL_RenderFillRect(renderer, &rect);
+        }
+    }
+
+    // Second pass: render note heads (TAP and HOLD_HEAD)
     size_t note_idx = 0;
     for (auto it = begin_it; it != end_it; ++it) {
         const auto& note = *it;
@@ -222,6 +319,88 @@ void NoteRenderer::render_receptors(SDL_Renderer* renderer,
 
 const NoteFieldConfig& NoteRenderer::config() const {
     return config_;
+}
+
+void NoteRenderer::trigger_hit_effect(uint8_t column, JudgmentTier tier, double global_time_ms) {
+    // Only trigger effects for successful hits (not Miss or Bad)
+    if (tier == JudgmentTier::MISS || tier == JudgmentTier::BAD) {
+        return;
+    }
+
+    // Add new effect to the active list
+    active_hit_effects_.push_back({column, global_time_ms, tier});
+
+    // Clean up old effects (older than 300ms)
+    constexpr double EFFECT_DURATION_MS = 300.0;
+    active_hit_effects_.erase(
+        std::remove_if(active_hit_effects_.begin(), active_hit_effects_.end(),
+            [global_time_ms](const HitEffect& effect) {
+                return (global_time_ms - effect.trigger_time_ms) >= EFFECT_DURATION_MS;
+            }),
+        active_hit_effects_.end()
+    );
+}
+
+void NoteRenderer::render_hit_effects(SDL_Renderer* renderer, double global_time_ms) const {
+    constexpr double EFFECT_DURATION_MS = 300.0;
+
+    // Define colors per judgment tier (RGB + alpha based on timing)
+    // Perfect = cyan/white bright flash
+    // Great = yellow/gold
+    // Good = green
+    struct EffectColor {
+        uint8_t r, g, b;
+    };
+
+    constexpr EffectColor tier_colors[] = {
+        {200, 255, 255},  // PERFECT: bright cyan
+        {255, 230, 100},  // GREAT: gold/yellow
+        {100, 255, 150},  // GOOD: green
+        {255, 150, 50},   // BAD: orange (not used, but defined)
+        {150, 50, 50}     // MISS: dim red (not used, but defined)
+    };
+
+    for (const auto& effect : active_hit_effects_) {
+        double elapsed = global_time_ms - effect.trigger_time_ms;
+        if (elapsed >= EFFECT_DURATION_MS || elapsed < 0.0) {
+            continue;
+        }
+
+        // Skip if column out of range
+        if (effect.column >= config_.num_columns) {
+            continue;
+        }
+
+        // Calculate fade-out alpha (1.0 at start, 0.0 at end)
+        double t = elapsed / EFFECT_DURATION_MS;
+        double alpha_factor = 1.0 - t;
+
+        // Perfect tier gets extra brightness initially
+        if (effect.tier == JudgmentTier::PERFECT && t < 0.3) {
+            alpha_factor = 1.0 - (t / 0.3) * 0.5;  // Stay brighter longer
+        }
+
+        uint8_t alpha = static_cast<uint8_t>(alpha_factor * 200.0);  // Max alpha = 200 for translucency
+
+        // Get color for this tier
+        const auto& color = tier_colors[static_cast<int>(effect.tier)];
+
+        // Draw a colored rectangle burst at receptor position
+        // Make it slightly larger than the note for visual impact
+        float burst_size = config_.note_width * 1.5f;
+        float x = config_.column_x[effect.column] - burst_size / 2.0f;
+        float y = config_.receptor_y - burst_size / 2.0f;
+
+        SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+
+        SDL_FRect rect;
+        rect.x = x;
+        rect.y = y;
+        rect.w = burst_size;
+        rect.h = burst_size;
+        SDL_RenderFillRect(renderer, &rect);
+    }
 }
 
 } // namespace openitup
