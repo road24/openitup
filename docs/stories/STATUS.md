@@ -131,7 +131,7 @@ Generated: 2026-04-29
 | US-REN-035 | Note field rendering performance | PLANNED | 2 | 8 | US-REN-021 |
 | US-SCN-003 | Boot scene with logo display | DONE | 2 | 3 | US-SCN-001 |
 | US-SCN-004 | Title scene with attract mode loop | DONE | 2 | 3 | US-SCN-001 |
-| US-SCN-005 | Mode select scene | PLANNED | 2 | 5 | US-SCN-001 |
+| US-SCN-005 | Mode select scene | DONE | 2 | 5 | US-SCN-001 |
 | US-SCN-007b | Full gameplay scene orchestration | PLANNED | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
 | US-AST-017 | Chart loaded on song selection | PLANNED | 2 | 2 | US-AST-013 |
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 2 | 2 | US-AST-017 |
