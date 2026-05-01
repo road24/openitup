@@ -55,12 +55,13 @@ float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
          + static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
 }
 
-void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms, double render_alpha) const {
+void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms, double render_alpha, const std::vector<bool>* judged_notes) const {
     // Convert song position to current beat
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
     // Compute visible beat range (notes scroll bottom-to-top)
-    double beats_below_receptor = config_.receptor_y / (config_.pixels_per_beat * config_.scroll_speed);
+    // Tightened range: exact viewport bounds without generous margins
+    double beats_below_receptor = (config_.receptor_y + config_.note_height) / (config_.pixels_per_beat * config_.scroll_speed);
     double beats_above_receptor = (480.0f - config_.receptor_y) / (config_.pixels_per_beat * config_.scroll_speed);
     double top_beat = current_beat + beats_above_receptor;
     double bottom_beat = current_beat - beats_below_receptor;
@@ -76,8 +77,17 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
     }
 
     // Render each visible note
+    size_t note_idx = 0;
     for (auto it = begin_it; it != end_it; ++it) {
         const auto& note = *it;
+
+        // Skip if already judged (optimization: don't render judged notes)
+        if (judged_notes && note_idx < judged_notes->size() && (*judged_notes)[note_idx]) {
+            note_idx++;
+            continue;
+        }
+        note_idx++;
+
         // Skip non-TAP and non-HOLD_HEAD notes
         if (note.type != NoteType::TAP && note.type != NoteType::HOLD_HEAD) {
             continue;
