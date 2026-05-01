@@ -103,6 +103,7 @@ add_library(openitup_engine STATIC
     src/openitup/render/combo_display.cpp
     src/openitup/render/noteskin.cpp
     src/openitup/render/noteskin_loader.cpp
+    src/openitup/render/text_renderer.cpp
     src/openitup/scene/minimal_gameplay_scene.cpp
     src/openitup/scene/scene_stack.cpp
 )
@@ -189,6 +190,7 @@ add_executable(openitup_tests
     test/test_minimal_gameplay_scene.cpp
     test/test_noteskin.cpp
     test/test_scene_stack.cpp
+    test/test_text_renderer.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE
