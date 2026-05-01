@@ -34,6 +34,7 @@ public:
     void set_banner_path(std::string path);
     void set_background_path(std::string path);
     void set_display_bpm(double bpm);
+    void set_start_time_ms(double ms);
     void set_preview_start_seconds(double seconds);
     void set_preview_length_seconds(double seconds);
 

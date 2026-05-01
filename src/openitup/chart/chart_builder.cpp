@@ -56,6 +56,10 @@ void ChartBuilder::set_display_bpm(double bpm) {
     metadata_.display_bpm = bpm;
 }
 
+void ChartBuilder::set_start_time_ms(double ms) {
+    metadata_.start_time_ms = ms;
+}
+
 void ChartBuilder::set_preview_start_seconds(double seconds) {
     metadata_.preview_start_seconds = seconds;
 }

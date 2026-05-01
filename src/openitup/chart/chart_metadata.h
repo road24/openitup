@@ -29,6 +29,11 @@ struct ChartMetadata {
     // Display BPM (what the player sees; may differ from actual timing)
     double display_bpm = 0.0;
 
+    // Audio offset: ms from start of audio file to beat 0.
+    // Positive = beat 0 is after audio start (audio has intro silence).
+    // KSF STARTTIME tag, in milliseconds.
+    double start_time_ms = 0.0;
+
     // Preview audio (Phase 3, but included here to avoid struct changes later)
     double preview_start_seconds = -1.0;   // -1.0 = not set
     double preview_length_seconds = -1.0;  // -1.0 = not set, default 15.0

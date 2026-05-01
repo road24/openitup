@@ -159,6 +159,13 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
             } catch (const std::exception& e) {
                 spdlog::warn("KSF parser: invalid TICKCOUNT value '{}': {}", value, e.what());
             }
+        } else if (tag == "STARTTIME") {
+            try {
+                double ms = std::stod(value);
+                builder.set_start_time_ms(ms);
+            } catch (const std::exception& e) {
+                spdlog::warn("KSF parser: invalid STARTTIME value '{}': {}", value, e.what());
+            }
         } else if (tag == "AUDIOFILE" || tag == "SONGFILE") {
             auto chart_dir = chart_path.parent_path();
             auto audio_resolved = chart_dir / value;

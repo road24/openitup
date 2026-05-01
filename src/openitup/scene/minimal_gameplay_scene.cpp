@@ -181,9 +181,10 @@ void MinimalGameplayScene::update(double dt) {
     }
 
     // Get song position from audio (authoritative time source)
+    // Subtract start_time_ms so beat 0 aligns with the chart's first beat
     double song_ms = 0.0;
     if (audio_ && audio_->get_state() == AudioState::PLAYING) {
-        song_ms = audio_->get_position_ms();
+        song_ms = audio_->get_position_ms() - chart_.metadata().start_time_ms;
     }
     last_song_ms_ = song_ms;
 
