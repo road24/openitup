@@ -127,7 +127,7 @@ Generated: 2026-04-29
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-REN-034 | High refresh rate rendering | PLANNED | 2 | 5 | US-REN-002 |
+| US-REN-034 | High refresh rate rendering | DONE | 2 | 5 | US-REN-002 |
 | US-REN-035 | Note field rendering performance | PLANNED | 2 | 8 | US-REN-021 |
 | US-SCN-003 | Boot scene with logo display | PLANNED | 2 | 3 | US-SCN-001 |
 | US-SCN-004 | Title scene with attract mode loop | PLANNED | 2 | 3 | US-SCN-001 |
