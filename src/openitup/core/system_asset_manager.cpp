@@ -7,6 +7,7 @@
 #include <openitup/bga/bga_loader.h>
 #include <openitup/gfx/texture_cache.h>
 #include <openitup/render/text_renderer.h>
+#include <openitup/judge/judgment_tier.h>
 #include <spdlog/spdlog.h>
 
 namespace openitup::core {
@@ -121,6 +122,54 @@ bool SystemAssetManager::has_sprite(const std::string& name) const {
     }
     auto sprite_path = system_dir_ / "sprites" / (name + ".sprj");
     return std::filesystem::exists(sprite_path);
+}
+
+std::filesystem::path SystemAssetManager::get_judgment_sfx_path(JudgmentTier tier) const {
+    // Map judgment tier to SFX filename (e.g., "Perfect.wav", "Great.wav")
+    std::string filename;
+    switch (tier) {
+        case JudgmentTier::PERFECT:
+            filename = "Perfect.wav";
+            break;
+        case JudgmentTier::GREAT:
+            filename = "Great.wav";
+            break;
+        case JudgmentTier::GOOD:
+            filename = "Good.wav";
+            break;
+        case JudgmentTier::BAD:
+            filename = "Bad.wav";
+            break;
+        case JudgmentTier::MISS:
+            filename = "Miss.wav";
+            break;
+        default:
+            return {};  // Unknown tier, return empty path
+    }
+
+    auto sfx_path = system_dir_ / "sfx" / filename;
+    if (std::filesystem::exists(sfx_path)) {
+        return sfx_path;
+    }
+
+    // Graceful degradation: return empty path if file not found
+    return {};
+}
+
+std::filesystem::path SystemAssetManager::get_menu_sfx_path(const std::string& name) const {
+    // Append .wav extension if not present
+    std::string filename = name;
+    if (filename.find('.') == std::string::npos) {
+        filename += ".wav";
+    }
+
+    auto sfx_path = system_dir_ / "sfx" / filename;
+    if (std::filesystem::exists(sfx_path)) {
+        return sfx_path;
+    }
+
+    // Graceful degradation: return empty path if file not found
+    return {};
 }
 
 }  // namespace openitup::core

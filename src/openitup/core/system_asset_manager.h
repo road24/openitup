@@ -13,6 +13,7 @@ class Sprite;
 class TextureCache;
 class BgaAnimation;
 class TextRenderer;
+enum class JudgmentTier : uint8_t;
 }  // namespace openitup
 
 namespace openitup::core {
@@ -33,6 +34,15 @@ public:
     // Asset retrieval - lazy loading with caching
     std::shared_ptr<Sprite> get_sprite(const std::string& name);
     std::shared_ptr<BgaAnimation> get_animation(const std::string& name);
+
+    // SFX asset discovery (US-AST-023)
+    // Returns path to judgment SFX file (e.g., "Perfect.wav", "Great.wav").
+    // Returns empty path if file not found (graceful degradation).
+    std::filesystem::path get_judgment_sfx_path(JudgmentTier tier) const;
+
+    // Returns path to menu SFX file by name (e.g., "cursor.wav", "select.wav").
+    // Returns empty path if file not found (graceful degradation).
+    std::filesystem::path get_menu_sfx_path(const std::string& name) const;
 
     // Query
     std::filesystem::path system_dir() const { return system_dir_; }

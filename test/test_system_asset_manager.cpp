@@ -3,6 +3,7 @@
 #include <openitup/sprite/sprite.h>
 #include <openitup/bga/animation.h>
 #include <openitup/gfx/texture_cache.h>
+#include <openitup/judge/judgment_tier.h>
 #include <SDL3/SDL.h>
 #include <filesystem>
 #include <fstream>
@@ -39,6 +40,7 @@ protected:
         system_dir_ = tmp_dir_ / "data" / "system";
         fs::create_directories(system_dir_ / "sprites" / "textures");
         fs::create_directories(system_dir_ / "animations");
+        fs::create_directories(system_dir_ / "sfx");
 
         // Create test sprite JSON
         create_test_sprite("test_sprite");
@@ -85,6 +87,11 @@ protected:
             }]
         })";
         std::ofstream(system_dir_ / "animations" / (name + ".bgaj")) << json;
+    }
+
+    void create_test_sfx(const std::string& filename) {
+        // Create empty placeholder file
+        std::ofstream(system_dir_ / "sfx" / filename).put('\0');
     }
 };
 
@@ -190,4 +197,86 @@ TEST_F(SystemAssetManagerTest, TextRendererNullWhenRendererNotProvided) {
 
     auto text_renderer = mgr.get_text_renderer();
     EXPECT_EQ(text_renderer, nullptr);
+}
+
+// US-AST-023: Judgment and menu sound effects asset discovery
+
+TEST_F(SystemAssetManagerTest, GetJudgmentSfxPathReturnsValidPath) {
+    create_test_sfx("Perfect.wav");
+    create_test_sfx("Great.wav");
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    auto perfect_path = mgr.get_judgment_sfx_path(JudgmentTier::PERFECT);
+    auto great_path = mgr.get_judgment_sfx_path(JudgmentTier::GREAT);
+
+    EXPECT_FALSE(perfect_path.empty());
+    EXPECT_TRUE(fs::exists(perfect_path));
+    EXPECT_EQ(perfect_path.filename(), "Perfect.wav");
+
+    EXPECT_FALSE(great_path.empty());
+    EXPECT_TRUE(fs::exists(great_path));
+    EXPECT_EQ(great_path.filename(), "Great.wav");
+}
+
+TEST_F(SystemAssetManagerTest, GetJudgmentSfxPathAllTiers) {
+    create_test_sfx("Perfect.wav");
+    create_test_sfx("Great.wav");
+    create_test_sfx("Good.wav");
+    create_test_sfx("Bad.wav");
+    create_test_sfx("Miss.wav");
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    EXPECT_FALSE(mgr.get_judgment_sfx_path(JudgmentTier::PERFECT).empty());
+    EXPECT_FALSE(mgr.get_judgment_sfx_path(JudgmentTier::GREAT).empty());
+    EXPECT_FALSE(mgr.get_judgment_sfx_path(JudgmentTier::GOOD).empty());
+    EXPECT_FALSE(mgr.get_judgment_sfx_path(JudgmentTier::BAD).empty());
+    EXPECT_FALSE(mgr.get_judgment_sfx_path(JudgmentTier::MISS).empty());
+}
+
+TEST_F(SystemAssetManagerTest, GetJudgmentSfxPathReturnsEmptyWhenNotFound) {
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    // No SFX files created, should return empty path (graceful degradation)
+    auto perfect_path = mgr.get_judgment_sfx_path(JudgmentTier::PERFECT);
+    EXPECT_TRUE(perfect_path.empty());
+}
+
+TEST_F(SystemAssetManagerTest, GetMenuSfxPathReturnsValidPath) {
+    create_test_sfx("cursor.wav");
+    create_test_sfx("select.wav");
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    auto cursor_path = mgr.get_menu_sfx_path("cursor");
+    auto select_path = mgr.get_menu_sfx_path("select.wav");
+
+    EXPECT_FALSE(cursor_path.empty());
+    EXPECT_TRUE(fs::exists(cursor_path));
+    EXPECT_EQ(cursor_path.filename(), "cursor.wav");
+
+    EXPECT_FALSE(select_path.empty());
+    EXPECT_TRUE(fs::exists(select_path));
+    EXPECT_EQ(select_path.filename(), "select.wav");
+}
+
+TEST_F(SystemAssetManagerTest, GetMenuSfxPathReturnsEmptyWhenNotFound) {
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    // No SFX files created, should return empty path (graceful degradation)
+    auto missing_path = mgr.get_menu_sfx_path("missing");
+    EXPECT_TRUE(missing_path.empty());
+}
+
+TEST_F(SystemAssetManagerTest, GetMenuSfxPathAddsExtension) {
+    create_test_sfx("back.wav");
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get());
+
+    // Should add .wav extension if not present
+    auto path_without_ext = mgr.get_menu_sfx_path("back");
+    EXPECT_FALSE(path_without_ext.empty());
+    EXPECT_EQ(path_without_ext.filename(), "back.wav");
+
+    // Should not double-add extension
+    auto path_with_ext = mgr.get_menu_sfx_path("back.wav");
+    EXPECT_FALSE(path_with_ext.empty());
+    EXPECT_EQ(path_with_ext.filename(), "back.wav");
 }
