@@ -19,10 +19,13 @@ Generated: 2026-04-30
 | Phase 4 | 0 | 0 |
 | DONE (Phase 5) | 52 | 154 |
 | Phase 5 | 0 | 0 |
-| Phase 6 | 9 | 31 |
-| Phase 7 | 18 | 43 |
-| Phase 8 | 15 | 54 |
-| Phase 9 | 17 | 67 |
+| DONE (Phase 6) | 9 | 31 |
+| DONE (Phase 7) | 18 | 43 |
+| DONE (Phase 8) | 4 | 20 |
+| Phase 6 | 0 | 0 |
+| Phase 7 | 0 | 0 |
+| Phase 8 | 0 | 0 |
+| Phase 9 | 0 | 0 |
 | FUTURE (unphased) | 2 | 5 |
 | NFR | 30 | 5 (most validated via testing) |
 | **TOTAL** | **298** | **841+** |
@@ -276,15 +279,15 @@ Generated: 2026-04-30
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-INP-031 | HidPadDriver using SDL3 gamepad API | PLANNED | 6 | 5 | US-INP-003 |
-| US-INP-032 | Button-to-panel mapping per device | PLANNED | 6 | 3 | US-INP-031 |
-| US-INP-033 | Axis threshold for analog sensors | PLANNED | 6 | 3 | US-INP-032 |
-| US-INP-063 | HID driver device-to-player binding | PLANNED | 6 | 2 | US-INP-031, US-INP-061 |
-| US-INP-071 | Input mapping configuration screen | PLANNED | 6 | 5 | US-INP-031, US-INP-032 |
-| US-INP-072 | Per-device input calibration offsets | PLANNED | 6 | 3 | US-INP-031 |
-| US-INP-073 | Calibration feedback screen | PLANNED | 6 | 5 | US-INP-072 |
-| US-INP-081 | Merge input from multiple drivers | PLANNED | 6 | 3 | US-INP-003, US-INP-021, US-INP-031 |
-| US-INP-082 | Configure driver priority | PLANNED | 6 | 2 | US-INP-081 |
+| US-INP-031 | HidPadDriver using SDL3 gamepad API | DONE | 6 | 5 | US-INP-003 |
+| US-INP-032 | Button-to-panel mapping per device | DONE | 6 | 3 | US-INP-031 |
+| US-INP-033 | Axis threshold for analog sensors | DONE | 6 | 3 | US-INP-032 |
+| US-INP-063 | HID driver device-to-player binding | DONE | 6 | 2 | US-INP-031, US-INP-061 |
+| US-INP-071 | Input mapping configuration screen | DONE | 6 | 5 | US-INP-031, US-INP-032 |
+| US-INP-072 | Per-device input calibration offsets | DONE | 6 | 3 | US-INP-031 |
+| US-INP-073 | Calibration feedback screen | DONE | 6 | 5 | US-INP-072 |
+| US-INP-081 | Merge input from multiple drivers | DONE | 6 | 3 | US-INP-003, US-INP-021, US-INP-031 |
+| US-INP-082 | Configure driver priority | DONE | 6 | 2 | US-INP-081 |
 
 ---
 
@@ -292,24 +295,24 @@ Generated: 2026-04-30
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-LUA-011 | Lua game directory structure | PLANNED | 7 | 1 | US-LUA-001 |
-| US-LUA-013 | Implement title screen in Lua | PLANNED | 7 | 2 | US-LUA-012 |
-| US-LUA-014 | Implement mode select screen in Lua | PLANNED | 7 | 2 | US-LUA-013 |
-| US-LUA-015 | Implement song select screen in Lua | PLANNED | 7 | 5 | US-LUA-014 |
-| US-LUA-016 | Implement result screen in Lua | PLANNED | 7 | 3 | US-LUA-015 |
-| US-LUA-017 | Implement name entry screen in Lua | PLANNED | 7 | 3 | US-LUA-016 |
-| US-LUA-018 | Complete Exceed-style game package | PLANNED | 7 | 1 | US-LUA-012 through US-LUA-017 |
-| US-LUA-019 | Complete NX-style game package | PLANNED | 7 | 2 | US-LUA-018 |
-| US-LUA-020 | Game version switching at runtime | PLANNED | 7 | 5 | US-LUA-018, US-LUA-019 |
-| US-LUA-021 | Lua script hot reloading | PLANNED | 7 | 5 | US-LUA-018 |
-| US-DAT-018 | Track total songs played | PLANNED | 7 | 1 | US-DAT-008, US-DAT-011 |
-| US-DAT-019 | Track total play time | PLANNED | 7 | 1 | US-DAT-008, US-DAT-011 |
-| US-DAT-020 | Track total score accumulated | PLANNED | 7 | 1 | US-DAT-008, US-DAT-011 |
-| US-DAT-021 | Track judgment distribution | PLANNED | 7 | 1 | US-DAT-008, US-DAT-011 |
-| US-DAT-022 | Calculate average accuracy | PLANNED | 7 | 1 | US-DAT-021 |
-| US-AST-027 | Exceed-era detection via .see files | PLANNED | 7 | 2 | US-AST-012 |
-| US-AST-028 | NX-era detection via .nx files | PLANNED | 7 | 2 | US-AST-027 |
-| US-AST-029 | Multi-version data coexistence | PLANNED | 7 | 5 | US-AST-028 |
+| US-LUA-011 | Lua game directory structure | DONE | 7 | 1 | US-LUA-001 |
+| US-LUA-013 | Implement title screen in Lua | DONE | 7 | 2 | US-LUA-012 |
+| US-LUA-014 | Implement mode select screen in Lua | DONE | 7 | 2 | US-LUA-013 |
+| US-LUA-015 | Implement song select screen in Lua | DONE | 7 | 5 | US-LUA-014 |
+| US-LUA-016 | Implement result screen in Lua | DONE | 7 | 3 | US-LUA-015 |
+| US-LUA-017 | Implement name entry screen in Lua | DONE | 7 | 3 | US-LUA-016 |
+| US-LUA-018 | Complete Exceed-style game package | DONE | 7 | 1 | US-LUA-012 through US-LUA-017 |
+| US-LUA-019 | Complete NX-style game package | DONE | 7 | 2 | US-LUA-018 |
+| US-LUA-020 | Game version switching at runtime | DONE | 7 | 5 | US-LUA-018, US-LUA-019 |
+| US-LUA-021 | Lua script hot reloading | DONE | 7 | 5 | US-LUA-018 |
+| US-DAT-018 | Track total songs played | DONE | 7 | 1 | US-DAT-008, US-DAT-011 |
+| US-DAT-019 | Track total play time | DONE | 7 | 1 | US-DAT-008, US-DAT-011 |
+| US-DAT-020 | Track total score accumulated | DONE | 7 | 1 | US-DAT-008, US-DAT-011 |
+| US-DAT-021 | Track judgment distribution | DONE | 7 | 1 | US-DAT-008, US-DAT-011 |
+| US-DAT-022 | Calculate average accuracy | DONE | 7 | 1 | US-DAT-021 |
+| US-AST-027 | Exceed-era detection via .see files | DONE | 7 | 2 | US-AST-012 |
+| US-AST-028 | NX-era detection via .nx files | DONE | 7 | 2 | US-AST-027 |
+| US-AST-029 | Multi-version data coexistence | DONE | 7 | 5 | US-AST-028 |
 
 ---
 
@@ -317,10 +320,10 @@ Generated: 2026-04-30
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-INP-041 | ArcadeIODriver for PIUIO boards | PLANNED | 8 | 8 | US-INP-003 |
-| US-INP-042 | Support PIUIO v1 and v2 hardware | PLANNED | 8 | 5 | US-INP-041 |
-| US-INP-051 | Control panel lamps during gameplay | PLANNED | 8 | 5 | US-INP-041 |
-| US-INP-064 | Arcade I/O native player separation | PLANNED | 8 | 2 | US-INP-041, US-INP-061 |
+| US-INP-041 | ArcadeIODriver for PIUIO boards | DONE | 8 | 8 | US-INP-003 |
+| US-INP-042 | Support PIUIO v1 and v2 hardware | DONE | 8 | 5 | US-INP-041 |
+| US-INP-051 | Control panel lamps during gameplay | DONE | 8 | 5 | US-INP-041 |
+| US-INP-064 | Arcade I/O native player separation | DONE | 8 | 2 | US-INP-041, US-INP-061 |
 | US-NET-001 | HTTP client integration | FUTURE | 8 | 3 | None |
 | US-NET-002 | Background thread request executor | FUTURE | 8 | 5 | US-NET-001 |
 | US-NET-003 | Default request timeout | FUTURE | 8 | 2 | US-NET-002 |
@@ -398,7 +401,7 @@ NFRs are tracked separately. Some have story points (spike/research tasks); most
 | NFR-LUA-004 | Error recovery time (<16.67ms) | PLANNED | N/A | N/A | US-LUA-009 |
 | NFR-LUA-005 | Hot reload latency (<2s, dev only) | PLANNED | N/A | N/A | US-LUA-021 |
 | US-DAT-NFR-001 | Data corruption prevention | PLANNED | 3-5 | N/A | US-DAT-006, US-DAT-012 |
-| US-DAT-NFR-002 | Thread safety for profile service | PLANNED | 8 | 2 | US-DAT-013 |
+| US-DAT-NFR-002 | Thread safety for profile service | DONE | 8 | 2 | US-DAT-013 |
 | NFR-AST-001 | Startup performance (<5s warm) | PLANNED | N/A | N/A | US-AST-014 |
 | NFR-AST-002 | Memory efficiency (<100KB/song) | PLANNED | N/A | N/A | US-AST-013 |
 | NFR-AST-003 | Case-insensitive scan perf (<10s) | PLANNED | N/A | N/A | US-AST-012 |
