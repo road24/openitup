@@ -11,6 +11,7 @@ class Renderer;
 class TextureCache;
 class SceneStack;
 class Clock;
+class GamePackage;
 namespace data { struct ProfileData; }
 
 // Maximum Lua instructions per frame (US-LUA-008)
@@ -28,6 +29,7 @@ void register_scene_bindings(sol::state& lua, SceneStack* scene_stack);
 void register_profile_bindings(sol::state& lua, const data::ProfileData* profile);
 void register_timer_bindings(sol::state& lua, const Clock* clock);
 void register_shape_bindings(sol::state& lua, Renderer* renderer);
+void register_game_bindings(sol::state& lua, const GamePackage* package);
 
 // Budget enforcement (US-LUA-008)
 void set_instruction_budget(sol::state& lua, int max_instructions);

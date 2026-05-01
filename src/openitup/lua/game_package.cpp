@@ -109,7 +109,7 @@ std::filesystem::path GamePackage::screen_path(const std::string& screen_name) c
 }
 
 std::filesystem::path GamePackage::asset_path(const std::string& relative_path) const {
-    return directory_ / manifest_.asset_dir / relative_path;
+    return directory_ / relative_path;
 }
 
 std::filesystem::path GamePackage::judge_profile_path() const {

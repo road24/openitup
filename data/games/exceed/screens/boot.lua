@@ -1,36 +1,40 @@
 -- Exceed Boot Screen
--- Displays logo and transitions to title
+-- Displays logo BGA and transitions to title
 
 local timer = 0.0
-local BOOT_DURATION = 2.0
+local BOOT_DURATION = 3.0
+local logo_bga = nil
 
 function on_enter(params)
     timer = 0.0
-    -- Logo BGA would be loaded here if available
+    -- Load logo BGA from game package assets
+    logo_bga = lua_render.load_bga(game.resolve("animations/boot/logo.bgaj"))
 end
 
 function update(dt)
     timer = timer + dt
 
-    -- Skip boot screen with START button
-    if input.is_pressed(PadInput.START) then
-        scene.replace("title")
+    if lua_input.is_pressed("START") then
+        lua_scene.replace("title")
         return
     end
 
-    -- Auto-transition after BOOT_DURATION
     if timer >= BOOT_DURATION then
-        scene.replace("title")
+        lua_scene.replace("title")
     end
 end
 
 function render()
-    -- Placeholder: render logo BGA when available
-    -- renderer.draw_bga("logo.bgaj", 0, 0, timer)
+    if logo_bga then
+        lua_render.draw_bga(game.resolve("animations/boot/logo.bgaj"), timer * 60.0)
+    end
 
-    renderer.draw_text("openitup - Exceed", 320, 240)
+    -- Fallback text if no BGA
+    lua_draw.rect(0, 0, 640, 480, 0, 0, 0, 255)
+    lua_render.draw_text("openitup", 280, 220)
+    lua_render.draw_text("- Exceed -", 270, 250)
 end
 
 function on_exit()
-    -- Cleanup
+    logo_bga = nil
 end

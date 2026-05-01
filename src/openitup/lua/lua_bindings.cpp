@@ -13,6 +13,7 @@
 #include <openitup/core/clock.h>
 #include <openitup/data/profile.h>
 #include <openitup/sprite/sprite.h>
+#include <openitup/lua/game_package.h>
 #include <openitup/sprite/sprite_loader.h>
 #include <openitup/bga/bga_loader.h>
 #include <openitup/gfx/blend_modes.h>
@@ -371,6 +372,25 @@ void register_shape_bindings(sol::state& lua, Renderer* renderer) {
     };
 
     spdlog::debug("Lua shape drawing bindings registered");
+}
+
+void register_game_bindings(sol::state& lua, const GamePackage* package) {
+    auto lua_game = lua["game"].get_or_create<sol::table>();
+
+    lua_game["resolve"] = [package](const std::string& relative_path) -> std::string {
+        if (!package) {
+            spdlog::warn("No game package loaded, returning path as-is: {}", relative_path);
+            return relative_path;
+        }
+        return package->asset_path(relative_path).string();
+    };
+
+    lua_game["name"] = package ? package->manifest().name : "";
+    lua_game["version"] = package ? package->manifest().version : "";
+    lua_game["directory"] = package ? package->directory().string() : "";
+
+    spdlog::debug("Lua game bindings registered (package: {})",
+                  package ? package->manifest().name : "none");
 }
 
 void register_all_bindings(sol::state& lua) {
