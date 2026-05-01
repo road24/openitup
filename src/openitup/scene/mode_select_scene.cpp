@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <openitup/asset/cached_song_database.h>
 #include <openitup/core/engine.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/input/input_snapshot.h>
@@ -9,12 +10,24 @@
 #include <openitup/render/text_renderer.h>
 #include <openitup/scene/minimal_gameplay_scene.h>
 #include <openitup/scene/scene_stack.h>
+#include <openitup/scene/song_select_scene.h>
 #include <openitup/scene/title_scene.h>
 
 namespace openitup {
 
-ModeSelectScene::ModeSelectScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack, Engine* engine, const std::filesystem::path& test_chart_path)
-    : renderer_(renderer), text_(text_renderer), stack_(scene_stack), engine_(engine), test_chart_path_(test_chart_path) {}
+ModeSelectScene::ModeSelectScene(
+    Renderer* renderer,
+    TextRenderer* text_renderer,
+    SceneStack* scene_stack,
+    Engine* engine,
+    const std::filesystem::path& test_chart_path,
+    std::shared_ptr<CachedSongDatabase> song_database)
+    : renderer_(renderer),
+      text_(text_renderer),
+      stack_(scene_stack),
+      engine_(engine),
+      test_chart_path_(test_chart_path),
+      song_database_(song_database) {}
 
 void ModeSelectScene::on_enter() {
     spdlog::info("ModeSelectScene entered");
@@ -46,11 +59,27 @@ void ModeSelectScene::handle_input(const InputSnapshot& input) {
     // START confirms selection
     if (input.is_pressed(PadInput::START)) {
         if (cursor_ == 0 || cursor_ == 1) {
+            GameMode mode = (cursor_ == 0) ? GameMode::SINGLE : GameMode::DOUBLE;
             const char* mode_name = (cursor_ == 0) ? "Single" : "Double";
-            spdlog::info("ModeSelectScene: {} mode selected, launching gameplay", mode_name);
+            spdlog::info("ModeSelectScene: {} mode selected", mode_name);
 
-            // Phase 2: Use hardcoded test chart path (full song select in Phase 3)
-            if (!test_chart_path_.empty() && std::filesystem::exists(test_chart_path_)) {
+            // Phase 3: transition to SongSelectScene
+            if (song_database_ && song_database_->song_count() > 0) {
+                spdlog::info("ModeSelectScene: transitioning to SongSelectScene with {} songs",
+                            song_database_->song_count());
+                auto song_select = std::make_unique<SongSelectScene>(
+                    renderer_,
+                    text_,
+                    stack_,
+                    engine_,
+                    mode,
+                    song_database_->get_songs()
+                );
+                stack_->replace(std::move(song_select));
+            }
+            // Phase 2 fallback: Use hardcoded test chart path if no song database
+            else if (!test_chart_path_.empty() && std::filesystem::exists(test_chart_path_)) {
+                spdlog::warn("ModeSelectScene: no song database, using test chart path");
                 std::filesystem::path data_dir = test_chart_path_.parent_path();
                 try {
                     auto gameplay_scene = std::make_unique<MinimalGameplayScene>(
@@ -68,7 +97,7 @@ void ModeSelectScene::handle_input(const InputSnapshot& input) {
                     spdlog::error("Failed to launch gameplay: {}", e.what());
                 }
             } else {
-                spdlog::warn("No test chart configured, cannot launch gameplay");
+                spdlog::warn("ModeSelectScene: no songs available and no test chart configured");
             }
         } else {
             spdlog::warn("ModeSelectScene: Co-op/Battle not yet implemented");
@@ -78,7 +107,7 @@ void ModeSelectScene::handle_input(const InputSnapshot& input) {
     // BACK returns to title
     if (input.is_pressed(PadInput::BACK)) {
         spdlog::info("ModeSelectScene: BACK pressed, returning to TitleScene");
-        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_));
+        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_, song_database_));
     }
 }
 

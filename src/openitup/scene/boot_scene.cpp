@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <openitup/asset/cached_song_database.h>
 #include <openitup/core/engine.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/render/text_renderer.h>
@@ -10,8 +11,19 @@
 
 namespace openitup {
 
-BootScene::BootScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack, Engine* engine, const std::filesystem::path& test_chart_path)
-    : renderer_(renderer), text_(text_renderer), stack_(scene_stack), engine_(engine), test_chart_path_(test_chart_path) {}
+BootScene::BootScene(
+    Renderer* renderer,
+    TextRenderer* text_renderer,
+    SceneStack* scene_stack,
+    Engine* engine,
+    const std::filesystem::path& test_chart_path,
+    std::shared_ptr<CachedSongDatabase> song_database)
+    : renderer_(renderer),
+      text_(text_renderer),
+      stack_(scene_stack),
+      engine_(engine),
+      test_chart_path_(test_chart_path),
+      song_database_(song_database) {}
 
 void BootScene::on_enter() {
     spdlog::info("BootScene entered");
@@ -34,7 +46,7 @@ void BootScene::update(double dt) {
     elapsed_ += dt;
     if (elapsed_ >= DURATION) {
         spdlog::info("BootScene: transitioning to TitleScene");
-        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_));
+        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_, song_database_));
     }
 }
 

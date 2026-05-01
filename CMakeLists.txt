@@ -75,6 +75,9 @@ add_library(openitup_engine STATIC
     src/openitup/asset/data_directory.cpp
     src/openitup/asset/data_dir_config.cpp
     src/openitup/asset/song_scanner.cpp
+    src/openitup/asset/song_database.cpp
+    src/openitup/asset/cached_song_database.cpp
+    src/openitup/asset/lazy_loader.cpp
     src/openitup/core/clock.cpp
     src/openitup/core/engine.cpp
     src/openitup/core/system_paths.cpp
@@ -116,11 +119,13 @@ add_library(openitup_engine STATIC
     src/openitup/scene/boot_scene.cpp
     src/openitup/scene/title_scene.cpp
     src/openitup/scene/mode_select_scene.cpp
+    src/openitup/scene/song_select_scene.cpp
     src/openitup/scene/result_scene.cpp
     src/openitup/data/user_data_dir.cpp
     src/openitup/data/settings.cpp
     src/openitup/data/atomic_write.cpp
     src/openitup/data/settings_manager.cpp
+    src/openitup/data/song_cache.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -201,6 +206,7 @@ enable_testing()
 add_executable(openitup_tests
     test/test_data_directory.cpp
     test/test_song_scanner.cpp
+    test/test_song_database.cpp
     test/test_keyframe_interp.cpp
     test/test_texture_cache.cpp
     test/test_texture_cache_pinning.cpp
@@ -241,6 +247,9 @@ add_executable(openitup_tests
     test/test_settings.cpp
     test/test_atomic_write.cpp
     test/test_settings_manager.cpp
+    test/test_song_cache.cpp
+    test/test_cached_song_database.cpp
+    test/test_song_select_scene.cpp
     test/test_keyboard_driver.cpp
 )
 
