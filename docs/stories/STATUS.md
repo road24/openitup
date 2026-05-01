@@ -11,10 +11,10 @@ Generated: 2026-04-30
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
 | DONE (Phase 2) | 17 | 76 |
-| DONE (Phase 3) | 15 | 47 |
+| DONE (Phase 3) | 29 | 90 |
 | Phase 1 | 0 | 0 |
 | Phase 2 | 0 | 0 |
-| Phase 3 | 30 | 74 |
+| Phase 3 | 16 | 31 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
@@ -145,20 +145,20 @@ Generated: 2026-04-30
 | US-AST-017 | Chart loaded on song selection | PLANNED | 3 | 2 | US-AST-013 |
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 3 | 2 | US-AST-017 |
 | US-AST-020 | BGA loaded on song selection | PLANNED | 3 | 2 | US-AST-016 |
-| US-INP-023 | Persist keymap to settings file | PLANNED | 3 | 3 | US-INP-022 |
+| US-INP-023 | Persist keymap to settings file | DONE | 3 | 3 | US-INP-022 |
 | US-AUD-031 | Load short audio samples to memory | DONE | 3 | 3 | US-AUD-001, US-AUD-002 |
 | US-AUD-032 | Play sound effects with low latency | PLANNED | 3 | 5 | US-AUD-031 |
-| US-AUD-033 | Independent SFX volume control | PLANNED | 3 | 2 | US-AUD-032 |
-| US-AUD-041 | Trigger key sounds on panel press | PLANNED | 3 | 2 | US-AUD-032 |
-| US-AUD-042 | Support per-column key sounds | PLANNED | 3 | 2 | US-AUD-041 |
-| US-AUD-051 | Play judgment sounds based on timing | PLANNED | 3 | 2 | US-AUD-032 |
-| US-AUD-052 | Configurable judgment sound volume | PLANNED | 3 | 2 | US-AUD-051 |
+| US-AUD-033 | Independent SFX volume control | DONE | 3 | 2 | US-AUD-032 |
+| US-AUD-041 | Trigger key sounds on panel press | DONE | 3 | 2 | US-AUD-032 |
+| US-AUD-042 | Support per-column key sounds | DONE | 3 | 2 | US-AUD-041 |
+| US-AUD-051 | Play judgment sounds based on timing | DONE | 3 | 2 | US-AUD-032 |
+| US-AUD-052 | Configurable judgment sound volume | DONE | 3 | 2 | US-AUD-051 |
 | US-AUD-093 | Select audio backend at compile time | PLANNED | 3 | 2 | US-AUD-092 |
 | US-CHT-018 | Store preview audio information | DONE | 3 | 2 | US-CHT-002 |
 | US-JDG-007 | Hold note head judgment | DONE | 3 | 4 | US-JDG-002 |
 | US-JDG-008 | Hold body continuous scoring | PLANNED | 3 | 4 | US-JDG-007 |
-| US-JDG-009 | Hold grace window recovery | PLANNED | 3 | 4 | US-JDG-008, US-JDG-013 |
-| US-JDG-010 | Life gauge with HP drain | PLANNED | 3 | 2 | US-JDG-005, US-JDG-013 |
+| US-JDG-009 | Hold grace window recovery | DONE | 3 | 4 | US-JDG-008, US-JDG-013 |
+| US-JDG-010 | Life gauge with HP drain | DONE | 3 | 2 | US-JDG-005, US-JDG-013 |
 | US-REN-025 | Hold note body rendering | DONE | 3 | 5 | US-REN-021 |
 | US-REN-026 | Hold note cap rendering | PLANNED | 3 | 2 | US-REN-025 |
 | US-REN-028 | Hit effects and receptor flash | DONE | 3 | 3 | US-REN-021 |
@@ -168,15 +168,15 @@ Generated: 2026-04-30
 | US-DAT-001 | Platform-appropriate user data dir | DONE | 3 | 2 | None |
 | US-DAT-002 | Automatic user data dir creation | PLANNED | 3 | 2 | US-DAT-001 |
 | US-DAT-003 | Settings JSON file structure | PLANNED | 3 | 3 | US-DAT-002 |
-| US-DAT-004 | Settings load at startup | PLANNED | 3 | 2 | US-DAT-003 |
-| US-DAT-005 | Settings save on change | PLANNED | 3 | 2 | US-DAT-003, US-DAT-004 |
-| US-DAT-006 | Atomic file write for settings | PLANNED | 3 | 2 | US-DAT-005 |
-| US-DAT-007 | Settings value validation | PLANNED | 3 | 3 | US-DAT-004 |
+| US-DAT-004 | Settings load at startup | DONE | 3 | 2 | US-DAT-003 |
+| US-DAT-005 | Settings save on change | DONE | 3 | 2 | US-DAT-003, US-DAT-004 |
+| US-DAT-006 | Atomic file write for settings | DONE | 3 | 2 | US-DAT-005 |
+| US-DAT-007 | Settings value validation | DONE | 3 | 3 | US-DAT-004 |
 | US-DAT-031 | Chart metadata cache file structure | PLANNED | 3 | 5 | US-DAT-002 |
 | US-DAT-032 | Cache invalidation on dir modify | PLANNED | 3 | 2 | US-DAT-031 |
 | US-DAT-033 | Fast cache loading performance | PLANNED | 3 | 2 | US-DAT-031 |
-| US-AST-011 | Config file for multiple data dirs | PLANNED | 3 | 2 | US-AST-009, US-AST-012 |
-| US-AST-012 | Recursive directory scan for songs | PLANNED | 3 | 5 | US-AST-011 |
+| US-AST-011 | Config file for multiple data dirs | DONE | 3 | 2 | US-AST-009, US-AST-012 |
+| US-AST-012 | Recursive directory scan for songs | DONE | 3 | 5 | US-AST-011 |
 | US-AST-013 | Song metadata extraction during scan | PLANNED | 3 | 5 | US-AST-012 |
 | US-AST-014 | Cached song DB for startup perf | PLANNED | 3 | 5 | US-AST-013 |
 | US-AST-015 | Banner and audio file discovery | PLANNED | 3 | 2 | US-AST-012 |
