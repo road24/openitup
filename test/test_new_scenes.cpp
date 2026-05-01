@@ -66,11 +66,11 @@ TEST(NameEntrySceneTest, NavigationMovesInGrid) {
     scene.on_enter();
 
     // Move right
-    InputSnapshot right_input(0, static_cast<uint32_t>(PadInput::P1_RIGHT), 0, 1);
+    InputSnapshot right_input(0, static_cast<uint32_t>(PadInput::P1_UP_RIGHT), 0, 1);
     scene.handle_input(right_input);
 
     // Move down
-    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN), 0, 2);
+    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN_LEFT), 0, 2);
     scene.handle_input(down_input);
 
     scene.on_exit();
@@ -93,7 +93,7 @@ TEST(NameEntrySceneTest, BackspaceRemovesCharacter) {
     scene.handle_input(select_input);
 
     // Backspace
-    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::P1_BACK), 0, 2);
+    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::BACK), 0, 2);
     scene.handle_input(back_input);
 
     scene.on_exit();
@@ -144,7 +144,7 @@ TEST(PauseOverlaySceneTest, NavigationChangesSelection) {
     scene.on_enter();
 
     // Move down from Resume to Restart
-    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN), 0, 1);
+    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN_LEFT), 0, 1);
     scene.handle_input(down_input);
 
     // Move down from Restart to Quit
@@ -166,7 +166,7 @@ TEST(PauseOverlaySceneTest, BackButtonResumes) {
     PauseOverlayScene scene(renderer, text, stack, &engine);
     scene.on_enter();
 
-    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::P1_BACK), 0, 1);
+    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::BACK), 0, 1);
     scene.handle_input(back_input);
     // Should pop scene (resume)
 
@@ -261,11 +261,11 @@ TEST(SettingsSceneTest, TabNavigationWorks) {
     scene.on_enter();
 
     // Navigate to next tab
-    InputSnapshot right_input(0, static_cast<uint32_t>(PadInput::P1_RIGHT), 0, 1);
+    InputSnapshot right_input(0, static_cast<uint32_t>(PadInput::P1_UP_RIGHT), 0, 1);
     scene.handle_input(right_input);
 
     // Navigate to previous tab
-    InputSnapshot left_input(0, static_cast<uint32_t>(PadInput::P1_LEFT), 0, 2);
+    InputSnapshot left_input(0, static_cast<uint32_t>(PadInput::P1_UP_LEFT), 0, 2);
     scene.handle_input(left_input);
 
     scene.on_exit();
@@ -283,7 +283,7 @@ TEST(SettingsSceneTest, BackButtonExits) {
     SettingsScene scene(renderer, text, stack, &engine);
     scene.on_enter();
 
-    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::P1_BACK), 0, 1);
+    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::BACK), 0, 1);
     scene.handle_input(back_input);
     // Should pop scene
 
@@ -335,11 +335,11 @@ TEST(ProfileSelectionSceneTest, NavigationWorks) {
     scene.on_enter();
 
     // Navigate down
-    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN), 0, 1);
+    InputSnapshot down_input(0, static_cast<uint32_t>(PadInput::P1_DOWN_LEFT), 0, 1);
     scene.handle_input(down_input);
 
     // Navigate up
-    InputSnapshot up_input(0, static_cast<uint32_t>(PadInput::P1_UP), 0, 2);
+    InputSnapshot up_input(0, static_cast<uint32_t>(PadInput::P1_UP_LEFT), 0, 2);
     scene.handle_input(up_input);
 
     scene.on_exit();
@@ -357,7 +357,7 @@ TEST(ProfileSelectionSceneTest, BackButtonReturnsToTitle) {
     ProfileSelectionScene scene(renderer, text, stack, &engine);
     scene.on_enter();
 
-    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::P1_BACK), 0, 1);
+    InputSnapshot back_input(0, static_cast<uint32_t>(PadInput::BACK), 0, 1);
     scene.handle_input(back_input);
     // Should replace with TitleScene
 

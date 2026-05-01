@@ -210,8 +210,10 @@ add_library(openitup_engine STATIC
     src/openitup/data/profile.cpp
     src/openitup/data/atomic_write.cpp
     src/openitup/data/settings_manager.cpp
+    src/openitup/data/profile_service.cpp
     src/openitup/data/song_cache.cpp
     src/openitup/lua/lua_engine.cpp
+    src/openitup/lua/lua_bindings.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -357,9 +359,11 @@ add_executable(openitup_tests
     test/test_song_select_scene.cpp
     test/test_keyboard_driver.cpp
     test/test_lua_engine.cpp
+    test/test_lua_bindings.cpp
     test/test_note_field_config.cpp
     test/test_input_per_player.cpp
     test/test_profile.cpp
+    test/test_profile_service.cpp
     test/test_noteskin_manager.cpp
     test/test_chart_hash_integration.cpp
     test/test_new_scenes.cpp

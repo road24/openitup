@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <iomanip>
+#include <set>
 #include <sstream>
 
 namespace openitup::data {
@@ -135,9 +136,21 @@ void to_json(nlohmann::json& j, const ProfileData& p) {
         {"statistics", p.statistics},
         {"high_scores", p.high_scores}
     };
+
+    // Merge unknown fields for forward compatibility (US-DAT-030)
+    if (p.unknown_fields_.is_object()) {
+        j.update(p.unknown_fields_);
+    }
 }
 
 void from_json(const nlohmann::json& j, ProfileData& p) {
+    // Known fields
+    static const std::set<std::string> known_fields = {
+        "schema_version", "display_name", "created_date", "last_played_date",
+        "total_plays", "speed_mod", "note_skin", "input_offset_ms",
+        "audio_offset_ms", "statistics", "high_scores"
+    };
+
     p.schema_version = j.value("schema_version", 1);
     p.display_name = j.at("display_name").get<std::string>();
     p.created_date = j.value("created_date", "");
@@ -149,6 +162,14 @@ void from_json(const nlohmann::json& j, ProfileData& p) {
     p.audio_offset_ms = j.value("audio_offset_ms", 0);
     p.statistics = j.value("statistics", PlayStatistics{});
     p.high_scores = j.value("high_scores", std::map<std::string, std::vector<HighScoreEntry>>{});
+
+    // Preserve unknown fields for forward compatibility (US-DAT-030)
+    p.unknown_fields_ = nlohmann::json::object();
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        if (known_fields.find(it.key()) == known_fields.end()) {
+            p.unknown_fields_[it.key()] = it.value();
+        }
+    }
 }
 
 } // namespace openitup::data

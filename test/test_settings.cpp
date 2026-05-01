@@ -239,3 +239,73 @@ TEST_F(SettingsTest, FullSettingsWithKeymapRoundTrip) {
     EXPECT_EQ(restored.input.keymap["SDL_SCANCODE_Q"], "P1_UP_LEFT");
     EXPECT_EQ(restored.input.keymap["SDL_SCANCODE_E"], "P1_UP_RIGHT");
 }
+
+// US-DAT-030 Scenario 1: Unknown field preserved in settings
+TEST_F(SettingsTest, UnknownFieldPreserved) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"video", {{"width", 1920}, {"height", 1080}}},
+        {"audio", {{"master_volume", 1.0f}, {"music_volume", 1.0f}, {"sfx_volume", 1.0f}, {"global_audio_offset_ms", 0}}},
+        {"input", {{"keymap", nlohmann::json::object()}}},
+        {"last_active_profile", ""},
+        {"future_feature", {{"enabled", true}, {"value", 42}}}
+    };
+
+    auto settings = j.get<SettingsData>();
+
+    EXPECT_TRUE(settings.unknown_fields_.contains("future_feature"));
+    EXPECT_EQ(settings.unknown_fields_["future_feature"]["enabled"], true);
+    EXPECT_EQ(settings.unknown_fields_["future_feature"]["value"], 42);
+
+    // Serialize back and verify unknown field is preserved
+    nlohmann::json j_saved = settings;
+    EXPECT_TRUE(j_saved.contains("future_feature"));
+    EXPECT_EQ(j_saved["future_feature"]["enabled"], true);
+    EXPECT_EQ(j_saved["future_feature"]["value"], 42);
+}
+
+// US-DAT-030: Multiple unknown fields preserved in settings
+TEST_F(SettingsTest, MultipleUnknownFieldsPreserved) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"video", {{"width", 1920}, {"height", 1080}}},
+        {"audio", {{"master_volume", 1.0f}, {"music_volume", 1.0f}, {"sfx_volume", 1.0f}, {"global_audio_offset_ms", 0}}},
+        {"input", {{"keymap", nlohmann::json::object()}}},
+        {"last_active_profile", ""},
+        {"experimental_mode", "test"},
+        {"beta_features", {1, 2, 3}}
+    };
+
+    auto settings = j.get<SettingsData>();
+
+    EXPECT_TRUE(settings.unknown_fields_.contains("experimental_mode"));
+    EXPECT_EQ(settings.unknown_fields_["experimental_mode"], "test");
+    EXPECT_TRUE(settings.unknown_fields_.contains("beta_features"));
+    EXPECT_EQ(settings.unknown_fields_["beta_features"].size(), 3);
+
+    // Round-trip
+    nlohmann::json j_saved = settings;
+    EXPECT_TRUE(j_saved.contains("experimental_mode"));
+    EXPECT_EQ(j_saved["experimental_mode"], "test");
+    EXPECT_TRUE(j_saved.contains("beta_features"));
+    EXPECT_EQ(j_saved["beta_features"].size(), 3);
+}
+
+// US-DAT-030: Known fields not duplicated in unknown_fields for settings
+TEST_F(SettingsTest, KnownFieldsNotInUnknown) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"video", {{"width", 1920}, {"height", 1080}}},
+        {"audio", {{"master_volume", 1.0f}, {"music_volume", 1.0f}, {"sfx_volume", 1.0f}, {"global_audio_offset_ms", 0}}},
+        {"input", {{"keymap", nlohmann::json::object()}}},
+        {"last_active_profile", "player1"}
+    };
+
+    auto settings = j.get<SettingsData>();
+
+    EXPECT_FALSE(settings.unknown_fields_.contains("schema_version"));
+    EXPECT_FALSE(settings.unknown_fields_.contains("video"));
+    EXPECT_FALSE(settings.unknown_fields_.contains("audio"));
+    EXPECT_FALSE(settings.unknown_fields_.contains("input"));
+    EXPECT_FALSE(settings.unknown_fields_.contains("last_active_profile"));
+}

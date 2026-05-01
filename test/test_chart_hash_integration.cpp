@@ -10,22 +10,26 @@ using namespace openitup;
 
 // US-DAT-014 Scenario 1: Same chart in different formats produces same hash
 TEST(ChartHashIntegrationTest, SameChartSameHash) {
-    NoteData notes1;
-    notes1.add_note(1.0, 0, NoteType::TAP);
-    notes1.add_note(2.0, 0, NoteType::TAP);
+    std::vector<NoteEvent> events1;
+    events1.push_back({1.0, 0, NoteType::TAP});
+    events1.push_back({2.0, 0, NoteType::TAP});
+    NoteData notes1(std::move(events1));
 
-    TimingData timing1;
-    timing1.add_bpm_change(0.0, 130.0);
+    std::vector<TimingEvent> timing_events1;
+    timing_events1.push_back({0.0, TimingEventType::BPM_CHANGE, 130.0, 0.0});
+    TimingData timing1(std::move(timing_events1));
 
     std::string hash1 = compute_chart_hash(notes1, timing1);
 
     // Create identical note data
-    NoteData notes2;
-    notes2.add_note(1.0, 0, NoteType::TAP);
-    notes2.add_note(2.0, 0, NoteType::TAP);
+    std::vector<NoteEvent> events2;
+    events2.push_back({1.0, 0, NoteType::TAP});
+    events2.push_back({2.0, 0, NoteType::TAP});
+    NoteData notes2(std::move(events2));
 
-    TimingData timing2;
-    timing2.add_bpm_change(0.0, 130.0);
+    std::vector<TimingEvent> timing_events2;
+    timing_events2.push_back({0.0, TimingEventType::BPM_CHANGE, 130.0, 0.0});
+    TimingData timing2(std::move(timing_events2));
 
     std::string hash2 = compute_chart_hash(notes2, timing2);
 
@@ -35,20 +39,23 @@ TEST(ChartHashIntegrationTest, SameChartSameHash) {
 
 // US-DAT-014 Scenario 3: Note data change affects hash
 TEST(ChartHashIntegrationTest, DifferentChartDifferentHash) {
-    NoteData notes1;
-    notes1.add_note(1.0, 0, NoteType::TAP);
-    notes1.add_note(2.0, 0, NoteType::TAP);
+    std::vector<NoteEvent> events1;
+    events1.push_back({1.0, 0, NoteType::TAP});
+    events1.push_back({2.0, 0, NoteType::TAP});
+    NoteData notes1(std::move(events1));
 
-    TimingData timing;
-    timing.add_bpm_change(0.0, 130.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 130.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
     std::string hash1 = compute_chart_hash(notes1, timing);
 
     // Add a third note
-    NoteData notes2;
-    notes2.add_note(1.0, 0, NoteType::TAP);
-    notes2.add_note(2.0, 0, NoteType::TAP);
-    notes2.add_note(3.0, 0, NoteType::TAP);
+    std::vector<NoteEvent> events2;
+    events2.push_back({1.0, 0, NoteType::TAP});
+    events2.push_back({2.0, 0, NoteType::TAP});
+    events2.push_back({3.0, 0, NoteType::TAP});
+    NoteData notes2(std::move(events2));
 
     std::string hash2 = compute_chart_hash(notes2, timing);
 
@@ -57,14 +64,16 @@ TEST(ChartHashIntegrationTest, DifferentChartDifferentHash) {
 
 // US-DAT-014: Hash is deterministic
 TEST(ChartHashIntegrationTest, HashIsDeterministic) {
-    NoteData notes;
-    notes.add_note(1.0, 0, NoteType::TAP);
-    notes.add_note(2.0, 1, NoteType::TAP);
-    notes.add_note(3.0, 2, NoteType::LONG_HEAD);
+    std::vector<NoteEvent> events;
+    events.push_back({1.0, 0, NoteType::TAP});
+    events.push_back({2.0, 1, NoteType::TAP});
+    events.push_back({3.0, 2, NoteType::HOLD_HEAD});
+    NoteData notes(std::move(events));
 
-    TimingData timing;
-    timing.add_bpm_change(0.0, 145.0);
-    timing.add_bpm_change(16.0, 180.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 145.0, 0.0});
+    timing_events.push_back({16.0, TimingEventType::BPM_CHANGE, 180.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
     std::string hash1 = compute_chart_hash(notes, timing);
     std::string hash2 = compute_chart_hash(notes, timing);
@@ -76,11 +85,13 @@ TEST(ChartHashIntegrationTest, HashIsDeterministic) {
 
 // US-DAT-014: Hash format validation
 TEST(ChartHashIntegrationTest, HashFormat) {
-    NoteData notes;
-    notes.add_note(1.0, 0, NoteType::TAP);
+    std::vector<NoteEvent> events;
+    events.push_back({1.0, 0, NoteType::TAP});
+    NoteData notes(std::move(events));
 
-    TimingData timing;
-    timing.add_bpm_change(0.0, 130.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 130.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
     std::string hash = compute_chart_hash(notes, timing);
 

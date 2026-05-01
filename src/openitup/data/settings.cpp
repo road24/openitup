@@ -1,5 +1,7 @@
 #include <openitup/data/settings.h>
 
+#include <set>
+
 namespace openitup::data {
 
 SettingsData SettingsData::make_default() {
@@ -77,11 +79,22 @@ void to_json(nlohmann::json& j, const SettingsData& s) {
         {"schema_version", s.schema_version},
         {"video", s.video},
         {"audio", s.audio},
-        {"input", s.input}
+        {"input", s.input},
+        {"last_active_profile", s.last_active_profile}
     };
+
+    // Merge unknown fields for forward compatibility (US-DAT-030)
+    if (s.unknown_fields_.is_object()) {
+        j.update(s.unknown_fields_);
+    }
 }
 
 void from_json(const nlohmann::json& j, SettingsData& s) {
+    // Known fields
+    static const std::set<std::string> known_fields = {
+        "schema_version", "video", "audio", "input", "last_active_profile"
+    };
+
     s.schema_version = j.value("schema_version", 1);
 
     // Parse sections with defaults if missing
@@ -101,6 +114,16 @@ void from_json(const nlohmann::json& j, SettingsData& s) {
         s.input = j["input"].get<InputSettings>();
     } else {
         s.input = InputSettings{};
+    }
+
+    s.last_active_profile = j.value("last_active_profile", "");
+
+    // Preserve unknown fields for forward compatibility (US-DAT-030)
+    s.unknown_fields_ = nlohmann::json::object();
+    for (auto it = j.begin(); it != j.end(); ++it) {
+        if (known_fields.find(it.key()) == known_fields.end()) {
+            s.unknown_fields_[it.key()] = it.value();
+        }
     }
 }
 

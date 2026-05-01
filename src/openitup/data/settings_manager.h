@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 
 #include <openitup/data/settings.h>
@@ -44,6 +45,17 @@ public:
     // Modify video settings specifically (convenience).
     bool update_video(int width, int height);
     bool update_audio(const AudioSettings& audio);
+
+    // US-DAT-027: Get/set last active profile name
+    std::string get_last_active_profile() const;
+    void set_last_active_profile(const std::string& profile_name);
+
+    // Load settings from disk without auto-creating on missing file.
+    // Returns nullopt if file doesn't exist, settings on success.
+    std::optional<SettingsData> load_settings();
+
+    // Save settings to disk.
+    bool save_settings(const SettingsData& settings);
 
 private:
     // Validate settings and replace invalid values with defaults.

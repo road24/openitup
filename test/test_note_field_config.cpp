@@ -98,10 +98,11 @@ TEST(NoteFieldConfig, DoubleModeTwoSeparateSides) {
 // US-REN-032: C-Mod speed modifier tests
 TEST(NoteFieldConfig, CModFixedScrollRate) {
     // Create timing data with BPM = 120
-    TimingData timing;
-    timing.add_bpm_change(0.0, 120.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
-    NoteData notes;
+    NoteData notes;  // Empty notes
     NoteFieldConfig config = default_single_config();
     config.speed_mod_type = SpeedModType::C_MOD;
     config.speed_mod_value = 400.0f;  // 400 pixels/second
@@ -118,11 +119,12 @@ TEST(NoteFieldConfig, CModFixedScrollRate) {
 
 TEST(NoteFieldConfig, CModBPMChangeDoesNotAffectScrollSpeed) {
     // Create timing data with BPM changes
-    TimingData timing;
-    timing.add_bpm_change(0.0, 120.0);
-    timing.add_bpm_change(8.0, 180.0);  // BPM changes at beat 8
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    timing_events.push_back({8.0, TimingEventType::BPM_CHANGE, 180.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
-    NoteData notes;
+    NoteData notes;  // Empty notes
     NoteFieldConfig config = default_single_config();
     config.speed_mod_type = SpeedModType::C_MOD;
     config.speed_mod_value = 400.0f;
@@ -154,10 +156,11 @@ TEST(NoteFieldConfig, CModBPMChangeDoesNotAffectScrollSpeed) {
 // US-REN-033: M-Mod speed modifier tests
 TEST(NoteFieldConfig, MModMultipliesScrollSpeed) {
     // Create timing data with BPM = 120
-    TimingData timing;
-    timing.add_bpm_change(0.0, 120.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
-    NoteData notes;
+    NoteData notes;  // Empty notes
     NoteFieldConfig config = default_single_config();
     config.speed_mod_type = SpeedModType::M_MOD;
     config.speed_mod_value = 2.0f;  // 2x multiplier
@@ -174,11 +177,12 @@ TEST(NoteFieldConfig, MModMultipliesScrollSpeed) {
 
 TEST(NoteFieldConfig, MModScalesWithBPM) {
     // Create timing data with BPM changes
-    TimingData timing;
-    timing.add_bpm_change(0.0, 120.0);
-    timing.add_bpm_change(8.0, 180.0);
+    std::vector<TimingEvent> timing_events;
+    timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+    timing_events.push_back({8.0, TimingEventType::BPM_CHANGE, 180.0, 0.0});
+    TimingData timing(std::move(timing_events));
 
-    NoteData notes;
+    NoteData notes;  // Empty notes
     NoteFieldConfig config = default_single_config();
     config.speed_mod_type = SpeedModType::M_MOD;
     config.speed_mod_value = 2.0f;

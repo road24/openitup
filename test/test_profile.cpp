@@ -179,3 +179,91 @@ TEST(ProfileTest, JudgmentCountsSerialization) {
     EXPECT_EQ(restored.bad, 2);
     EXPECT_EQ(restored.miss, 1);
 }
+
+// US-DAT-030 Scenario 1: Unknown field preserved
+TEST(ProfileTest, UnknownFieldPreserved) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"display_name", "TestPlayer"},
+        {"created_date", "2026-04-30T00:00:00Z"},
+        {"last_played_date", "2026-04-30T00:00:00Z"},
+        {"total_plays", 0},
+        {"speed_mod", {{"type", "M"}, {"value", 3.0f}}},
+        {"note_skin", "default"},
+        {"input_offset_ms", 0},
+        {"audio_offset_ms", 0},
+        {"statistics", {{"songs_played", 0}, {"total_time_hours", 0.0f}, {"total_score", 0}}},
+        {"high_scores", nlohmann::json::object()},
+        {"future_feature", {{"data", 123}, {"enabled", true}}}
+    };
+
+    ProfileData profile = j.get<ProfileData>();
+    EXPECT_EQ(profile.display_name, "TestPlayer");
+    EXPECT_TRUE(profile.unknown_fields_.contains("future_feature"));
+    EXPECT_EQ(profile.unknown_fields_["future_feature"]["data"], 123);
+    EXPECT_EQ(profile.unknown_fields_["future_feature"]["enabled"], true);
+
+    // Serialize back and verify unknown field is preserved
+    nlohmann::json j_saved = profile;
+    EXPECT_TRUE(j_saved.contains("future_feature"));
+    EXPECT_EQ(j_saved["future_feature"]["data"], 123);
+    EXPECT_EQ(j_saved["future_feature"]["enabled"], true);
+}
+
+// US-DAT-030: Multiple unknown fields preserved
+TEST(ProfileTest, MultipleUnknownFieldsPreserved) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"display_name", "TestPlayer"},
+        {"created_date", "2026-04-30T00:00:00Z"},
+        {"last_played_date", "2026-04-30T00:00:00Z"},
+        {"total_plays", 0},
+        {"speed_mod", {{"type", "M"}, {"value", 3.0f}}},
+        {"note_skin", "default"},
+        {"input_offset_ms", 0},
+        {"audio_offset_ms", 0},
+        {"statistics", {{"songs_played", 0}, {"total_time_hours", 0.0f}, {"total_score", 0}}},
+        {"high_scores", nlohmann::json::object()},
+        {"experimental_setting", 42},
+        {"future_array", {1, 2, 3}}
+    };
+
+    ProfileData profile = j.get<ProfileData>();
+
+    EXPECT_TRUE(profile.unknown_fields_.contains("experimental_setting"));
+    EXPECT_EQ(profile.unknown_fields_["experimental_setting"], 42);
+    EXPECT_TRUE(profile.unknown_fields_.contains("future_array"));
+    EXPECT_EQ(profile.unknown_fields_["future_array"].size(), 3);
+
+    // Round-trip
+    nlohmann::json j_saved = profile;
+    EXPECT_TRUE(j_saved.contains("experimental_setting"));
+    EXPECT_EQ(j_saved["experimental_setting"], 42);
+    EXPECT_TRUE(j_saved.contains("future_array"));
+    EXPECT_EQ(j_saved["future_array"].size(), 3);
+}
+
+// US-DAT-030: Known fields not duplicated in unknown_fields
+TEST(ProfileTest, KnownFieldsNotInUnknown) {
+    nlohmann::json j = {
+        {"schema_version", 1},
+        {"display_name", "TestPlayer"},
+        {"created_date", "2026-04-30T00:00:00Z"},
+        {"last_played_date", "2026-04-30T00:00:00Z"},
+        {"total_plays", 5},
+        {"speed_mod", {{"type", "M"}, {"value", 3.0f}}},
+        {"note_skin", "default"},
+        {"input_offset_ms", 0},
+        {"audio_offset_ms", 0},
+        {"statistics", {{"songs_played", 0}, {"total_time_hours", 0.0f}, {"total_score", 0}}},
+        {"high_scores", nlohmann::json::object()}
+    };
+
+    ProfileData profile = j.get<ProfileData>();
+
+    EXPECT_FALSE(profile.unknown_fields_.contains("schema_version"));
+    EXPECT_FALSE(profile.unknown_fields_.contains("display_name"));
+    EXPECT_FALSE(profile.unknown_fields_.contains("total_plays"));
+    EXPECT_FALSE(profile.unknown_fields_.contains("speed_mod"));
+    EXPECT_FALSE(profile.unknown_fields_.contains("note_skin"));
+}

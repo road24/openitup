@@ -35,6 +35,12 @@ struct SettingsData {
     AudioSettings audio;
     InputSettings input;
 
+    // US-DAT-027: Persist active profile across sessions
+    std::string last_active_profile;
+
+    // Preserve unknown fields for forward compatibility (US-DAT-030)
+    nlohmann::json unknown_fields_;
+
     // Returns defaults for all fields.
     static SettingsData make_default();
 };

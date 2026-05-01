@@ -162,4 +162,28 @@ bool SettingsManager::validate() {
     return all_valid;
 }
 
+std::string SettingsManager::get_last_active_profile() const {
+    return data_.last_active_profile;
+}
+
+void SettingsManager::set_last_active_profile(const std::string& profile_name) {
+    data_.last_active_profile = profile_name;
+}
+
+std::optional<SettingsData> SettingsManager::load_settings() {
+    try {
+        std::string content = reader_(settings_path_);
+        nlohmann::json j = nlohmann::json::parse(content);
+        return j.get<SettingsData>();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to load settings: {}", e.what());
+        return std::nullopt;
+    }
+}
+
+bool SettingsManager::save_settings(const SettingsData& settings) {
+    data_ = settings;
+    return save();
+}
+
 } // namespace openitup::data

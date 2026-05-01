@@ -14,7 +14,9 @@ class CoopJudgeTest : public ::testing::Test {
 protected:
     void SetUp() override {
         // Create timing data: 120 BPM (0.5 seconds per beat)
-        timing_data_.add_bpm_change(0.0, 120.0);
+        std::vector<TimingEvent> timing_events;
+        timing_events.push_back({0.0, TimingEventType::BPM_CHANGE, 120.0, 0.0});
+        timing_data_ = TimingData(std::move(timing_events));
 
         // Create notes for both players
         // P1 (columns 0-4): notes at beats 1.0, 2.0
@@ -26,7 +28,7 @@ protected:
         events.push_back({1.5, 5, NoteType::TAP});  // P2 down-left (remapped column)
         events.push_back({2.5, 7, NoteType::TAP});  // P2 center (remapped column)
 
-        note_data_ = NoteData(events);
+        note_data_ = NoteData(std::move(events));
 
         profile_ = default_timing_profile();
     }

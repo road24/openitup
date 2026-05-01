@@ -49,7 +49,7 @@ void ProfileSelectionScene::scan_profiles() {
 
     // Get profiles directory from user data directory
     const auto& user_data = engine_->get_user_data_dir();
-    std::filesystem::path profiles_dir = user_data.root() / "profiles";
+    std::filesystem::path profiles_dir = user_data.path() / "profiles";
 
     if (!std::filesystem::exists(profiles_dir)) {
         spdlog::info("ProfileSelectionScene: profiles directory does not exist, creating");
@@ -164,7 +164,7 @@ void ProfileSelectionScene::create_profile() {
     // TODO: Push NameEntryScene or similar for profile name input
     // For now, create a default profile
     const auto& user_data = engine_->get_user_data_dir();
-    std::filesystem::path profiles_dir = user_data.root() / "profiles";
+    std::filesystem::path profiles_dir = user_data.path() / "profiles";
     std::filesystem::create_directories(profiles_dir);
 
     // Generate default name

@@ -64,6 +64,9 @@ struct ProfileData {
     // Each chart can have multiple high score entries (up to 10).
     std::map<std::string, std::vector<HighScoreEntry>> high_scores;
 
+    // Preserve unknown fields for forward compatibility (US-DAT-030)
+    nlohmann::json unknown_fields_;
+
     static ProfileData make_default(const std::string& name);
 };
 

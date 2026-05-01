@@ -5,6 +5,7 @@
 
 #include <openitup/asset/noteskin_manager.h>
 #include <openitup/gfx/texture_cache.h>
+#include <openitup/gfx/image_loader.h>
 
 using namespace openitup;
 
@@ -120,7 +121,7 @@ TEST_F(NoteSkinManagerTest, LoadNonExistentSkin) {
     SDL_Window* window = SDL_CreateWindow("test", 640, 480, SDL_WINDOW_HIDDEN);
     SDL_Renderer* renderer = SDL_CreateRenderer(window, nullptr);
 
-    TextureCache cache(renderer, test_dir_);
+    TextureCache cache(renderer, load_image);
 
     auto skin = manager.load_skin("nonexistent", cache);
 
