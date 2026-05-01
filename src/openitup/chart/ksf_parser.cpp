@@ -171,6 +171,20 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
             builder.set_intro_path(intro_resolved.string());
         } else if (tag == "DIFFICULTY") {
             builder.set_difficulty_name(value);
+        } else if (tag == "SAMPLESTART") {
+            try {
+                double start = std::stod(value);
+                builder.set_preview_start_seconds(start);
+            } catch (const std::exception& e) {
+                spdlog::warn("KSF parser: invalid SAMPLESTART value '{}': {}", value, e.what());
+            }
+        } else if (tag == "SAMPLELENGTH") {
+            try {
+                double length = std::stod(value);
+                builder.set_preview_length_seconds(length);
+            } catch (const std::exception& e) {
+                spdlog::warn("KSF parser: invalid SAMPLELENGTH value '{}': {}", value, e.what());
+            }
         } else if (tag == "STEP") {
             // STEP tag marks the beginning of note data
             line_idx++;  // Move to next line after STEP

@@ -56,6 +56,14 @@ void ChartBuilder::set_display_bpm(double bpm) {
     metadata_.display_bpm = bpm;
 }
 
+void ChartBuilder::set_preview_start_seconds(double seconds) {
+    metadata_.preview_start_seconds = seconds;
+}
+
+void ChartBuilder::set_preview_length_seconds(double seconds) {
+    metadata_.preview_length_seconds = seconds;
+}
+
 void ChartBuilder::add_bpm_change(double beat, double bpm) {
     TimingEvent event;
     event.beat = beat;

@@ -328,3 +328,95 @@ TEST(KsfParserRegression, FixtureTiming) {
     EXPECT_DOUBLE_EQ(timing.time_at_beat(1.5), 0.75);
     EXPECT_DOUBLE_EQ(timing.time_at_beat(2.0), 1.0);
 }
+
+// ============================================================================
+// Preview Audio Tests (US-CHT-018)
+// ============================================================================
+
+TEST(KsfParser, PreviewStartParsed) {
+    const char* preview_ksf = R"(#TITLE:Preview Test;
+#ARTIST:Test;
+#BPM:120;
+#SAMPLESTART:30.5;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(preview_ksf));
+    auto chart = parser.parse("/fake/path/preview.ksf");
+
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_start_seconds, 30.5);
+}
+
+TEST(KsfParser, PreviewLengthParsed) {
+    const char* preview_ksf = R"(#TITLE:Preview Test;
+#ARTIST:Test;
+#BPM:120;
+#SAMPLELENGTH:12.0;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(preview_ksf));
+    auto chart = parser.parse("/fake/path/preview.ksf");
+
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_length_seconds, 12.0);
+}
+
+TEST(KsfParser, PreviewStartAndLengthParsed) {
+    const char* preview_ksf = R"(#TITLE:Preview Test;
+#ARTIST:Test;
+#BPM:120;
+#SAMPLESTART:45.0;
+#SAMPLELENGTH:20.0;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(preview_ksf));
+    auto chart = parser.parse("/fake/path/preview.ksf");
+
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_start_seconds, 45.0);
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_length_seconds, 20.0);
+}
+
+TEST(KsfParser, MissingPreviewDefaultsToNotSet) {
+    // When no preview tags are present, defaults should be -1.0
+    KsfParser parser(mock_file_reader(MINIMAL_KSF));
+    auto chart = parser.parse("/fake/path/test.ksf");
+
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_start_seconds, -1.0);
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_length_seconds, -1.0);
+}
+
+TEST(KsfParser, InvalidPreviewStartLogsWarning) {
+    const char* invalid_ksf = R"(#TITLE:Invalid Preview;
+#ARTIST:Test;
+#BPM:120;
+#SAMPLESTART:not_a_number;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(invalid_ksf));
+    auto chart = parser.parse("/fake/path/invalid.ksf");
+
+    // Should fall back to default value
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_start_seconds, -1.0);
+}
+
+TEST(KsfParser, InvalidPreviewLengthLogsWarning) {
+    const char* invalid_ksf = R"(#TITLE:Invalid Preview;
+#ARTIST:Test;
+#BPM:120;
+#SAMPLELENGTH:invalid;
+10000
+2222222222
+)";
+
+    KsfParser parser(mock_file_reader(invalid_ksf));
+    auto chart = parser.parse("/fake/path/invalid.ksf");
+
+    // Should fall back to default value
+    EXPECT_DOUBLE_EQ(chart.metadata().preview_length_seconds, -1.0);
+}
