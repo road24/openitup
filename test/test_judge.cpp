@@ -119,31 +119,31 @@ TEST(Judge, DefaultProfileIsValid) {
 
 TEST(Judge, InvalidProfileNegativeWindow) {
     // Negative window values should be invalid
-    TimingProfile profile{-16.0, 33.0, 66.0, 100.0};
+    TimingProfile profile{"test", -16.0, 33.0, 66.0, 100.0};
     EXPECT_FALSE(profile.is_valid());
 }
 
 TEST(Judge, InvalidProfileUnordered) {
     // Windows must be ordered: perfect <= great <= good <= bad
-    TimingProfile profile{50.0, 33.0, 66.0, 100.0};
+    TimingProfile profile{"test", 50.0, 33.0, 66.0, 100.0};
     EXPECT_FALSE(profile.is_valid());
 }
 
 TEST(Judge, InvalidProfileZeroWindow) {
     // Zero window values should be invalid
-    TimingProfile profile{0.0, 33.0, 66.0, 100.0};
+    TimingProfile profile{"test", 0.0, 33.0, 66.0, 100.0};
     EXPECT_FALSE(profile.is_valid());
 }
 
 TEST(Judge, ValidProfileAllEqual) {
     // All windows equal is valid (degenerate case)
-    TimingProfile profile{16.0, 16.0, 16.0, 16.0};
+    TimingProfile profile{"test", 16.0, 16.0, 16.0, 16.0};
     EXPECT_TRUE(profile.is_valid());
 }
 
 TEST(Judge, ValidProfileMinimal) {
     // Small but strictly ordered windows are valid
-    TimingProfile profile{1.0, 2.0, 3.0, 4.0};
+    TimingProfile profile{"test", 1.0, 2.0, 3.0, 4.0};
     EXPECT_TRUE(profile.is_valid());
 }
 
