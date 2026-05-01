@@ -17,7 +17,8 @@ Generated: 2026-04-30
 | Phase 2 | 0 | 0 |
 | Phase 3 | 0 | 0 |
 | Phase 4 | 0 | 0 |
-| Phase 5 | 52 | 154 |
+| DONE (Phase 5) | 52 | 154 |
+| Phase 5 | 0 | 0 |
 | Phase 6 | 9 | 31 |
 | Phase 7 | 18 | 43 |
 | Phase 8 | 15 | 54 |
@@ -216,58 +217,58 @@ Generated: 2026-04-30
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-INP-061 | Separate input snapshots per player | PLANNED | 5 | 3 | US-INP-002, US-INP-011 |
-| US-INP-062 | Keyboard driver player assignment | PLANNED | 5 | 2 | US-INP-021, US-INP-061 |
-| US-AUD-012 | Position accuracy across seek ops | PLANNED | 5 | 3 | US-AUD-004, US-AUD-011 |
-| US-AUD-061 | Global audio offset to judge timing | PLANNED | 5 | 2 | US-AUD-021 |
-| US-AUD-062 | Persist audio offset in user profile | PLANNED | 5 | 1 | US-AUD-061 |
-| US-AUD-071 | Calibration screen with metronome | PLANNED | 5 | 5 | US-AUD-061 |
-| US-AUD-072 | Save calibration & return to prev | PLANNED | 5 | 1 | US-AUD-071, US-AUD-062 |
-| US-AUD-082 | Stable operation over extended sess | PLANNED | 5 | 3 | US-AUD-081 |
-| US-JDG-017 | Co-op mode dual judge instances | PLANNED | 5 | 6 | US-JDG-001, US-JDG-005 |
-| US-JDG-018 | Shared vs separate life gauge | PLANNED | 5 | 2 | US-JDG-017, US-JDG-010 |
-| US-REN-030 | Single mode note field layout | PLANNED | 5 | 2 | US-REN-021 |
-| US-REN-031 | Double mode note field layout | PLANNED | 5 | 3 | US-REN-030 |
-| US-REN-032 | C-Mod speed modifier | PLANNED | 5 | 5 | US-REN-019 |
-| US-REN-033 | M-Mod speed modifier | PLANNED | 5 | 3 | US-REN-019 |
-| US-SCN-009 | Name entry scene for high scores | PLANNED | 5 | 5 | US-SCN-001 |
-| US-SCN-010 | Pause overlay scene | PLANNED | 5 | 5 | US-SCN-001, US-AUD-001 |
-| US-SCN-011 | Scene transitions w/ BGA animations | PLANNED | 5 | 5 | US-SCN-001 |
-| US-SCN-012 | Settings scene for configuration | PLANNED | 5 | 8 | US-SCN-001 |
-| US-SCN-013 | Profile selection scene | PLANNED | 5 | 5 | US-SCN-001 |
-| US-LUA-001 | Integrate sol2 Lua binding library | PLANNED | 5 | 2 | None |
-| US-LUA-002 | Expose input query API to Lua | PLANNED | 5 | 2 | US-LUA-001 |
-| US-LUA-003 | Expose audio control API to Lua | PLANNED | 5 | 3 | US-LUA-001 |
-| US-LUA-004 | Expose sprite/BGA rendering to Lua | PLANNED | 5 | 3 | US-LUA-001 |
-| US-LUA-005 | Expose scene stack nav API to Lua | PLANNED | 5 | 3 | US-LUA-001 |
-| US-LUA-006 | Expose profile/score access to Lua | PLANNED | 5 | 2 | US-LUA-001 |
-| US-LUA-007 | Expose timer utilities to Lua | PLANNED | 5 | 2 | US-LUA-001 |
-| US-LUA-008 | Per-frame Lua execution budget | PLANNED | 5 | 5 | US-LUA-001 |
-| US-LUA-009 | Log Lua errors with stack traces | PLANNED | 5 | 2 | US-LUA-001 |
-| US-LUA-010 | Sandbox Lua filesystem/OS access | PLANNED | 5 | 2 | US-LUA-001 |
-| US-LUA-012 | Implement boot screen in Lua | PLANNED | 5 | 2 | US-LUA-002, US-LUA-004, US-LUA-005, US-LUA-007 |
-| US-LUA-022 | Expose primitive shape drawing | PLANNED | 5 | 3 | US-LUA-001, US-LUA-004 |
-| US-DAT-008 | Profile JSON file structure | PLANNED | 5 | 3 | US-DAT-002 |
-| US-DAT-009 | Default profile creation | PLANNED | 5 | 2 | US-DAT-008 |
-| US-DAT-010 | Profile load and activation | PLANNED | 5 | 2 | US-DAT-008, US-DAT-009 |
-| US-DAT-011 | Profile save after gameplay | PLANNED | 5 | 2 | US-DAT-010 |
-| US-DAT-012 | Atomic file write for profiles | PLANNED | 5 | 2 | US-DAT-011 |
-| US-DAT-013 | Profile service object API | PLANNED | 5 | 5 | US-DAT-010, US-DAT-011 |
-| US-DAT-014 | Chart content hash computation | PLANNED | 5 | 5 | None |
-| US-DAT-015 | Record high score after gameplay | PLANNED | 5 | 2 | US-DAT-013, US-DAT-014 |
-| US-DAT-016 | High score entry metadata | PLANNED | 5 | 1 | US-DAT-015 |
-| US-DAT-017 | Query top high scores for chart | PLANNED | 5 | 1 | US-DAT-015 |
-| US-DAT-023 | Profile selection at startup | PLANNED | 5 | 5 | US-DAT-010 |
-| US-DAT-024 | Create new profile | PLANNED | 5 | 3 | US-DAT-023 |
-| US-DAT-025 | Delete profile with confirmation | PLANNED | 5 | 2 | US-DAT-023 |
-| US-DAT-026 | Switch active profile w/o data loss | PLANNED | 5 | 2 | US-DAT-023, US-DAT-011 |
-| US-DAT-027 | Persist active profile across sess | PLANNED | 5 | 2 | US-DAT-026, US-DAT-004 |
-| US-DAT-028 | Schema version number in JSON files | PLANNED | 5 | 1 | US-DAT-008, US-DAT-003 |
-| US-DAT-029 | Migration function schema v0 to v1 | PLANNED | 5 | 3 | US-DAT-028 |
-| US-DAT-030 | Preserve unknown JSON fields | PLANNED | 5 | 2 | US-DAT-008 |
-| US-AST-024 | Note skin directory structure | PLANNED | 5 | 5 | US-AST-021 |
-| US-AST-025 | Multiple note skins installed | PLANNED | 5 | 2 | US-AST-024 |
-| US-AST-026 | Selected note skin in profile | PLANNED | 5 | 2 | US-AST-025 |
+| US-INP-061 | Separate input snapshots per player | DONE | 5 | 3 | US-INP-002, US-INP-011 |
+| US-INP-062 | Keyboard driver player assignment | DONE | 5 | 2 | US-INP-021, US-INP-061 |
+| US-AUD-012 | Position accuracy across seek ops | DONE | 5 | 3 | US-AUD-004, US-AUD-011 |
+| US-AUD-061 | Global audio offset to judge timing | DONE | 5 | 2 | US-AUD-021 |
+| US-AUD-062 | Persist audio offset in user profile | DONE | 5 | 1 | US-AUD-061 |
+| US-AUD-071 | Calibration screen with metronome | DONE | 5 | 5 | US-AUD-061 |
+| US-AUD-072 | Save calibration & return to prev | DONE | 5 | 1 | US-AUD-071, US-AUD-062 |
+| US-AUD-082 | Stable operation over extended sess | DONE | 5 | 3 | US-AUD-081 |
+| US-JDG-017 | Co-op mode dual judge instances | DONE | 5 | 6 | US-JDG-001, US-JDG-005 |
+| US-JDG-018 | Shared vs separate life gauge | DONE | 5 | 2 | US-JDG-017, US-JDG-010 |
+| US-REN-030 | Single mode note field layout | DONE | 5 | 2 | US-REN-021 |
+| US-REN-031 | Double mode note field layout | DONE | 5 | 3 | US-REN-030 |
+| US-REN-032 | C-Mod speed modifier | DONE | 5 | 5 | US-REN-019 |
+| US-REN-033 | M-Mod speed modifier | DONE | 5 | 3 | US-REN-019 |
+| US-SCN-009 | Name entry scene for high scores | DONE | 5 | 5 | US-SCN-001 |
+| US-SCN-010 | Pause overlay scene | DONE | 5 | 5 | US-SCN-001, US-AUD-001 |
+| US-SCN-011 | Scene transitions w/ BGA animations | DONE | 5 | 5 | US-SCN-001 |
+| US-SCN-012 | Settings scene for configuration | DONE | 5 | 8 | US-SCN-001 |
+| US-SCN-013 | Profile selection scene | DONE | 5 | 5 | US-SCN-001 |
+| US-LUA-001 | Integrate sol2 Lua binding library | DONE | 5 | 2 | None |
+| US-LUA-002 | Expose input query API to Lua | DONE | 5 | 2 | US-LUA-001 |
+| US-LUA-003 | Expose audio control API to Lua | DONE | 5 | 3 | US-LUA-001 |
+| US-LUA-004 | Expose sprite/BGA rendering to Lua | DONE | 5 | 3 | US-LUA-001 |
+| US-LUA-005 | Expose scene stack nav API to Lua | DONE | 5 | 3 | US-LUA-001 |
+| US-LUA-006 | Expose profile/score access to Lua | DONE | 5 | 2 | US-LUA-001 |
+| US-LUA-007 | Expose timer utilities to Lua | DONE | 5 | 2 | US-LUA-001 |
+| US-LUA-008 | Per-frame Lua execution budget | DONE | 5 | 5 | US-LUA-001 |
+| US-LUA-009 | Log Lua errors with stack traces | DONE | 5 | 2 | US-LUA-001 |
+| US-LUA-010 | Sandbox Lua filesystem/OS access | DONE | 5 | 2 | US-LUA-001 |
+| US-LUA-012 | Implement boot screen in Lua | DONE | 5 | 2 | US-LUA-002, US-LUA-004, US-LUA-005, US-LUA-007 |
+| US-LUA-022 | Expose primitive shape drawing | DONE | 5 | 3 | US-LUA-001, US-LUA-004 |
+| US-DAT-008 | Profile JSON file structure | DONE | 5 | 3 | US-DAT-002 |
+| US-DAT-009 | Default profile creation | DONE | 5 | 2 | US-DAT-008 |
+| US-DAT-010 | Profile load and activation | DONE | 5 | 2 | US-DAT-008, US-DAT-009 |
+| US-DAT-011 | Profile save after gameplay | DONE | 5 | 2 | US-DAT-010 |
+| US-DAT-012 | Atomic file write for profiles | DONE | 5 | 2 | US-DAT-011 |
+| US-DAT-013 | Profile service object API | DONE | 5 | 5 | US-DAT-010, US-DAT-011 |
+| US-DAT-014 | Chart content hash computation | DONE | 5 | 5 | None |
+| US-DAT-015 | Record high score after gameplay | DONE | 5 | 2 | US-DAT-013, US-DAT-014 |
+| US-DAT-016 | High score entry metadata | DONE | 5 | 1 | US-DAT-015 |
+| US-DAT-017 | Query top high scores for chart | DONE | 5 | 1 | US-DAT-015 |
+| US-DAT-023 | Profile selection at startup | DONE | 5 | 5 | US-DAT-010 |
+| US-DAT-024 | Create new profile | DONE | 5 | 3 | US-DAT-023 |
+| US-DAT-025 | Delete profile with confirmation | DONE | 5 | 2 | US-DAT-023 |
+| US-DAT-026 | Switch active profile w/o data loss | DONE | 5 | 2 | US-DAT-023, US-DAT-011 |
+| US-DAT-027 | Persist active profile across sess | DONE | 5 | 2 | US-DAT-026, US-DAT-004 |
+| US-DAT-028 | Schema version number in JSON files | DONE | 5 | 1 | US-DAT-008, US-DAT-003 |
+| US-DAT-029 | Migration function schema v0 to v1 | DONE | 5 | 3 | US-DAT-028 |
+| US-DAT-030 | Preserve unknown JSON fields | DONE | 5 | 2 | US-DAT-008 |
+| US-AST-024 | Note skin directory structure | DONE | 5 | 5 | US-AST-021 |
+| US-AST-025 | Multiple note skins installed | DONE | 5 | 2 | US-AST-024 |
+| US-AST-026 | Selected note skin in profile | DONE | 5 | 2 | US-AST-025 |
 
 ---
 
