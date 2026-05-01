@@ -10,6 +10,15 @@
 
 namespace openitup {
 
+// Hold state for tracking an active hold note.
+// Created when a HOLD_HEAD is judged successfully (not MISS).
+struct HoldState {
+    int column;                  // column index (0-9)
+    double tail_beat;            // beat position of the HOLD_TAIL
+    bool active;                 // true if hold is still active
+    JudgmentTier head_tier;      // judgment tier from the head hit
+};
+
 class Judge {
 public:
     // Construct a judge for a chart.
@@ -46,6 +55,9 @@ public:
     // Reset judge state (for retry). Notes and timing data unchanged.
     void reset();
 
+    // Query active hold states (for testing and hold body scoring).
+    const std::vector<HoldState>& active_holds() const;
+
 private:
     const NoteData& note_data_;
     const TimingData& timing_data_;
@@ -64,12 +76,19 @@ private:
     // Count of notes judged so far.
     std::size_t judged_count_;
 
+    // Active hold states (for hold body scoring in US-JDG-008).
+    std::vector<HoldState> active_holds_;
+
     // Classify the absolute timing error into a judgment tier.
     JudgmentTier classify(double abs_error_ms) const;
 
     // Find the best (closest) unjudged note for a given column and time.
     // Returns the note index, or SIZE_MAX if no match within bad window.
     std::size_t find_closest_unjudged(uint8_t column, double song_position_ms) const;
+
+    // Find the HOLD_TAIL beat for a given HOLD_HEAD note index.
+    // Returns the tail beat, or -1.0 if no matching tail found.
+    double find_hold_tail_beat(std::size_t head_index) const;
 };
 
 } // namespace openitup

@@ -21,13 +21,10 @@ Judge::Judge(const NoteData& note_data, const TimingData& timing_data,
     // Initialize judged state for all notes
     judged_.resize(note_data_.size(), false);
 
-    // Precompute total judgable notes (Phase 1: only TAP notes)
+    // Precompute total judgable notes (Phase 3: TAP and HOLD_HEAD notes)
     for (const auto& note : note_data_.events()) {
-        if (note.type == NoteType::TAP) {
+        if (note.type == NoteType::TAP || note.type == NoteType::HOLD_HEAD) {
             total_judgable_++;
-        } else if (note.type == NoteType::HOLD_HEAD) {
-            spdlog::warn("Judge Phase 1: HOLD_HEAD note encountered at beat {}, column {} - holds not yet supported",
-                        note.beat, note.column);
         }
     }
 
@@ -71,8 +68,8 @@ std::size_t Judge::find_closest_unjudged(uint8_t column, double song_position_ms
             continue;
         }
 
-        // Skip non-tap notes in Phase 1
-        if (note.type != NoteType::TAP) {
+        // Skip non-judgable note types (Phase 3: TAP and HOLD_HEAD are judgable)
+        if (note.type != NoteType::TAP && note.type != NoteType::HOLD_HEAD) {
             continue;
         }
 
@@ -108,8 +105,8 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
             continue;
         }
 
-        // Skip non-judgable types
-        if (note.type != NoteType::TAP) {
+        // Skip non-judgable types (Phase 3: TAP and HOLD_HEAD are judgable)
+        if (note.type != NoteType::TAP && note.type != NoteType::HOLD_HEAD) {
             cursor_++;
             continue;
         }
@@ -159,6 +156,20 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
                                         tier, error_ms, false));
         judged_[idx] = true;
         judged_count_++;
+
+        // If this was a HOLD_HEAD that was successfully judged (not MISS),
+        // create an active hold state for body scoring (US-JDG-007).
+        if (note.type == NoteType::HOLD_HEAD) {
+            double tail_beat = find_hold_tail_beat(idx);
+            if (tail_beat > 0.0) {
+                active_holds_.push_back({
+                    note.column,
+                    tail_beat,
+                    true,
+                    tier
+                });
+            }
+        }
     }
 
     // Sort events by beat (US-JDG-004 SC3)
@@ -177,8 +188,8 @@ std::vector<JudgmentEvent> Judge::flush_remaining() {
 
         const auto& note = note_data_.events()[i];
 
-        // Skip non-judgable types
-        if (note.type != NoteType::TAP) {
+        // Skip non-judgable types (Phase 3: TAP and HOLD_HEAD are judgable)
+        if (note.type != NoteType::TAP && note.type != NoteType::HOLD_HEAD) {
             continue;
         }
 
@@ -216,6 +227,36 @@ void Judge::reset() {
     std::fill(judged_.begin(), judged_.end(), false);
     cursor_ = 0;
     judged_count_ = 0;
+    active_holds_.clear();
+}
+
+const std::vector<HoldState>& Judge::active_holds() const {
+    return active_holds_;
+}
+
+double Judge::find_hold_tail_beat(std::size_t head_index) const {
+    if (head_index >= note_data_.size()) {
+        return -1.0;
+    }
+
+    const auto& head_note = note_data_.events()[head_index];
+
+    // Search forward from the head for a HOLD_TAIL in the same column
+    for (std::size_t i = head_index + 1; i < note_data_.size(); ++i) {
+        const auto& note = note_data_.events()[i];
+
+        // Stop searching if we've gone too far past the head
+        if (note.beat > head_note.beat + 100.0) {
+            break;
+        }
+
+        // Found a matching tail
+        if (note.type == NoteType::HOLD_TAIL && note.column == head_note.column) {
+            return note.beat;
+        }
+    }
+
+    return -1.0;
 }
 
 } // namespace openitup

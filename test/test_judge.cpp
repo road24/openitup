@@ -800,3 +800,214 @@ TEST(Judge, BpmChangeChart) {
     EXPECT_EQ(state.max_combo(), 6);
     EXPECT_TRUE(judge.is_complete());
 }
+
+// --- Hold Note Head Judgment Tests (US-JDG-007) ---
+
+// Helper: build NoteData with hold notes (head + tail pairs)
+NoteData make_hold_notes(std::vector<std::tuple<double, double, uint8_t>> head_tail_col_tuples) {
+    std::vector<NoteEvent> events;
+    for (auto& [head_beat, tail_beat, col] : head_tail_col_tuples) {
+        events.push_back({head_beat, col, NoteType::HOLD_HEAD});
+        events.push_back({tail_beat, col, NoteType::HOLD_TAIL});
+    }
+    std::sort(events.begin(), events.end());
+    return NoteData(std::move(events));
+}
+
+TEST(Judge, HoldHeadActivatesAfterJudgment) {
+    // US-JDG-007 Scenario 1: Hold activates after head judgment
+    // Given a hold note with head at beat 4.0
+    // When input arrives within Great window
+    // Then judgment event "Great" is emitted and hold state transitions to "Active"
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Head at beat 4.0 = 2000 ms at 120 BPM
+    // Hit at 2020 ms (20 ms late, within Great window)
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2020.0, pressed);
+
+    // Verify judgment event
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::GREAT);
+    EXPECT_NEAR(events[0].timing_error_ms(), 20.0, 0.1);
+    EXPECT_EQ(events[0].beat(), 4.0);
+    EXPECT_EQ(events[0].column(), 0);
+
+    // Verify hold state is active
+    const auto& holds = judge.active_holds();
+    ASSERT_EQ(holds.size(), 1);
+    EXPECT_EQ(holds[0].column, 0);
+    EXPECT_EQ(holds[0].tail_beat, 6.0);
+    EXPECT_TRUE(holds[0].active);
+    EXPECT_EQ(holds[0].head_tier, JudgmentTier::GREAT);
+}
+
+TEST(Judge, HoldDoesNotActivateOnMissedHead) {
+    // US-JDG-007 Scenario 2: Hold does not activate on missed head
+    // Given a hold note with head at beat 4.0
+    // When no input arrives and head auto-misses at beat 4.2
+    // Then judgment event "Miss" is emitted and hold state remains "Inactive"
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Head at beat 4.0 = 2000 ms at 120 BPM
+    // Auto-miss threshold: 2000 ms + bad_window (100 ms) = 2100 ms
+    // Advance past the miss window without pressing
+    uint32_t no_press = 0u;
+    auto events = judge.update(2101.0, no_press);
+
+    // Verify auto-miss event
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::MISS);
+    EXPECT_TRUE(events[0].is_auto_miss());
+
+    // Verify no hold state was created
+    const auto& holds = judge.active_holds();
+    EXPECT_EQ(holds.size(), 0);
+}
+
+TEST(Judge, HoldHeadTimingErrorIncluded) {
+    // US-JDG-007 Scenario 3: Head timing error included in event
+    // Given a hold note head at 1000ms
+    // When input arrives at 1012ms
+    // Then judgment event includes timing_error +12ms
+
+    NoteData notes = make_hold_notes({{2.0, 4.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Head at beat 2.0 = 1000 ms at 120 BPM
+    // Hit at 1012 ms (12 ms late)
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(1012.0, pressed);
+
+    // Verify timing error
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_NEAR(events[0].timing_error_ms(), 12.0, 0.1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
+}
+
+TEST(Judge, HoldBodyNotScoredUntilHeadJudged) {
+    // US-JDG-007 Scenario 4: Hold body not scored until head judged
+    // Given a hold note with head at beat 4.0 and tail at beat 6.0
+    // When player holds panel continuously from beat 3.5 through 6.0
+    // Then hold body score begins accumulating only after head is judged at beat 4.0
+    //
+    // Note: This test verifies that no hold state exists before head judgment,
+    // and that hold state is created only after the head is judged.
+    // Body scoring logic (US-JDG-008) will use this state.
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Head at beat 4.0 = 2000 ms at 120 BPM
+    // Before head is judged (at beat 3.5 = 1750 ms)
+    uint32_t pressed = 1u << 0;
+    auto events_early = judge.update(1750.0, pressed);
+
+    // No judgment event yet (too early, outside bad window)
+    EXPECT_EQ(events_early.size(), 0);
+
+    // No hold state should exist yet
+    EXPECT_EQ(judge.active_holds().size(), 0);
+
+    // Now judge the head at exact timing (2000 ms)
+    auto events_head = judge.update(2000.0, pressed);
+
+    // Head is judged
+    ASSERT_EQ(events_head.size(), 1);
+    EXPECT_EQ(events_head[0].tier(), JudgmentTier::PERFECT);
+
+    // Now hold state exists
+    EXPECT_EQ(judge.active_holds().size(), 1);
+}
+
+TEST(Judge, MultipleActiveHolds) {
+    // Test multiple hold notes active simultaneously on different columns
+    NoteData notes = make_hold_notes({
+        {4.0, 8.0, 0},
+        {5.0, 9.0, 1},
+        {6.0, 10.0, 2}
+    });
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Judge first hold head at beat 4.0 (2000 ms)
+    uint32_t press_col0 = 1u << 0;
+    auto events1 = judge.update(2000.0, press_col0);
+    ASSERT_EQ(events1.size(), 1);
+    EXPECT_EQ(judge.active_holds().size(), 1);
+
+    // Judge second hold head at beat 5.0 (2500 ms)
+    uint32_t press_col1 = 1u << 1;
+    auto events2 = judge.update(2500.0, press_col1);
+    ASSERT_EQ(events2.size(), 1);
+    EXPECT_EQ(judge.active_holds().size(), 2);
+
+    // Judge third hold head at beat 6.0 (3000 ms)
+    uint32_t press_col2 = 1u << 2;
+    auto events3 = judge.update(3000.0, press_col2);
+    ASSERT_EQ(events3.size(), 1);
+    EXPECT_EQ(judge.active_holds().size(), 3);
+
+    // Verify all holds are tracked correctly
+    const auto& holds = judge.active_holds();
+    EXPECT_EQ(holds[0].column, 0);
+    EXPECT_EQ(holds[0].tail_beat, 8.0);
+    EXPECT_EQ(holds[1].column, 1);
+    EXPECT_EQ(holds[1].tail_beat, 9.0);
+    EXPECT_EQ(holds[2].column, 2);
+    EXPECT_EQ(holds[2].tail_beat, 10.0);
+}
+
+TEST(Judge, HoldHeadCountsTowardTotal) {
+    // Verify that HOLD_HEAD notes count toward total_judgable
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // HOLD_HEAD should count as 1 judgable note
+    // (HOLD_TAIL does not count)
+    EXPECT_EQ(judge.total_judgable(), 1);
+    EXPECT_EQ(judge.judged_count(), 0);
+    EXPECT_FALSE(judge.is_complete());
+
+    // Judge the head
+    uint32_t pressed = 1u << 0;
+    auto events = judge.update(2000.0, pressed);
+
+    EXPECT_EQ(judge.judged_count(), 1);
+    EXPECT_TRUE(judge.is_complete());
+}
+
+TEST(Judge, HoldResetClearsActiveHolds) {
+    // Verify that reset() clears active hold states
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Judge the head to create an active hold
+    uint32_t pressed = 1u << 0;
+    judge.update(2000.0, pressed);
+    EXPECT_EQ(judge.active_holds().size(), 1);
+
+    // Reset the judge
+    judge.reset();
+
+    // Active holds should be cleared
+    EXPECT_EQ(judge.active_holds().size(), 0);
+    EXPECT_EQ(judge.judged_count(), 0);
+}
