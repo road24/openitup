@@ -1,0 +1,33 @@
+#pragma once
+
+#include <openitup/scene/scene.h>
+
+namespace openitup {
+
+class Renderer;
+class TextRenderer;
+class SceneStack;
+
+// TitleScene: displays "TITLE SCREEN - Press START" with 30s inactivity timeout.
+// Phase 2: text-only. Phase 3+: add BGA attract loop, audio.
+class TitleScene : public Scene {
+public:
+    TitleScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack);
+
+    void on_enter() override;
+    void on_exit() override;
+    void on_pause() override;
+    void on_resume() override;
+    void update(double dt) override;
+    void handle_input(const InputSnapshot& input) override;
+    void render() override;
+
+private:
+    Renderer* renderer_;
+    TextRenderer* text_;
+    SceneStack* stack_;
+    double elapsed_ = 0.0;
+    static constexpr double TIMEOUT = 30.0;
+};
+
+} // namespace openitup
