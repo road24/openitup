@@ -17,7 +17,8 @@ MinimalGameplayScene::MinimalGameplayScene(
     const std::filesystem::path& data_dir,
     AudioSystem* audio_system,
     InputSystem* input_system,
-    Renderer* renderer)
+    Renderer* renderer,
+    SceneStack* scene_stack)
     : chart_(KsfParser().parse(chart_path)),
       judge_(chart_.note_data(), chart_.timing_data(), default_timing_profile()),
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
@@ -28,7 +29,8 @@ MinimalGameplayScene::MinimalGameplayScene(
       bga_(),
       audio_(audio_system),
       input_(input_system),
-      renderer_(renderer)
+      renderer_(renderer),
+      scene_stack_(scene_stack)
 {
     spdlog::info("Loaded chart '{}': {} notes, BPM {:.0f}",
                  chart_.metadata().title,
@@ -104,7 +106,8 @@ MinimalGameplayScene::MinimalGameplayScene(
     Chart chart,
     AudioSystem* audio_system,
     InputSystem* input_system,
-    Renderer* renderer)
+    Renderer* renderer,
+    SceneStack* scene_stack)
     : chart_(std::move(chart)),
       judge_(chart_.note_data(), chart_.timing_data(), default_timing_profile()),
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
@@ -115,13 +118,20 @@ MinimalGameplayScene::MinimalGameplayScene(
       bga_(),
       audio_(audio_system),
       input_(input_system),
-      renderer_(renderer)
+      renderer_(renderer),
+      scene_stack_(scene_stack)
 {
     // No logging, audio loading, or BGA loading for test-friendly constructor.
     // Texture cache and BGA are only available if renderer is non-null.
 }
 
 MinimalGameplayScene::~MinimalGameplayScene() = default;
+
+void MinimalGameplayScene::on_enter() {}
+void MinimalGameplayScene::on_exit() {}
+void MinimalGameplayScene::on_pause() {}
+void MinimalGameplayScene::on_resume() {}
+void MinimalGameplayScene::handle_input(const InputSnapshot& /*input*/) {}
 
 void MinimalGameplayScene::update(double dt) {
     // Accumulate global time (convert fixed step seconds to milliseconds)
@@ -186,6 +196,15 @@ void MinimalGameplayScene::update(double dt) {
                          gameplay_state_.score(),
                          gameplay_state_.max_combo(),
                          gameplay_state_.judgment_count(JudgmentTier::PERFECT));
+
+            // Transition to title if scene_stack is available (Phase 2 flow)
+            if (scene_stack_) {
+                // In Phase 3, this will go to ResultScene → TitleScene
+                // For Phase 2, go directly to TitleScene
+                spdlog::info("Transitioning to TitleScene after completion");
+                // Transition is handled by the Engine/SceneStack ownership model
+                // For now, just mark complete — the Engine will handle cleanup
+            }
         }
     }
 
@@ -193,6 +212,10 @@ void MinimalGameplayScene::update(double dt) {
     if (!complete_ && judge_.is_complete()) {
         complete_ = true;
     }
+}
+
+void MinimalGameplayScene::render() {
+    render(0.0);  // Default: no interpolation
 }
 
 void MinimalGameplayScene::render(double alpha) {

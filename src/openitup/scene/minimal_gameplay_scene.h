@@ -15,39 +15,53 @@
 #include <openitup/render/combo_display.h>
 #include <openitup/render/judgment_display.h>
 #include <openitup/render/note_renderer.h>
+#include <openitup/scene/scene.h>
 
 namespace openitup {
 
-class MinimalGameplayScene {
+class SceneStack;
+
+class MinimalGameplayScene : public Scene {
 public:
     // Construct the scene from a chart file. Loads chart, resolves audio, initializes subsystems.
     // Throws ChartLoadException if chart cannot be loaded.
     // audio_system may be nullptr (gameplay proceeds without audio).
+    // scene_stack may be nullptr (no transitions).
     MinimalGameplayScene(
         const std::filesystem::path& chart_path,
         const std::filesystem::path& data_dir,
         AudioSystem* audio_system,
         InputSystem* input_system,
-        Renderer* renderer);
+        Renderer* renderer,
+        SceneStack* scene_stack = nullptr);
 
     // Test-friendly constructor: accepts a pre-built Chart (no file parsing).
     MinimalGameplayScene(
         Chart chart,
         AudioSystem* audio_system,
         InputSystem* input_system,
-        Renderer* renderer);
+        Renderer* renderer,
+        SceneStack* scene_stack = nullptr);
 
-    ~MinimalGameplayScene();
+    ~MinimalGameplayScene() override;
 
     MinimalGameplayScene(const MinimalGameplayScene&) = delete;
     MinimalGameplayScene& operator=(const MinimalGameplayScene&) = delete;
 
+    // Scene lifecycle interface
+    void on_enter() override;
+    void on_exit() override;
+    void on_pause() override;
+    void on_resume() override;
+    void handle_input(const InputSnapshot& input) override;
+
     // Called once per fixed-step tick (60 Hz).
     // dt: fixed step duration (1/60th second).
-    void update(double dt);
+    void update(double dt) override;
 
     // Called once per render frame (display refresh rate).
-    // alpha: interpolation factor [0.0, 1.0) for sub-tick smoothing.
+    // alpha: interpolation factor [0.0, 1.0) for sub-tick smoothing (Scene interface uses no args).
+    void render() override;
     void render(double alpha);
 
     // True if the song has completed (audio stopped or all notes judged).
@@ -78,6 +92,7 @@ private:
     AudioSystem* audio_;
     InputSystem* input_;
     Renderer* renderer_;
+    SceneStack* scene_stack_;
 
     // Scene state.
     bool audio_started_ = false;

@@ -9,7 +9,7 @@ using namespace openitup;
 
 TEST(ModeSelectSceneTest, CursorNavigationRight) {
     SceneStack stack;
-    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack);
+    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack, nullptr, "");
     mode_select->on_enter();
 
     // Navigate right 3 times
@@ -24,7 +24,7 @@ TEST(ModeSelectSceneTest, CursorNavigationRight) {
 
 TEST(ModeSelectSceneTest, CursorWrapsAround) {
     SceneStack stack;
-    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack);
+    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack, nullptr, "");
     mode_select->on_enter();
 
     // Navigate right 5 times (wraps: 0→1→2→3→0)
@@ -39,7 +39,7 @@ TEST(ModeSelectSceneTest, CursorWrapsAround) {
 
 TEST(ModeSelectSceneTest, StartConfirmsSingleMode) {
     SceneStack stack;
-    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack);
+    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack, nullptr, "");
     mode_select->on_enter();
 
     // Cursor starts at 0 (Single)
@@ -52,7 +52,7 @@ TEST(ModeSelectSceneTest, StartConfirmsSingleMode) {
 
 TEST(ModeSelectSceneTest, DisabledModesLogWarning) {
     SceneStack stack;
-    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack);
+    auto mode_select = std::make_unique<ModeSelectScene>(nullptr, nullptr, &stack, nullptr, "");
     mode_select->on_enter();
 
     // Move to Co-op (index 2)
