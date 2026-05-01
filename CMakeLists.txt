@@ -6,6 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Audio backend selection (US-AUD-093)
+set(OPENITUP_AUDIO_BACKEND "SDL3" CACHE STRING "Audio backend (SDL3 or NULL)")
+set_property(CACHE OPENITUP_AUDIO_BACKEND PROPERTY STRINGS "SDL3" "NULL")
+
 include(FetchContent)
 
 # --- Dependencies via FetchContent ---
@@ -111,6 +115,8 @@ add_library(openitup_engine STATIC
     src/openitup/scene/title_scene.cpp
     src/openitup/scene/mode_select_scene.cpp
     src/openitup/scene/result_scene.cpp
+    src/openitup/data/user_data_dir.cpp
+    src/openitup/data/settings.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -125,14 +131,26 @@ target_link_libraries(openitup_engine PUBLIC
     openitup_audio
 )
 
-# --- Audio library ---
+# --- Audio library (US-AUD-093: backend selection) ---
 
-add_library(openitup_audio STATIC
+set(AUDIO_SOURCES
     src/openitup/audio/vorbis_decoder.cpp
     src/openitup/audio/mp3_decoder.cpp
-    src/openitup/audio/sdl3_audio_system.cpp
     src/openitup/audio/sound_sample.cpp
+    src/openitup/audio/sfx_player.cpp
 )
+
+if(OPENITUP_AUDIO_BACKEND STREQUAL "SDL3")
+    list(APPEND AUDIO_SOURCES src/openitup/audio/sdl3_audio_system.cpp)
+    message(STATUS "Audio backend: SDL3")
+elseif(OPENITUP_AUDIO_BACKEND STREQUAL "NULL")
+    # NULL backend is header-only, no .cpp needed
+    message(STATUS "Audio backend: NULL (headless mode)")
+else()
+    message(FATAL_ERROR "Invalid OPENITUP_AUDIO_BACKEND: ${OPENITUP_AUDIO_BACKEND}. Must be SDL3 or NULL.")
+endif()
+
+add_library(openitup_audio STATIC ${AUDIO_SOURCES})
 
 target_include_directories(openitup_audio PUBLIC
     src
@@ -142,6 +160,10 @@ target_include_directories(openitup_audio PUBLIC
 target_link_libraries(openitup_audio PUBLIC
     SDL3::SDL3-static
     spdlog::spdlog
+)
+
+target_compile_definitions(openitup_audio PUBLIC
+    OPENITUP_AUDIO_BACKEND_${OPENITUP_AUDIO_BACKEND}=1
 )
 
 # --- Main executable ---
@@ -188,6 +210,8 @@ add_executable(openitup_tests
     test/test_audio_system.cpp
     test/test_audio_decoder.cpp
     test/test_sfx.cpp
+    test/test_sfx_player.cpp
+    test/test_null_audio_backend.cpp
     test/test_chart.cpp
     test/test_timing_data.cpp
     test/test_ksf_parser.cpp
@@ -206,6 +230,8 @@ add_executable(openitup_tests
     test/test_result_scene.cpp
     test/test_hit_effects.cpp
     test/test_hold_body_rendering.cpp
+    test/test_user_data_dir.cpp
+    test/test_settings.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE

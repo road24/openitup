@@ -169,10 +169,11 @@ void MinimalGameplayScene::update(double dt) {
 
     // Get input (InputSystem was already polled by Engine before this call)
     uint32_t pressed = 0;
+    uint32_t held = 0;
     if (input_) {
         const auto& snapshot = input_->snapshot();
         pressed = snapshot.pressed_mask() & 0x03FF;
-        uint32_t held = snapshot.held_mask() & 0x03FF;
+        held = snapshot.held_mask() & 0x03FF;
 
         // Update pressed_columns_ from held_mask bits
         for (int col = 0; col < 10; ++col) {
@@ -181,7 +182,7 @@ void MinimalGameplayScene::update(double dt) {
     }
 
     // Run judge
-    auto events = judge_.update(song_ms, pressed);
+    auto events = judge_.update(song_ms, pressed, held);
 
     // Feed events to displays and state
     for (const auto& event : events) {
