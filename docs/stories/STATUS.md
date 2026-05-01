@@ -11,10 +11,10 @@ Generated: 2026-04-30
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
 | DONE (Phase 2) | 17 | 76 |
-| DONE (Phase 3) | 29 | 90 |
+| DONE (Phase 3) | 42 | 121 |
 | Phase 1 | 0 | 0 |
 | Phase 2 | 0 | 0 |
-| Phase 3 | 16 | 31 |
+| Phase 3 | 0 | 0 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
@@ -142,9 +142,9 @@ Generated: 2026-04-30
 
 | Story ID | Title | Status | Phase | Points | Dependencies |
 |----------|-------|--------|-------|--------|--------------|
-| US-AST-017 | Chart loaded on song selection | PLANNED | 3 | 2 | US-AST-013 |
-| US-AST-019 | Audio loaded at gameplay start | PLANNED | 3 | 2 | US-AST-017 |
-| US-AST-020 | BGA loaded on song selection | PLANNED | 3 | 2 | US-AST-016 |
+| US-AST-017 | Chart loaded on song selection | DONE | 3 | 2 | US-AST-013 |
+| US-AST-019 | Audio loaded at gameplay start | DONE | 3 | 2 | US-AST-017 |
+| US-AST-020 | BGA loaded on song selection | DONE | 3 | 2 | US-AST-016 |
 | US-INP-023 | Persist keymap to settings file | DONE | 3 | 3 | US-INP-022 |
 | US-AUD-031 | Load short audio samples to memory | DONE | 3 | 3 | US-AUD-001, US-AUD-002 |
 | US-AUD-032 | Play sound effects with low latency | DONE | 3 | 5 | US-AUD-031 |
@@ -163,7 +163,7 @@ Generated: 2026-04-30
 | US-REN-026 | Hold note cap rendering | DONE | 3 | 2 | US-REN-025 |
 | US-REN-028 | Hit effects and receptor flash | DONE | 3 | 3 | US-REN-021 |
 | US-REN-029 | Life gauge visual rendering | DONE | 3 | 3 | None |
-| US-SCN-006 | Song select scene with music wheel | PLANNED | 3 | 8 | US-SCN-001 |
+| US-SCN-006 | Song select scene with music wheel | DONE | 3 | 8 | US-SCN-001 |
 | US-SCN-008 | Result scene w/ grade & breakdown | DONE | 3 | 5 | US-SCN-001 |
 | US-DAT-001 | Platform-appropriate user data dir | DONE | 3 | 2 | None |
 | US-DAT-002 | Automatic user data dir creation | DONE | 3 | 2 | US-DAT-001 |
@@ -172,18 +172,18 @@ Generated: 2026-04-30
 | US-DAT-005 | Settings save on change | DONE | 3 | 2 | US-DAT-003, US-DAT-004 |
 | US-DAT-006 | Atomic file write for settings | DONE | 3 | 2 | US-DAT-005 |
 | US-DAT-007 | Settings value validation | DONE | 3 | 3 | US-DAT-004 |
-| US-DAT-031 | Chart metadata cache file structure | PLANNED | 3 | 5 | US-DAT-002 |
-| US-DAT-032 | Cache invalidation on dir modify | PLANNED | 3 | 2 | US-DAT-031 |
-| US-DAT-033 | Fast cache loading performance | PLANNED | 3 | 2 | US-DAT-031 |
+| US-DAT-031 | Chart metadata cache file structure | DONE | 3 | 5 | US-DAT-002 |
+| US-DAT-032 | Cache invalidation on dir modify | DONE | 3 | 2 | US-DAT-031 |
+| US-DAT-033 | Fast cache loading performance | DONE | 3 | 2 | US-DAT-031 |
 | US-AST-011 | Config file for multiple data dirs | DONE | 3 | 2 | US-AST-009, US-AST-012 |
 | US-AST-012 | Recursive directory scan for songs | DONE | 3 | 5 | US-AST-011 |
-| US-AST-013 | Song metadata extraction during scan | PLANNED | 3 | 5 | US-AST-012 |
-| US-AST-014 | Cached song DB for startup perf | PLANNED | 3 | 5 | US-AST-013 |
-| US-AST-015 | Banner and audio file discovery | PLANNED | 3 | 2 | US-AST-012 |
-| US-AST-016 | BGA file discovery per song | PLANNED | 3 | 2 | US-AST-012 |
+| US-AST-013 | Song metadata extraction during scan | DONE | 3 | 5 | US-AST-012 |
+| US-AST-014 | Cached song DB for startup perf | DONE | 3 | 5 | US-AST-013 |
+| US-AST-015 | Banner and audio file discovery | DONE | 3 | 2 | US-AST-012 |
+| US-AST-016 | BGA file discovery per song | DONE | 3 | 2 | US-AST-012 |
 | US-AST-023 | Judgment and menu sound effects | DONE | 3 | 2 | US-AST-021 |
-| US-AST-030 | Missing chart/audio excludes song | PLANNED | 3 | 1 | US-AST-012 |
-| US-AST-031 | Missing banner shows placeholder | PLANNED | 3 | 1 | US-AST-015 |
+| US-AST-030 | Missing chart/audio excludes song | DONE | 3 | 1 | US-AST-012 |
+| US-AST-031 | Missing banner shows placeholder | DONE | 3 | 1 | US-AST-015 |
 
 ---
 
