@@ -59,6 +59,17 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
     // Convert song position to current beat
     double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
 
+    // Cache sprite lookups per frame (optimization: avoid repeated virtual calls)
+    std::array<const Sprite*, 10> tap_sprite_cache = {nullptr};
+    std::array<const Sprite*, 10> hold_head_sprite_cache = {nullptr};
+    if (skin_ && cache_) {
+        for (int col = 0; col < config_.num_columns; ++col) {
+            int track = col % NUM_TRACKS;
+            tap_sprite_cache[col] = skin_->tap(track);
+            hold_head_sprite_cache[col] = skin_->hold(track, HoldPart::HEAD);
+        }
+    }
+
     // Compute visible beat range (notes scroll bottom-to-top)
     // Tightened range: exact viewport bounds without generous margins
     double beats_below_receptor = (config_.receptor_y + config_.note_height) / (config_.pixels_per_beat * config_.scroll_speed);
@@ -114,16 +125,16 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
         }
 
         // Try sprite rendering if noteskin is available
+        // Use cached sprites to avoid repeated virtual calls
         const Sprite* sprite = nullptr;
-        int track = note.column % NUM_TRACKS;
 
         if (skin_ && cache_) {
             switch (note.type) {
                 case NoteType::TAP:
-                    sprite = skin_->tap(track);
+                    sprite = tap_sprite_cache[note.column];
                     break;
                 case NoteType::HOLD_HEAD:
-                    sprite = skin_->hold(track, HoldPart::HEAD);
+                    sprite = hold_head_sprite_cache[note.column];
                     break;
                 default:
                     break;
