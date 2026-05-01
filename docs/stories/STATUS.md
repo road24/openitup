@@ -10,9 +10,9 @@ Generated: 2026-04-29
 |-------|---------|--------------|
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
-| DONE (Phase 2) | 13 | 47 |
+| DONE (Phase 2) | 14 | 52 |
 | Phase 1 | 0 | 0 |
-| Phase 2 | 7 | 29 |
+| Phase 2 | 6 | 24 |
 | Phase 3 | 39 | 115 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
@@ -84,6 +84,7 @@ Generated: 2026-04-29
 | US-SCN-001 | Scene stack core infrastructure | DONE | 2 | 5 | US-ENG-001 |
 | US-SCN-002 | Scene lifecycle interface | DONE | 2 | 3 | US-SCN-001, US-INP-001 |
 | US-AST-021 | System asset directory structure | DONE | 2 | 2 | US-AST-001, US-AST-009 |
+| US-AST-018 | Texture cache LRU eviction | DONE | 2 | 5 | US-AST-001 |
 | US-REN-023 | Judgment display | DONE | 2 | 3 | US-REN-021 |
 | US-REN-024 | Combo display | DONE | 2 | 3 | US-REN-021 |
 | US-REN-027 | BGA background during gameplay | DONE | 2 | 3 | US-REN-010 |
@@ -132,7 +133,6 @@ Generated: 2026-04-29
 | US-SCN-005 | Mode select scene | PLANNED | 2 | 5 | US-SCN-001 |
 | US-SCN-007b | Full gameplay scene orchestration | PLANNED | 2 | 8 | US-SCN-001, US-SCN-007a, US-REN-021, US-REN-024, US-REN-027 |
 | US-AST-017 | Chart loaded on song selection | PLANNED | 2 | 2 | US-AST-013 |
-| US-AST-018 | Texture cache LRU eviction | PLANNED | 2 | 5 | US-AST-001 |
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 2 | 2 | US-AST-017 |
 | US-AST-020 | BGA loaded on song selection | PLANNED | 2 | 2 | US-AST-016 |
 | US-AST-022 | Font loading for text rendering | PLANNED | 2 | 5 | US-AST-021 |
