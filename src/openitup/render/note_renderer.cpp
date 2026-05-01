@@ -65,12 +65,14 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
     std::array<const Sprite*, 10> tap_sprite_cache = {nullptr};
     std::array<const Sprite*, 10> hold_head_sprite_cache = {nullptr};
     std::array<const Sprite*, 10> hold_body_sprite_cache = {nullptr};
+    std::array<const Sprite*, 10> hold_tail_sprite_cache = {nullptr};
     if (skin_ && cache_) {
         for (int col = 0; col < config_.num_columns; ++col) {
             int track = col % NUM_TRACKS;
             tap_sprite_cache[col] = skin_->tap(track);
             hold_head_sprite_cache[col] = skin_->hold(track, HoldPart::HEAD);
             hold_body_sprite_cache[col] = skin_->hold(track, HoldPart::BODY);
+            hold_tail_sprite_cache[col] = skin_->hold(track, HoldPart::TAIL);
         }
     }
 
@@ -180,6 +182,32 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
             rect.y = body_top;
             rect.w = config_.note_width;
             rect.h = body_height;
+            SDL_RenderFillRect(renderer, &rect);
+        }
+
+        // Render tail cap at the tail position
+        const Sprite* tail_sprite = hold_tail_sprite_cache[note.column];
+        if (tail_sprite && skin_ && cache_) {
+            // Sprite rendering: draw tail cap at tail Y position
+            float t = noteskin_loop_t(global_time_ms);
+
+            LayerTransform xform{};
+            xform.translate_x = config_.column_x[note.column] - (config_.note_sprite_size / 2.0f);
+            xform.translate_y = tail_y - (config_.note_sprite_size / 2.0f);
+
+            tail_sprite->draw(renderer, *cache_, t, xform, ColorMod{}, SDL_BLENDMODE_BLEND);
+        } else {
+            // Fallback: small colored rectangle at tail position
+            float x = config_.column_x[note.column] - config_.note_width / 2.0f;
+            const auto& color = COLUMN_COLORS[note.column];
+
+            SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 255);
+
+            SDL_FRect rect;
+            rect.x = x;
+            rect.y = tail_y - config_.note_height / 2.0f;
+            rect.w = config_.note_width;
+            rect.h = config_.note_height;
             SDL_RenderFillRect(renderer, &rect);
         }
     }

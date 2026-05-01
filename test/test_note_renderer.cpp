@@ -496,3 +496,105 @@ TEST(NoteRenderer, InterpolationWithScrollSpeed) {
     float expected_delta = -80.0f / 30.0f * 2.0f;
     EXPECT_NEAR(y_next - y_current, expected_delta, 0.001f);
 }
+
+// --- Hold Tail Cap Tests ---
+
+TEST(NoteRenderer, HoldTailCapPosition) {
+    // Hold tail cap should be rendered at the tail note's Y position
+    std::vector<NoteEvent> notes;
+    notes.push_back({0.0, 0, NoteType::HOLD_TAIL});  // Tail at beat 0
+    notes.push_back({4.0, 0, NoteType::HOLD_HEAD});  // Head at beat 4
+    NoteData note_data(std::move(notes));
+
+    TimingData timing = make_simple_timing();
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    // Current beat is 2.0, so tail at 0.0 is 2 beats in the past
+    // tail_y = 80 + (-2.0) * 80 = -80 (above screen)
+    // At current beat 0.5, tail at 0.0 is 0.5 beats in the past
+    // tail_y = 80 + (-0.5) * 80 = 40
+    double current_beat = 0.5;
+    float expected_tail_y = renderer.beat_to_y(0.0, current_beat);
+    EXPECT_FLOAT_EQ(expected_tail_y, 40.0f);
+}
+
+TEST(NoteRenderer, HoldTailCapDistinctFromHead) {
+    // Hold tail and head should be rendered at different positions
+    std::vector<NoteEvent> notes;
+    notes.push_back({2.0, 0, NoteType::HOLD_TAIL});   // Tail at beat 2
+    notes.push_back({6.0, 0, NoteType::HOLD_HEAD});   // Head at beat 6
+    NoteData note_data(std::move(notes));
+
+    TimingData timing = make_simple_timing();
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    double current_beat = 4.0;
+    float tail_y = renderer.beat_to_y(2.0, current_beat);
+    float head_y = renderer.beat_to_y(6.0, current_beat);
+
+    // Tail at beat 2 (2 beats in past): 80 + (-2)*80 = -80
+    // Head at beat 6 (2 beats in future): 80 + 2*80 = 240
+    EXPECT_FLOAT_EQ(tail_y, -80.0f);
+    EXPECT_FLOAT_EQ(head_y, 240.0f);
+
+    // Tail should be above head (smaller Y)
+    EXPECT_LT(tail_y, head_y);
+}
+
+TEST(NoteRenderer, HoldTailCapAlignmentWithBody) {
+    // Hold tail cap should align with the end of the hold body
+    std::vector<NoteEvent> notes;
+    notes.push_back({4.0, 0, NoteType::HOLD_TAIL});   // Tail at beat 4
+    notes.push_back({8.0, 0, NoteType::HOLD_HEAD});   // Head at beat 8
+    NoteData note_data(std::move(notes));
+
+    TimingData timing = make_simple_timing();
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    double current_beat = 6.0;  // Midpoint of hold
+    float tail_y = renderer.beat_to_y(4.0, current_beat);
+    float head_y = renderer.beat_to_y(8.0, current_beat);
+
+    // Tail at beat 4 (2 beats in past): 80 + (-2)*80 = -80
+    // Head at beat 8 (2 beats in future): 80 + 2*80 = 240
+    EXPECT_FLOAT_EQ(tail_y, -80.0f);
+    EXPECT_FLOAT_EQ(head_y, 240.0f);
+
+    // Body spans from tail to head
+    float body_height = head_y - tail_y;
+    EXPECT_FLOAT_EQ(body_height, 320.0f);  // 4 beats * 80 pixels/beat
+}
+
+TEST(NoteRenderer, HoldTailCapMultipleColumns) {
+    // Each column's tail cap should be positioned correctly
+    std::vector<NoteEvent> notes;
+    // Add hold notes in different columns
+    notes.push_back({2.0, 0, NoteType::HOLD_TAIL});
+    notes.push_back({6.0, 0, NoteType::HOLD_HEAD});
+    notes.push_back({3.0, 2, NoteType::HOLD_TAIL});
+    notes.push_back({7.0, 2, NoteType::HOLD_HEAD});
+    notes.push_back({1.0, 4, NoteType::HOLD_TAIL});
+    notes.push_back({5.0, 4, NoteType::HOLD_HEAD});
+    NoteData note_data(std::move(notes));
+
+    TimingData timing = make_simple_timing();
+    NoteFieldConfig config = default_single_config();
+    NoteRenderer renderer(note_data, timing, config);
+
+    double current_beat = 4.0;
+
+    // Column 0: tail at beat 2 -> y = 80 + (-2)*80 = -80
+    float tail_y_col0 = renderer.beat_to_y(2.0, current_beat);
+    EXPECT_FLOAT_EQ(tail_y_col0, -80.0f);
+
+    // Column 2: tail at beat 3 -> y = 80 + (-1)*80 = 0
+    float tail_y_col2 = renderer.beat_to_y(3.0, current_beat);
+    EXPECT_FLOAT_EQ(tail_y_col2, 0.0f);
+
+    // Column 4: tail at beat 1 -> y = 80 + (-3)*80 = -160
+    float tail_y_col4 = renderer.beat_to_y(1.0, current_beat);
+    EXPECT_FLOAT_EQ(tail_y_col4, -160.0f);
+}
