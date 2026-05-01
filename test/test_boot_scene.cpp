@@ -9,7 +9,7 @@ using namespace openitup;
 
 TEST(BootSceneTest, TimerReachesThreeSeconds) {
     SceneStack stack;
-    auto boot = std::make_unique<BootScene>(nullptr, nullptr, &stack);
+    auto boot = std::make_unique<BootScene>(nullptr, nullptr, &stack, nullptr, std::filesystem::path());
     boot->on_enter();
 
     // Simulate 3.5 seconds of updates (60 Hz)
@@ -18,12 +18,13 @@ TEST(BootSceneTest, TimerReachesThreeSeconds) {
         boot->update(dt);
     }
 
-    // No assertion — just verify no crash. Transition stub logs but doesn't push TitleScene yet.
+    // Transition occurs at 3 seconds — TitleScene pushed onto stack
+    EXPECT_EQ(stack.size(), 1);
 }
 
 TEST(BootSceneTest, LifecycleMethodsDoNotCrash) {
     SceneStack stack;
-    auto boot = std::make_unique<BootScene>(nullptr, nullptr, &stack);
+    auto boot = std::make_unique<BootScene>(nullptr, nullptr, &stack, nullptr, std::filesystem::path());
 
     boot->on_enter();
     boot->on_pause();

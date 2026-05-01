@@ -20,6 +20,8 @@
 namespace openitup {
 
 class SceneStack;
+class Engine;
+class TextRenderer;
 
 class MinimalGameplayScene : public Scene {
 public:
@@ -27,13 +29,17 @@ public:
     // Throws ChartLoadException if chart cannot be loaded.
     // audio_system may be nullptr (gameplay proceeds without audio).
     // scene_stack may be nullptr (no transitions).
+    // engine may be nullptr (no scene transitions, used to get data_dir for TitleScene).
+    // text_renderer may be nullptr (no text rendering in TitleScene fallback).
     MinimalGameplayScene(
         const std::filesystem::path& chart_path,
         const std::filesystem::path& data_dir,
         AudioSystem* audio_system,
         InputSystem* input_system,
         Renderer* renderer,
-        SceneStack* scene_stack = nullptr);
+        SceneStack* scene_stack = nullptr,
+        Engine* engine = nullptr,
+        TextRenderer* text_renderer = nullptr);
 
     // Test-friendly constructor: accepts a pre-built Chart (no file parsing).
     MinimalGameplayScene(
@@ -41,7 +47,9 @@ public:
         AudioSystem* audio_system,
         InputSystem* input_system,
         Renderer* renderer,
-        SceneStack* scene_stack = nullptr);
+        SceneStack* scene_stack = nullptr,
+        Engine* engine = nullptr,
+        TextRenderer* text_renderer = nullptr);
 
     ~MinimalGameplayScene() override;
 
@@ -93,6 +101,9 @@ private:
     InputSystem* input_;
     Renderer* renderer_;
     SceneStack* scene_stack_;
+    Engine* engine_;
+    TextRenderer* text_renderer_;
+    std::filesystem::path data_dir_;
 
     // Scene state.
     bool audio_started_ = false;

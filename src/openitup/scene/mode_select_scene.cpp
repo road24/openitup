@@ -9,6 +9,7 @@
 #include <openitup/render/text_renderer.h>
 #include <openitup/scene/minimal_gameplay_scene.h>
 #include <openitup/scene/scene_stack.h>
+#include <openitup/scene/title_scene.h>
 
 namespace openitup {
 
@@ -58,7 +59,9 @@ void ModeSelectScene::handle_input(const InputSnapshot& input) {
                         engine_->get_audio(),
                         engine_->get_input_system(),
                         engine_->get_renderer(),
-                        stack_
+                        stack_,
+                        engine_,
+                        text_
                     );
                     stack_->replace(std::move(gameplay_scene));
                 } catch (const std::exception& e) {
@@ -74,8 +77,8 @@ void ModeSelectScene::handle_input(const InputSnapshot& input) {
 
     // BACK returns to title
     if (input.is_pressed(PadInput::BACK)) {
-        spdlog::info("ModeSelectScene: BACK pressed, returning to TitleScene (stub)");
-        // Transition will be wired when TitleScene can push ModeSelectScene
+        spdlog::info("ModeSelectScene: BACK pressed, returning to TitleScene");
+        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_));
     }
 }
 

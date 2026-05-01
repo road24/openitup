@@ -9,7 +9,7 @@ using namespace openitup;
 
 TEST(TitleSceneTest, InactivityTimeoutAfter30Seconds) {
     SceneStack stack;
-    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack);
+    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack, nullptr, std::filesystem::path());
     title->on_enter();
 
     // Simulate 31 seconds of updates (60 Hz)
@@ -18,12 +18,13 @@ TEST(TitleSceneTest, InactivityTimeoutAfter30Seconds) {
         title->update(dt);
     }
 
-    // No assertion — just verify no crash. Transition stub logs.
+    // Transition to BootScene occurs at 30 seconds
+    EXPECT_EQ(stack.size(), 1);
 }
 
 TEST(TitleSceneTest, InputResetsInactivityTimer) {
     SceneStack stack;
-    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack);
+    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack, nullptr, std::filesystem::path());
     title->on_enter();
 
     // Simulate 20 seconds
@@ -42,17 +43,19 @@ TEST(TitleSceneTest, InputResetsInactivityTimer) {
         title->update(dt);
     }
 
-    // Should not timeout yet
+    // Should not timeout yet — no BootScene on stack
+    EXPECT_EQ(stack.size(), 0);
 }
 
 TEST(TitleSceneTest, StartInputTriggersTransition) {
     SceneStack stack;
-    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack);
+    auto title = std::make_unique<TitleScene>(nullptr, nullptr, &stack, nullptr, std::filesystem::path());
     title->on_enter();
 
     uint32_t pressed = static_cast<uint32_t>(PadInput::START);
     InputSnapshot input(pressed, pressed, 0, 1);
     title->handle_input(input);
 
-    // No assertion — just verify no crash. Transition stub logs.
+    // Transition to ModeSelectScene occurs
+    EXPECT_EQ(stack.size(), 1);
 }

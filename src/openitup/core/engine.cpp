@@ -7,6 +7,7 @@
 
 #include <openitup/audio/sdl3_audio_system.h>
 #include <openitup/chart/chart_builder.h>
+#include <openitup/scene/boot_scene.h>
 #include <openitup/scene/minimal_gameplay_scene.h>
 
 namespace openitup {
@@ -39,6 +40,10 @@ Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::un
         // This will be resolved when TextureCache is integrated into Engine (future work).
         spdlog::info("system asset manager initialized (asset loading deferred until TextureCache integration)");
     }
+
+    // Initialize text renderer
+    text_renderer_ = std::make_unique<TextRenderer>(renderer_->get());
+    spdlog::debug("text renderer initialized");
 
     // Initialize scene stack
     scene_stack_ = std::make_unique<SceneStack>();
@@ -98,6 +103,26 @@ int Engine::run() {
     tick_count_ = 0;
     accumulator_ = 0.0;
     clock_->reset();
+
+    // Push BootScene if stack is empty (default flow)
+    if (scene_stack_->empty()) {
+        // Find a test chart for gameplay (if data_dir is configured)
+        std::filesystem::path test_chart;
+        if (!config_.data_dir_path.empty()) {
+            // For Phase 2, use the chart_path from config if available
+            if (!config_.chart_path.empty()) {
+                test_chart = config_.chart_path;
+            }
+        }
+        scene_stack_->push(std::make_unique<BootScene>(
+            renderer_.get(),
+            text_renderer_.get(),
+            scene_stack_.get(),
+            this,
+            test_chart
+        ));
+        spdlog::info("Started with BootScene");
+    }
 
     while (running_ && !scene_stack_->empty()) {
         process_events();

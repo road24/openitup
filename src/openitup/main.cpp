@@ -18,35 +18,53 @@ int main(int argc, char* argv[]) {
         return app.exit(e);
     }
 
-    // Resolve data directory
-    auto data_dir = openitup::resolve_data_directory(data_dir_arg);
-    if (!data_dir.has_value()) {
-        return 1;
-    }
-    if (!data_dir->validate()) {
-        return 1;
-    }
-
-    // Find chart file
-    std::filesystem::path chart_file;
-    if (!chart_arg.empty()) {
-        chart_file = chart_arg;
-    } else {
-        auto found = data_dir->find_file_by_extension(".ksf");
-        if (!found) {
-            spdlog::error("No .ksf chart found in '{}'", data_dir->path().string());
-            return 1;
-        }
-        chart_file = *found;
-    }
-
-    spdlog::info("Chart: {}", chart_file.string());
-    spdlog::info("Data dir: {}", data_dir->path().string());
-
     try {
         openitup::EngineConfig config;
+
+        // If --chart is provided, use direct gameplay mode (Phase 1 compatibility)
+        if (!chart_arg.empty()) {
+            // Resolve data directory
+            auto data_dir = openitup::resolve_data_directory(data_dir_arg);
+            if (!data_dir.has_value()) {
+                return 1;
+            }
+            if (!data_dir->validate()) {
+                return 1;
+            }
+
+            std::filesystem::path chart_file = chart_arg;
+            spdlog::info("Chart: {}", chart_file.string());
+            spdlog::info("Data dir: {}", data_dir->path().string());
+
+            openitup::Engine engine(config);
+            return engine.run_gameplay(chart_file, data_dir->path());
+        }
+
+        // Otherwise, use full scene flow starting with BootScene
+        // Resolve data directory if provided
+        if (!data_dir_arg.empty()) {
+            auto data_dir = openitup::resolve_data_directory(data_dir_arg);
+            if (!data_dir.has_value()) {
+                return 1;
+            }
+            if (!data_dir->validate()) {
+                return 1;
+            }
+
+            config.data_dir_path = data_dir->path().string();
+
+            // Find a chart file to use for testing
+            auto found = data_dir->find_file_by_extension(".ksf");
+            if (found) {
+                config.chart_path = found->string();
+                spdlog::info("Found test chart: {}", config.chart_path);
+            }
+        }
+
+        spdlog::info("Starting with scene flow (Boot → Title → Mode Select → Gameplay)");
         openitup::Engine engine(config);
-        return engine.run_gameplay(chart_file, data_dir->path());
+        return engine.run();
+
     } catch (const std::exception& e) {
         spdlog::critical("fatal startup error: {}", e.what());
         return 1;

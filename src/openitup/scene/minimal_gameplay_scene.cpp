@@ -3,12 +3,15 @@
 #include <spdlog/spdlog.h>
 
 #include <openitup/bga/bga_loader.h>
+#include <openitup/core/engine.h>
 #include <openitup/gfx/blend_modes.h>
 #include <openitup/gfx/image_loader.h>
 #include <openitup/input/input_snapshot.h>
 #include <openitup/judge/judgment_event.h>
 #include <openitup/judge/timing_profile.h>
 #include <openitup/render/note_renderer.h>
+#include <openitup/render/text_renderer.h>
+#include <openitup/scene/title_scene.h>
 
 namespace openitup {
 
@@ -18,7 +21,9 @@ MinimalGameplayScene::MinimalGameplayScene(
     AudioSystem* audio_system,
     InputSystem* input_system,
     Renderer* renderer,
-    SceneStack* scene_stack)
+    SceneStack* scene_stack,
+    Engine* engine,
+    TextRenderer* text_renderer)
     : chart_(KsfParser().parse(chart_path)),
       judge_(chart_.note_data(), chart_.timing_data(), default_timing_profile()),
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
@@ -30,7 +35,10 @@ MinimalGameplayScene::MinimalGameplayScene(
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer),
-      scene_stack_(scene_stack)
+      scene_stack_(scene_stack),
+      engine_(engine),
+      text_renderer_(text_renderer),
+      data_dir_(data_dir)
 {
     spdlog::info("Loaded chart '{}': {} notes, BPM {:.0f}",
                  chart_.metadata().title,
@@ -107,7 +115,9 @@ MinimalGameplayScene::MinimalGameplayScene(
     AudioSystem* audio_system,
     InputSystem* input_system,
     Renderer* renderer,
-    SceneStack* scene_stack)
+    SceneStack* scene_stack,
+    Engine* engine,
+    TextRenderer* text_renderer)
     : chart_(std::move(chart)),
       judge_(chart_.note_data(), chart_.timing_data(), default_timing_profile()),
       gameplay_state_(static_cast<int>(judge_.total_judgable())),
@@ -119,7 +129,10 @@ MinimalGameplayScene::MinimalGameplayScene(
       audio_(audio_system),
       input_(input_system),
       renderer_(renderer),
-      scene_stack_(scene_stack)
+      scene_stack_(scene_stack),
+      engine_(engine),
+      text_renderer_(text_renderer),
+      data_dir_()
 {
     // No logging, audio loading, or BGA loading for test-friendly constructor.
     // Texture cache and BGA are only available if renderer is non-null.
@@ -198,12 +211,13 @@ void MinimalGameplayScene::update(double dt) {
                          gameplay_state_.judgment_count(JudgmentTier::PERFECT));
 
             // Transition to title if scene_stack is available (Phase 2 flow)
-            if (scene_stack_) {
+            if (scene_stack_ && renderer_ && text_renderer_ && engine_) {
                 // In Phase 3, this will go to ResultScene → TitleScene
                 // For Phase 2, go directly to TitleScene
                 spdlog::info("Transitioning to TitleScene after completion");
-                // Transition is handled by the Engine/SceneStack ownership model
-                // For now, just mark complete — the Engine will handle cleanup
+                // Find a test chart for the next potential gameplay
+                std::filesystem::path test_chart = data_dir_.empty() ? std::filesystem::path() : data_dir_ / "test.ksf";
+                scene_stack_->replace(std::make_unique<TitleScene>(renderer_, text_renderer_, scene_stack_, engine_, test_chart));
             }
         }
     }

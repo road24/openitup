@@ -1,5 +1,6 @@
 #pragma once
 
+#include <filesystem>
 #include <openitup/scene/scene.h>
 
 namespace openitup {
@@ -7,12 +8,13 @@ namespace openitup {
 class Renderer;
 class TextRenderer;
 class SceneStack;
+class Engine;
 
 // TitleScene: displays "TITLE SCREEN - Press START" with 30s inactivity timeout.
 // Phase 2: text-only. Phase 3+: add BGA attract loop, audio.
 class TitleScene : public Scene {
 public:
-    TitleScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack);
+    TitleScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack, Engine* engine, const std::filesystem::path& test_chart_path);
 
     void on_enter() override;
     void on_exit() override;
@@ -26,6 +28,8 @@ private:
     Renderer* renderer_;
     TextRenderer* text_;
     SceneStack* stack_;
+    Engine* engine_;
+    std::filesystem::path test_chart_path_;
     double elapsed_ = 0.0;
     static constexpr double TIMEOUT = 30.0;
 };

@@ -9,6 +9,7 @@
 #include <openitup/core/system_asset_manager.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/input/input_system.h>
+#include <openitup/render/text_renderer.h>
 #include <openitup/scene/scene_stack.h>
 
 namespace openitup {
@@ -45,7 +46,9 @@ public:
     InputSystem* get_input_system() const { return input_system_.get(); }
     AudioSystem* get_audio() const { return audio_.get(); }
     SceneStack* get_scene_stack() const { return scene_stack_.get(); }
+    TextRenderer* get_text_renderer() const { return text_renderer_.get(); }
     core::SystemAssetManager* get_system_assets() const { return system_asset_mgr_.get(); }
+    std::filesystem::path get_data_dir() const { return config_.data_dir_path; }
     uint64_t tick_count() const { return tick_count_; }
     double render_alpha() const { return render_alpha_; }
     bool is_running() const { return running_; }
@@ -67,6 +70,7 @@ private:
     std::unique_ptr<InputSystem> input_system_;
     std::unique_ptr<AudioSystem> audio_;
     std::unique_ptr<SceneStack> scene_stack_;
+    std::unique_ptr<TextRenderer> text_renderer_;
     std::unique_ptr<core::SystemAssetManager> system_asset_mgr_;
 
     bool running_ = false;

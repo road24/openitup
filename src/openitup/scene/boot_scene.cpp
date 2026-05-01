@@ -2,14 +2,16 @@
 
 #include <spdlog/spdlog.h>
 
+#include <openitup/core/engine.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/render/text_renderer.h>
 #include <openitup/scene/scene_stack.h>
+#include <openitup/scene/title_scene.h>
 
 namespace openitup {
 
-BootScene::BootScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack)
-    : renderer_(renderer), text_(text_renderer), stack_(scene_stack) {}
+BootScene::BootScene(Renderer* renderer, TextRenderer* text_renderer, SceneStack* scene_stack, Engine* engine, const std::filesystem::path& test_chart_path)
+    : renderer_(renderer), text_(text_renderer), stack_(scene_stack), engine_(engine), test_chart_path_(test_chart_path) {}
 
 void BootScene::on_enter() {
     spdlog::info("BootScene entered");
@@ -31,9 +33,8 @@ void BootScene::on_resume() {
 void BootScene::update(double dt) {
     elapsed_ += dt;
     if (elapsed_ >= DURATION) {
-        spdlog::info("BootScene: transitioning to TitleScene (stub — TitleScene not yet implemented)");
-        // Transition will be wired in US-SCN-004
-        // stack_->replace(std::make_unique<TitleScene>(...));
+        spdlog::info("BootScene: transitioning to TitleScene");
+        stack_->replace(std::make_unique<TitleScene>(renderer_, text_, stack_, engine_, test_chart_path_));
     }
 }
 
