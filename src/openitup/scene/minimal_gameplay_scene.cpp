@@ -195,7 +195,7 @@ void MinimalGameplayScene::update(double dt) {
     }
 }
 
-void MinimalGameplayScene::render(double /*alpha*/) {
+void MinimalGameplayScene::render(double alpha) {
     if (!renderer_) return;
 
     SDL_Renderer* sdl_renderer = renderer_->get();
@@ -209,7 +209,7 @@ void MinimalGameplayScene::render(double /*alpha*/) {
 
     // Render note field
     note_renderer_.render_receptors(sdl_renderer, global_time_ms_, pressed_columns_, judge_trigger_times_);
-    note_renderer_.render(sdl_renderer, last_song_ms_, global_time_ms_);
+    note_renderer_.render(sdl_renderer, last_song_ms_, global_time_ms_, alpha);
 
     // Render judgment feedback
     // Use FIXED_STEP as dt approximation for the fade timer
