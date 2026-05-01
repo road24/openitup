@@ -7,6 +7,8 @@
 
 #include <openitup/audio/sdl3_audio_system.h>
 #include <openitup/chart/chart_builder.h>
+#include <openitup/input/input_system.h>
+#include <openitup/input/keyboard_driver.h>
 #include <openitup/scene/boot_scene.h>
 #include <openitup/scene/minimal_gameplay_scene.h>
 
@@ -57,6 +59,13 @@ Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::un
     // Initialize scene stack
     scene_stack_ = std::make_unique<SceneStack>();
     spdlog::debug("scene stack initialized");
+
+    // Initialize input system with default keyboard driver
+    if (!input_system_) {
+        auto driver = std::make_unique<KeyboardDriver>();
+        input_system_ = std::make_unique<InputSystem>(std::move(driver));
+        spdlog::info("input system initialized with default keyboard driver");
+    }
 }
 
 Engine::~Engine() {
