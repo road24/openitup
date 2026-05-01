@@ -17,6 +17,8 @@ struct HoldState {
     double tail_beat;            // beat position of the HOLD_TAIL
     bool active;                 // true if hold is still active
     JudgmentTier head_tier;      // judgment tier from the head hit
+    int ticks_held;              // number of ticks the hold has been held
+    int ticks_required;          // total ticks required for full hold (computed from beat duration)
 };
 
 class Judge {
@@ -32,9 +34,13 @@ public:
     // pressed_columns: bitmask of columns pressed this tick (edge events,
     //   not held state). Bit N = 1 means column N was pressed this tick.
     //   This corresponds to InputSnapshot::pressed_mask() masked to panel bits.
+    // held_columns: bitmask of columns held this tick (state, not edges).
+    //   Bit N = 1 means column N is currently held down.
+    //   This corresponds to InputSnapshot::held_mask() masked to panel bits.
     // Returns: judgment events produced this tick, sorted by beat.
     std::vector<JudgmentEvent> update(double song_position_ms,
-                                       uint32_t pressed_columns);
+                                       uint32_t pressed_columns,
+                                       uint32_t held_columns);
 
     // Flush all remaining unjudged notes as misses.
     // Called at end of song to satisfy US-JDG-003 Scenario 3.

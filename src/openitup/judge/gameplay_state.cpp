@@ -9,6 +9,7 @@ GameplayState::GameplayState(int total_notes)
       current_combo_(0),
       max_combo_(0),
       score_(0),
+      hold_score_(0),
       judgment_counts_{} {
 }
 
@@ -62,6 +63,7 @@ void GameplayState::reset() {
     current_combo_ = 0;
     max_combo_ = 0;
     score_ = 0;
+    hold_score_ = 0;
     judgment_counts_.fill(0);
 }
 

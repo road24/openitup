@@ -19,6 +19,7 @@ public:
     int current_combo() const { return current_combo_; }
     int max_combo() const { return max_combo_; }
     int64_t score() const { return score_; }
+    int64_t hold_score() const { return hold_score_; }
     double score_percentage() const;
 
     int judgment_count(JudgmentTier tier) const;
@@ -42,6 +43,7 @@ private:
     int current_combo_;
     int max_combo_;
     int64_t score_;
+    int64_t hold_score_;
     std::array<int, JUDGMENT_TIER_COUNT> judgment_counts_;
 };
 

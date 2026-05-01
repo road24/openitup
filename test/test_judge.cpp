@@ -232,7 +232,7 @@ TEST(Judge, ClassifyExactHit) {
 
     // Input at exactly 2000 ms (0.0 ms error) should be PERFECT
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2000.0, pressed);
+    auto events = judge.update(2000.0, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
@@ -248,7 +248,7 @@ TEST(Judge, ClassifyPerfectBoundary) {
 
     // Input at 2016 ms (16.0 ms error) should be PERFECT (boundary inclusive)
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2016.0, pressed);
+    auto events = judge.update(2016.0, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
@@ -264,7 +264,7 @@ TEST(Judge, ClassifyGreatJustOutsidePerfect) {
 
     // Input at 2016.1 ms (16.1 ms error) should be GREAT
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2016.1, pressed);
+    auto events = judge.update(2016.1, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::GREAT);
@@ -279,7 +279,7 @@ TEST(Judge, ClassifyBadBoundary) {
 
     // Input at 2100 ms (100.0 ms error) should be BAD (boundary inclusive)
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2100.0, pressed);
+    auto events = judge.update(2100.0, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::BAD);
@@ -296,7 +296,7 @@ TEST(Judge, ClassifyMissBeyondBad) {
     // Input at 2100.1 ms (100.1 ms error) is beyond the bad window.
     // The auto-miss logic will trigger and emit a MISS event.
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2100.1, pressed);
+    auto events = judge.update(2100.1, pressed, pressed);
 
     // Should get 1 auto-miss event
     ASSERT_EQ(events.size(), 1);
@@ -317,7 +317,7 @@ TEST(Judge, SingleNotePerfectHit) {
 
     // Input at 2001 ms (1ms late) on column 2
     uint32_t pressed = 1u << 2; // column 2
-    auto events = judge.update(2001.0, pressed);
+    auto events = judge.update(2001.0, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
@@ -334,7 +334,7 @@ TEST(Judge, SingleNoteGreatHit) {
 
     // Input 25ms late
     uint32_t pressed = 1u << 0; // column 0
-    auto events = judge.update(2025.0, pressed);
+    auto events = judge.update(2025.0, pressed, pressed);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_EQ(events[0].tier(), JudgmentTier::GREAT);
@@ -350,7 +350,7 @@ TEST(Judge, WrongColumnNoMatch) {
 
     // Input on column 0 (wrong column)
     uint32_t pressed = 1u << 0; // column 0
-    auto events = judge.update(2000.0, pressed);
+    auto events = judge.update(2000.0, pressed, pressed);
 
     // No event should be emitted
     EXPECT_EQ(events.size(), 0);
@@ -365,7 +365,7 @@ TEST(Judge, MultipleColumnsOneTick) {
 
     // Press all 3 columns
     uint32_t pressed = (1u << 0) | (1u << 1) | (1u << 2);
-    auto events = judge.update(2000.0, pressed);
+    auto events = judge.update(2000.0, pressed, pressed);
 
     // Should get 3 events
     ASSERT_EQ(events.size(), 3);
@@ -381,7 +381,7 @@ TEST(Judge, NoInputsNoEvents) {
     Judge judge(notes, timing, profile);
 
     // No inputs (pressed_columns = 0)
-    auto events = judge.update(2000.0, 0);
+    auto events = judge.update(2000.0, 0, 0);
 
     EXPECT_EQ(events.size(), 0);
 }
@@ -396,7 +396,7 @@ TEST(Judge, AutoMissWhenNoInput) {
     Judge judge(notes, timing, profile);
 
     // Advance to 2200 ms (200ms past note, beyond 100ms bad window) with no input
-    auto events = judge.update(2200.0, 0);
+    auto events = judge.update(2200.0, 0, 0);
 
     // Should get an auto-miss event
     ASSERT_EQ(events.size(), 1);
@@ -413,7 +413,7 @@ TEST(Judge, AutoMissIsAutoMissFlag) {
     Judge judge(notes, timing, profile);
 
     // Advance past the note without input
-    auto events = judge.update(2150.0, 0);
+    auto events = judge.update(2150.0, 0, 0);
 
     ASSERT_EQ(events.size(), 1);
     EXPECT_TRUE(events[0].is_auto_miss());
@@ -428,14 +428,14 @@ TEST(Judge, MissedNoteDoesntBlockFuture) {
     Judge judge(notes, timing, profile);
 
     // Advance past first note without input (auto-miss)
-    auto events1 = judge.update(2200.0, 0);
+    auto events1 = judge.update(2200.0, 0, 0);
     ASSERT_EQ(events1.size(), 1);
     EXPECT_EQ(events1[0].beat(), 4.0);
     EXPECT_EQ(events1[0].tier(), JudgmentTier::MISS);
 
     // Now hit the second note normally
     uint32_t pressed = 1u << 0;
-    auto events2 = judge.update(4000.0, pressed);
+    auto events2 = judge.update(4000.0, pressed, pressed);
     ASSERT_EQ(events2.size(), 1);
     EXPECT_EQ(events2[0].beat(), 8.0);
     EXPECT_EQ(events2[0].tier(), JudgmentTier::PERFECT);
@@ -467,9 +467,9 @@ TEST(Judge, FlushAfterPartialPlay) {
     Judge judge(notes, timing, profile);
 
     // Hit 3 notes
-    auto events1 = judge.update(2000.0, 1u << 0);
-    auto events2 = judge.update(4000.0, 1u << 1);
-    auto events3 = judge.update(6000.0, 1u << 2);
+    auto events1 = judge.update(2000.0, 1u << 0, 1u << 0);
+    auto events2 = judge.update(4000.0, 1u << 1, 1u << 1);
+    auto events3 = judge.update(6000.0, 1u << 2, 1u << 2);
 
     EXPECT_EQ(events1.size(), 1);
     EXPECT_EQ(events2.size(), 1);
@@ -490,9 +490,9 @@ TEST(Judge, AllNotesJudgedAtSongEnd) {
     Judge judge(notes, timing, profile);
 
     // Hit some notes
-    judge.update(2000.0, 1u << 0);
-    judge.update(4000.0, 1u << 1);
-    judge.update(6000.0, 1u << 2);
+    judge.update(2000.0, 1u << 0, 1u << 0);
+    judge.update(4000.0, 1u << 1, 1u << 1);
+    judge.update(6000.0, 1u << 2, 1u << 2);
 
     // Flush rest
     judge.flush_remaining();
@@ -510,7 +510,7 @@ TEST(Judge, NoAutoMissBeforeWindow) {
     Judge judge(notes, timing, profile);
 
     // Advance to 2050 ms (only 50ms past note, within 100ms bad window)
-    auto events = judge.update(2050.0, 0);
+    auto events = judge.update(2050.0, 0, 0);
 
     // Should NOT get an auto-miss yet (still within judgable window)
     EXPECT_EQ(events.size(), 0);
@@ -544,7 +544,7 @@ TEST(Judge, FullPerfectSong) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -585,7 +585,7 @@ TEST(Judge, MixedJudgments) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -596,7 +596,7 @@ TEST(Judge, MixedJudgments) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 25.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -607,7 +607,7 @@ TEST(Judge, MixedJudgments) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 50.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -619,7 +619,7 @@ TEST(Judge, MixedJudgments) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 80.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -628,7 +628,7 @@ TEST(Judge, MixedJudgments) {
     double last_note_beat = 18.0;
     double last_note_time_ms = timing.time_at_beat(last_note_beat) * 1000.0;
     double advance_time_ms = last_note_time_ms + 150.0; // beyond 100ms window
-    auto events = judge.update(advance_time_ms, 0);
+    auto events = judge.update(advance_time_ms, 0, 0);
     state.apply(events);
 
     // Flush to get remaining misses
@@ -674,7 +674,7 @@ TEST(Judge, DeterminismTest) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 10.0; // +10ms
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge1.update(note_time_ms, column_bitmask);
+        auto events = judge1.update(note_time_ms, column_bitmask, column_bitmask);
         state1.apply(events);
     }
 
@@ -688,7 +688,7 @@ TEST(Judge, DeterminismTest) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 10.0; // +10ms
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge2.update(note_time_ms, column_bitmask);
+        auto events = judge2.update(note_time_ms, column_bitmask, column_bitmask);
         state2.apply(events);
     }
 
@@ -725,7 +725,7 @@ TEST(Judge, JudgeResetAndReplay) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 5.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -743,7 +743,7 @@ TEST(Judge, JudgeResetAndReplay) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0 + 5.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -786,7 +786,7 @@ TEST(Judge, BpmChangeChart) {
         double note_time_ms = timing.time_at_beat(beat) * 1000.0;
         uint32_t column_bitmask = 1u << column;
 
-        auto events = judge.update(note_time_ms, column_bitmask);
+        auto events = judge.update(note_time_ms, column_bitmask, column_bitmask);
         state.apply(events);
     }
 
@@ -828,7 +828,7 @@ TEST(Judge, HoldHeadActivatesAfterJudgment) {
     // Head at beat 4.0 = 2000 ms at 120 BPM
     // Hit at 2020 ms (20 ms late, within Great window)
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2020.0, pressed);
+    auto events = judge.update(2020.0, pressed, pressed);
 
     // Verify judgment event
     ASSERT_EQ(events.size(), 1);
@@ -861,7 +861,7 @@ TEST(Judge, HoldDoesNotActivateOnMissedHead) {
     // Auto-miss threshold: 2000 ms + bad_window (100 ms) = 2100 ms
     // Advance past the miss window without pressing
     uint32_t no_press = 0u;
-    auto events = judge.update(2101.0, no_press);
+    auto events = judge.update(2101.0, no_press, no_press);
 
     // Verify auto-miss event
     ASSERT_EQ(events.size(), 1);
@@ -887,7 +887,7 @@ TEST(Judge, HoldHeadTimingErrorIncluded) {
     // Head at beat 2.0 = 1000 ms at 120 BPM
     // Hit at 1012 ms (12 ms late)
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(1012.0, pressed);
+    auto events = judge.update(1012.0, pressed, pressed);
 
     // Verify timing error
     ASSERT_EQ(events.size(), 1);
@@ -913,7 +913,7 @@ TEST(Judge, HoldBodyNotScoredUntilHeadJudged) {
     // Head at beat 4.0 = 2000 ms at 120 BPM
     // Before head is judged (at beat 3.5 = 1750 ms)
     uint32_t pressed = 1u << 0;
-    auto events_early = judge.update(1750.0, pressed);
+    auto events_early = judge.update(1750.0, pressed, pressed);
 
     // No judgment event yet (too early, outside bad window)
     EXPECT_EQ(events_early.size(), 0);
@@ -922,7 +922,7 @@ TEST(Judge, HoldBodyNotScoredUntilHeadJudged) {
     EXPECT_EQ(judge.active_holds().size(), 0);
 
     // Now judge the head at exact timing (2000 ms)
-    auto events_head = judge.update(2000.0, pressed);
+    auto events_head = judge.update(2000.0, pressed, pressed);
 
     // Head is judged
     ASSERT_EQ(events_head.size(), 1);
@@ -945,19 +945,19 @@ TEST(Judge, MultipleActiveHolds) {
 
     // Judge first hold head at beat 4.0 (2000 ms)
     uint32_t press_col0 = 1u << 0;
-    auto events1 = judge.update(2000.0, press_col0);
+    auto events1 = judge.update(2000.0, press_col0, press_col0);
     ASSERT_EQ(events1.size(), 1);
     EXPECT_EQ(judge.active_holds().size(), 1);
 
     // Judge second hold head at beat 5.0 (2500 ms)
     uint32_t press_col1 = 1u << 1;
-    auto events2 = judge.update(2500.0, press_col1);
+    auto events2 = judge.update(2500.0, press_col1, press_col1);
     ASSERT_EQ(events2.size(), 1);
     EXPECT_EQ(judge.active_holds().size(), 2);
 
     // Judge third hold head at beat 6.0 (3000 ms)
     uint32_t press_col2 = 1u << 2;
-    auto events3 = judge.update(3000.0, press_col2);
+    auto events3 = judge.update(3000.0, press_col2, press_col2);
     ASSERT_EQ(events3.size(), 1);
     EXPECT_EQ(judge.active_holds().size(), 3);
 
@@ -986,7 +986,7 @@ TEST(Judge, HoldHeadCountsTowardTotal) {
 
     // Judge the head
     uint32_t pressed = 1u << 0;
-    auto events = judge.update(2000.0, pressed);
+    auto events = judge.update(2000.0, pressed, pressed);
 
     EXPECT_EQ(judge.judged_count(), 1);
     EXPECT_TRUE(judge.is_complete());
@@ -1001,7 +1001,7 @@ TEST(Judge, HoldResetClearsActiveHolds) {
 
     // Judge the head to create an active hold
     uint32_t pressed = 1u << 0;
-    judge.update(2000.0, pressed);
+    judge.update(2000.0, pressed, pressed);
     EXPECT_EQ(judge.active_holds().size(), 1);
 
     // Reset the judge
@@ -1010,4 +1010,176 @@ TEST(Judge, HoldResetClearsActiveHolds) {
     // Active holds should be cleared
     EXPECT_EQ(judge.active_holds().size(), 0);
     EXPECT_EQ(judge.judged_count(), 0);
+}
+
+// --- Hold Body Continuous Scoring Tests (US-JDG-008) ---
+
+TEST(Judge, HoldBodyFullScoreForContinuousPress) {
+    // US-JDG-008 Scenario 1: Full hold score for continuous press
+    // Given a hold from beat 4.0 to 6.0 (120 ticks at 60 Hz)
+    // When player holds panel for all 120 ticks
+    // Then hold score is 100 percent
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Head at beat 4.0 = 2000 ms, Tail at beat 6.0 = 3000 ms
+    // Duration = 1000 ms = 1.0 seconds = 60 ticks at 60 Hz
+
+    // Hit the head at 2000 ms
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    auto events = judge.update(2000.0, press, hold);
+
+    ASSERT_EQ(events.size(), 1);
+    EXPECT_EQ(events[0].tier(), JudgmentTier::PERFECT);
+
+    // Verify hold state was created
+    const auto& holds = judge.active_holds();
+    ASSERT_EQ(holds.size(), 1);
+    EXPECT_EQ(holds[0].ticks_required, 60);
+    EXPECT_EQ(holds[0].ticks_held, 1);
+
+    // Simulate holding for 59 more ticks (initial hit already counted 1)
+    for (int tick = 0; tick < 59; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    // Check final hold state (1 initial + 59 more = 60 total)
+    const auto& final_holds = judge.active_holds();
+    EXPECT_EQ(final_holds[0].ticks_held, 60);
+    EXPECT_EQ(final_holds[0].ticks_required, 60);
+}
+
+TEST(Judge, HoldBodyPartialScoreOnEarlyRelease) {
+    // US-JDG-008 Scenario 2: Partial score on early release
+    // Given a hold requiring 120 ticks
+    // When player releases at tick 60 (50 percent held)
+    // Then hold score is 50 percent
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit the head
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold for 29 more ticks (1 initial + 29 = 30 total, 50% of 60)
+    for (int tick = 0; tick < 29; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+    }
+
+    // Release (pass 0 for held_columns)
+    double release_time_ms = 2000.0 + 30 * (1000.0 / 60.0);
+    judge.update(release_time_ms, 0, 0);
+
+    // Check hold state (1 initial + 29 more = 30 ticks held)
+    const auto& holds = judge.active_holds();
+    EXPECT_EQ(holds[0].ticks_held, 30);
+    EXPECT_EQ(holds[0].ticks_required, 60);
+    EXPECT_FALSE(holds[0].active); // Hold should be dropped
+}
+
+TEST(Judge, HoldContinuesWhilePanelHeld) {
+    // US-JDG-008 Scenario 3: Hold continues while panel held
+    // Given an active hold and player holding the panel
+    // When judge.update() is called each tick
+    // Then hold_ticks_scored increments by 1 each tick while InputSnapshot shows panel down
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit the head
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold for 10 ticks
+    for (int tick = 0; tick < 10; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold);
+
+        // Check that ticks_held increments each time (1 from initial hit + tick+1 more)
+        const auto& holds = judge.active_holds();
+        EXPECT_EQ(holds[0].ticks_held, tick + 2);
+        EXPECT_TRUE(holds[0].active);
+    }
+}
+
+TEST(Judge, HoldEndsAtTailBeat) {
+    // US-JDG-008 Scenario 4: Hold ends at tail or release
+    // Given a hold tail at beat 6.0
+    // When song position reaches beat 6.0
+    // Then hold state transitions to "Complete" regardless of panel state
+
+    NoteData notes = make_hold_notes({{4.0, 6.0, 0}});
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit the head
+    uint32_t press = 1u << 0;
+    uint32_t hold = 1u << 0;
+    judge.update(2000.0, press, hold);
+
+    // Hold through to the tail (beat 6.0 = 3000 ms)
+    for (int tick = 0; tick < 60; tick++) {
+        double time_ms = 2000.0 + (tick + 1) * (1000.0 / 60.0);
+        if (time_ms >= 3000.0) break;
+        judge.update(time_ms, 0, hold);
+    }
+
+    // Advance past the tail beat
+    judge.update(3000.0, 0, hold);
+
+    // Check hold state - should be inactive (completed)
+    const auto& holds = judge.active_holds();
+    EXPECT_FALSE(holds[0].active);
+}
+
+TEST(Judge, MultipleHoldsContinuously) {
+    // Test multiple holds active at the same time, each scoring independently
+    NoteData notes = make_hold_notes({
+        {4.0, 8.0, 0},
+        {5.0, 9.0, 1}
+    });
+    TimingData timing = make_simple_timing(120.0);
+    TimingProfile profile = default_timing_profile();
+    Judge judge(notes, timing, profile);
+
+    // Hit first hold head at beat 4.0 (2000 ms)
+    uint32_t press_col0 = 1u << 0;
+    judge.update(2000.0, press_col0, press_col0);
+
+    // Hit second hold head at beat 5.0 (2500 ms)
+    uint32_t press_col1 = 1u << 1;
+    uint32_t hold_both = (1u << 0) | (1u << 1);
+    judge.update(2500.0, press_col1, hold_both);
+
+    // Hold both for 30 ticks
+    for (int tick = 0; tick < 30; tick++) {
+        double time_ms = 2500.0 + (tick + 1) * (1000.0 / 60.0);
+        judge.update(time_ms, 0, hold_both);
+    }
+
+    // Check both holds are tracking independently
+    const auto& holds = judge.active_holds();
+    ASSERT_EQ(holds.size(), 2);
+
+    // First hold: 1 (hit at 2000ms) + 1 (update at 2500ms) + 30 (loop) = 32
+    EXPECT_EQ(holds[0].ticks_held, 32);
+    EXPECT_TRUE(holds[0].active);
+
+    // Second hold: 1 (hit at 2500ms) + 30 (loop) = 31
+    EXPECT_EQ(holds[1].ticks_held, 31);
+    EXPECT_TRUE(holds[1].active);
 }

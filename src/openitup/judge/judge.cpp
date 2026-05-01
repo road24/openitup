@@ -91,7 +91,8 @@ std::size_t Judge::find_closest_unjudged(uint8_t column, double song_position_ms
 }
 
 std::vector<JudgmentEvent> Judge::update(double song_position_ms,
-                                          uint32_t pressed_columns) {
+                                          uint32_t pressed_columns,
+                                          uint32_t held_columns) {
     std::vector<JudgmentEvent> events;
 
     // Phase 1: Auto-miss scan
@@ -162,13 +163,50 @@ std::vector<JudgmentEvent> Judge::update(double song_position_ms,
         if (note.type == NoteType::HOLD_HEAD) {
             double tail_beat = find_hold_tail_beat(idx);
             if (tail_beat > 0.0) {
+                // Compute ticks required: duration in seconds * 60 ticks/sec
+                double head_time_s = timing_data_.time_at_beat(note.beat);
+                double tail_time_s = timing_data_.time_at_beat(tail_beat);
+                double duration_s = tail_time_s - head_time_s;
+                int ticks_required = static_cast<int>(duration_s * 60.0);
+
                 active_holds_.push_back({
                     note.column,
                     tail_beat,
                     true,
-                    tier
+                    tier,
+                    0,
+                    ticks_required
                 });
             }
+        }
+    }
+
+    // Phase 3: Hold body scoring (US-JDG-008)
+    // Process active holds and track tick-by-tick scoring
+    double current_beat = timing_data_.beat_at_time(song_position_ms / 1000.0);
+
+    for (auto& hold : active_holds_) {
+        if (!hold.active) {
+            continue;
+        }
+
+        // Check if we've reached or passed the tail beat
+        if (current_beat >= hold.tail_beat) {
+            // Hold completed - mark as inactive
+            hold.active = false;
+            // Tail judgment will be emitted when tail is processed
+            continue;
+        }
+
+        // Check if the column is currently held
+        bool column_held = (held_columns & (1u << hold.column)) != 0;
+
+        if (column_held) {
+            // Player is holding - increment tick count
+            hold.ticks_held++;
+        } else {
+            // Player released early - mark hold as dropped
+            hold.active = false;
         }
     }
 
