@@ -69,6 +69,9 @@ FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(SDL3_image)
 FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog)
 
+# --- zlib (for STX parser) ---
+find_package(ZLIB REQUIRED)
+
 # --- Engine library ---
 
 add_library(openitup_engine STATIC
@@ -103,6 +106,15 @@ add_library(openitup_engine STATIC
     src/openitup/chart/chart_builder.cpp
     src/openitup/chart/chart_canonical.cpp
     src/openitup/chart/ksf_parser.cpp
+    src/openitup/chart/ssc_parser.cpp
+    src/openitup/chart/nx_parser.cpp
+    src/openitup/chart/sma_parser.cpp
+    src/openitup/chart/see_parser.cpp
+    src/openitup/chart/osf_parser.cpp
+    src/openitup/chart/osf_writer.cpp
+    src/openitup/chart/chart_hasher.cpp
+    src/openitup/chart/chart_loader.cpp
+    src/openitup/chart/stx_parser.cpp
     src/openitup/chart/chart_validator.cpp
     src/openitup/chart/chart_classifier.cpp
     src/openitup/judge/judgment_tier.cpp
@@ -142,6 +154,7 @@ target_link_libraries(openitup_engine PUBLIC
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     openitup_audio
+    ZLIB::ZLIB
 )
 
 # --- Audio library (US-AUD-093: backend selection) ---
@@ -233,11 +246,20 @@ add_executable(openitup_tests
     test/test_timing_data.cpp
     test/test_chart_canonical.cpp
     test/test_ksf_parser.cpp
+    test/test_ssc_parser.cpp
+    test/test_nx_parser.cpp
+    test/test_stx_parser.cpp
+    test/test_sma_parser.cpp
+    test/test_see_parser.cpp
+    test/test_osf_parser.cpp
+    test/test_chart_hasher.cpp
+    test/test_chart_loader.cpp
     test/test_chart_validator.cpp
     test/test_chart_classifier.cpp
     test/test_judge.cpp
     test/test_timing_profile_loader.cpp
     test/test_gameplay_state.cpp
+    test/test_judge_profiles.cpp
     test/test_note_renderer.cpp
     test/test_note_renderer_perf.cpp
     test/test_minimal_gameplay_scene.cpp

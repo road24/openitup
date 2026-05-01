@@ -4,14 +4,15 @@
 
 namespace openitup {
 
-GameplayState::GameplayState(int total_notes)
+GameplayState::GameplayState(int total_notes, const TimingProfile& profile)
     : total_notes_(total_notes),
       current_combo_(0),
       max_combo_(0),
       score_(0),
       hold_score_(0),
       judgment_counts_{},
-      hp_(1.0f) {
+      hp_(1.0f),
+      profile_(profile) {
 }
 
 void GameplayState::apply_single(const JudgmentEvent& event) {
@@ -19,7 +20,27 @@ void GameplayState::apply_single(const JudgmentEvent& event) {
     int tier_index = static_cast<int>(tier);
 
     judgment_counts_[tier_index]++;
-    score_ += POINTS_PER_TIER[tier_index];
+
+    // US-JDG-014: Use profile scoring instead of hardcoded values
+    int64_t points = 0;
+    switch (tier) {
+        case JudgmentTier::PERFECT:
+            points = profile_.score_perfect;
+            break;
+        case JudgmentTier::GREAT:
+            points = profile_.score_great;
+            break;
+        case JudgmentTier::GOOD:
+            points = profile_.score_good;
+            break;
+        case JudgmentTier::BAD:
+            points = profile_.score_bad;
+            break;
+        case JudgmentTier::MISS:
+            points = profile_.score_miss;
+            break;
+    }
+    score_ += points;
 
     if (tier_maintains_combo(tier)) {
         current_combo_++;
@@ -68,11 +89,16 @@ double GameplayState::score_percentage() const {
     if (total_notes_ == 0) {
         return 0.0;
     }
-    int64_t max_score = static_cast<int64_t>(total_notes_) * PERFECT_POINTS;
+    int64_t max_score = static_cast<int64_t>(total_notes_) * profile_.score_perfect;
     if (max_score == 0) {
         return 0.0;
     }
     return (static_cast<double>(score_) / static_cast<double>(max_score)) * 100.0;
+}
+
+std::string GameplayState::current_grade() const {
+    double percentage = score_percentage();
+    return calculate_grade(percentage, profile_);
 }
 
 int GameplayState::judgment_count(JudgmentTier tier) const {

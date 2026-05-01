@@ -110,24 +110,8 @@ void ResultScene::render() {
 }
 
 std::string ResultScene::calculate_grade() const {
-    // SS grade: all Perfect (100% Perfect rate)
-    int total = gameplay_state_.total_judged();
-    if (total == 0) return "F";
-
-    int perfect = gameplay_state_.judgment_count(JudgmentTier::PERFECT);
-    if (perfect == total) {
-        return "SS";
-    }
-
-    // Other grades based on score percentage
-    double percentage = gameplay_state_.score_percentage();
-
-    if (percentage >= 95.0) return "S";
-    if (percentage >= 90.0) return "A";
-    if (percentage >= 80.0) return "B";
-    if (percentage >= 70.0) return "C";
-    if (percentage >= 60.0) return "D";
-    return "F";
+    // US-JDG-015: Use profile-based grade calculation
+    return gameplay_state_.current_grade();
 }
 
 } // namespace openitup

@@ -6,12 +6,13 @@
 
 #include <openitup/judge/judgment_event.h>
 #include <openitup/judge/judgment_tier.h>
+#include <openitup/judge/timing_profile.h>
 
 namespace openitup {
 
 class GameplayState {
 public:
-    explicit GameplayState(int total_notes);
+    explicit GameplayState(int total_notes, const TimingProfile& profile = default_timing_profile());
 
     void apply(const std::vector<JudgmentEvent>& events);
     void apply_single(const JudgmentEvent& event);
@@ -30,19 +31,12 @@ public:
     float hp() const { return hp_; }
     bool is_failed() const { return hp_ <= 0.0f; }
 
+    // US-JDG-015: Grade calculation from profile
+    std::string current_grade() const;
+
     void reset();
 
 private:
-    static constexpr int64_t PERFECT_POINTS = 1000;
-    static constexpr int64_t GREAT_POINTS = 800;
-    static constexpr int64_t GOOD_POINTS = 500;
-    static constexpr int64_t BAD_POINTS = 100;
-    static constexpr int64_t MISS_POINTS = 0;
-
-    static constexpr std::array<int64_t, JUDGMENT_TIER_COUNT> POINTS_PER_TIER = {
-        PERFECT_POINTS, GREAT_POINTS, GOOD_POINTS, BAD_POINTS, MISS_POINTS
-    };
-
     int total_notes_;
     int current_combo_;
     int max_combo_;
@@ -50,6 +44,7 @@ private:
     int64_t hold_score_;
     std::array<int, JUDGMENT_TIER_COUNT> judgment_counts_;
     float hp_;  // Life gauge: 0.0 to 1.0, starts at 1.0 (US-JDG-010)
+    TimingProfile profile_;  // US-JDG-014: Profile with scoring formula
 };
 
 } // namespace openitup
