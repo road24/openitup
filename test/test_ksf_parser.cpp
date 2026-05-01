@@ -82,19 +82,19 @@ TEST(KsfParser, AudioFilenameResolved) {
 }
 
 TEST(KsfParser, NotePositionsConvertedToBeats) {
-    // TICKCOUNT=2 means 4 lines per beat (TICKCOUNT * 2)
-    // Line 0: beat 0.0, Line 1: beat 0.25, Line 2: beat 0.5, Line 3: beat 0.75, Line 4: beat 1.0
+    // TICKCOUNT=2 means 2 rows per beat.
+    // Row 0: beat 0.0, Row 2: beat 1.0
     KsfParser parser(mock_file_reader(MINIMAL_KSF));
     auto chart = parser.parse("/fake/path/test.ksf");
 
     auto& notes = chart.note_data().events();
     ASSERT_GE(notes.size(), 2);
 
-    // First note at line 0: beat 0.0
+    // First note at row 0: beat 0.0
     EXPECT_DOUBLE_EQ(notes[0].beat, 0.0);
 
-    // Second note at line 2: beat 0.5 (2 / 4 = 0.5)
-    EXPECT_DOUBLE_EQ(notes[1].beat, 0.5);
+    // Second note at row 2: beat 2 / 2 = 1.0
+    EXPECT_DOUBLE_EQ(notes[1].beat, 1.0);
 }
 
 TEST(KsfParser, HoldNotesConverted) {
@@ -116,7 +116,7 @@ TEST(KsfParser, HoldNotesConverted) {
         if (note.type == NoteType::HOLD_TAIL) {
             found_hold_tail = true;
             EXPECT_EQ(note.column, 0);  // First column
-            EXPECT_DOUBLE_EQ(note.beat, 0.75);  // Line 3: beat 3/4 = 0.75
+            EXPECT_DOUBLE_EQ(note.beat, 1.5);  // Row 3: beat 3 / 2 = 1.5
         }
     }
 
@@ -170,11 +170,11 @@ TEST(KsfParser, AlwaysSingleMode) {
 }
 
 TEST(KsfParser, TickCountAffectsBeatPositions) {
-    // TICKCOUNT=2 -> 4 lines per beat
-    const char* tickcount2 = R"(#TITLE:TickCount 2;
+    // TICKCOUNT=4 -> 4 rows per beat -> each row = 0.25 beats (16th notes)
+    const char* tickcount4 = R"(#TITLE:TickCount 4;
 #ARTIST:Test;
 #BPM:120;
-#TICKCOUNT:2;
+#TICKCOUNT:4;
 10000
 00000
 00000
@@ -183,16 +183,16 @@ TEST(KsfParser, TickCountAffectsBeatPositions) {
 2222222222
 )";
 
-    KsfParser parser(mock_file_reader(tickcount2));
+    KsfParser parser(mock_file_reader(tickcount4));
     auto chart = parser.parse("/fake/path/test.ksf");
 
     auto& notes = chart.note_data().events();
     ASSERT_GE(notes.size(), 2);
 
-    // First note at line 0: beat 0.0
+    // First note at row 0: beat 0.0
     EXPECT_DOUBLE_EQ(notes[0].beat, 0.0);
 
-    // Second note at line 4: beat 4/4 = 1.0
+    // Second note at row 4: beat 4 / 4 = 1.0
     EXPECT_DOUBLE_EQ(notes[1].beat, 1.0);
 }
 
@@ -276,11 +276,11 @@ TEST(KsfParserRegression, FixtureFileLoadedCorrectly) {
 
 TEST(KsfParserRegression, FixtureNoteBeats) {
     // Verify exact beat positions of the 4 notes in test_basic.ksf
-    // TICKCOUNT=2 means 4 lines per beat (TICKCOUNT * 2)
-    // Line 0 (tick 0): beat 0.0, "10000" → column 0
-    // Line 2 (tick 2): beat 0.5, "01000" → column 1
-    // Line 4 (tick 4): beat 1.0, "00010" → column 3
-    // Line 6 (tick 6): beat 1.5, "00100" → column 2
+    // TICKCOUNT=2 means 2 rows per beat
+    // Row 0 (tick 0): beat 0.0, "10000" → column 0
+    // Row 2 (tick 2): beat 1.0, "01000" → column 1
+    // Row 4 (tick 4): beat 2.0, "00010" → column 3
+    // Row 6 (tick 6): beat 3.0, "00100" → column 2
 
     KsfParser parser;
     auto fixture_path = fixtures_dir() / "test_basic.ksf";
@@ -289,20 +289,19 @@ TEST(KsfParserRegression, FixtureNoteBeats) {
     auto& notes = chart.note_data().events();
     ASSERT_EQ(notes.size(), 4) << "Expected exactly 4 notes";
 
-    // Verify each note's beat and column
     EXPECT_DOUBLE_EQ(notes[0].beat, 0.0);
     EXPECT_EQ(notes[0].column, 0);
     EXPECT_EQ(notes[0].type, NoteType::TAP);
 
-    EXPECT_DOUBLE_EQ(notes[1].beat, 0.5);
+    EXPECT_DOUBLE_EQ(notes[1].beat, 1.0);
     EXPECT_EQ(notes[1].column, 1);
     EXPECT_EQ(notes[1].type, NoteType::TAP);
 
-    EXPECT_DOUBLE_EQ(notes[2].beat, 1.0);
+    EXPECT_DOUBLE_EQ(notes[2].beat, 2.0);
     EXPECT_EQ(notes[2].column, 3);
     EXPECT_EQ(notes[2].type, NoteType::TAP);
 
-    EXPECT_DOUBLE_EQ(notes[3].beat, 1.5);
+    EXPECT_DOUBLE_EQ(notes[3].beat, 3.0);
     EXPECT_EQ(notes[3].column, 2);
     EXPECT_EQ(notes[3].type, NoteType::TAP);
 }

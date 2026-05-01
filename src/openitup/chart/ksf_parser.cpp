@@ -116,8 +116,7 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
     ChartBuilder builder;
 
     // KSF format parameters
-    int tickcount = 2;  // Default TICKCOUNT=2 means 4 lines per beat
-    int lines_per_beat = 4;  // Default: TICKCOUNT * 2
+    int tickcount = 2;  // TICKCOUNT = rows per beat
     bool has_title = false;
     bool has_bpm = false;
 
@@ -154,7 +153,6 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
         } else if (tag == "TICKCOUNT") {
             try {
                 tickcount = std::stoi(value);
-                lines_per_beat = tickcount * 2;
                 if (tickcount <= 0 || tickcount > 64) {
                     spdlog::warn("KSF parser: unusual TICKCOUNT value {}, using anyway", tickcount);
                 }
@@ -223,7 +221,7 @@ Chart KsfParser::parse(const std::filesystem::path& chart_path) const {
         }
 
         found_note_data = true;
-        double beat = static_cast<double>(tick) / lines_per_beat;
+        double beat = static_cast<double>(tick) / tickcount;
 
         // Parse each column (5 columns for single mode)
         for (int col = 0; col < 5; ++col) {
