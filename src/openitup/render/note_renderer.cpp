@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <SDL3/SDL.h>
+#include <spdlog/spdlog.h>
 #include <openitup/chart/note_type.h>
 #include <openitup/render/noteskin.h>
 #include <openitup/render/noteskin_anim.h>
@@ -293,7 +294,6 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
         }
 
         if (sprite) {
-            // Sprite rendering path
             float t = noteskin_loop_t(global_time_ms);
             LayerTransform xform{};
             xform.translate_x = config_.column_x[note.column] - (config_.note_sprite_size / 2.0f);

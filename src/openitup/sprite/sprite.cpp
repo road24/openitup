@@ -11,8 +11,8 @@ namespace openitup {
 // --- JSON serialization ---
 
 static SpriteMode mode_from_string(const std::string& s) {
-    if (s == "ani") return SpriteMode::Ani;
-    if (s == "pattern") return SpriteMode::Pattern;
+    if (s == "ani" || s == "ANI") return SpriteMode::Ani;
+    if (s == "pattern" || s == "PATTERN") return SpriteMode::Pattern;
     return SpriteMode::Tile;
 }
 
@@ -238,11 +238,16 @@ void Sprite::draw_picture(SDL_Renderer* renderer, const TextureCache& cache,
     SDL_SetTextureAlphaModFloat(tex, color.a);
     SDL_SetTextureBlendMode(tex, blend);
 
-    // BGA spec uses counter-clockwise rotation (OpenGL convention).
-    // SDL uses clockwise. Negate to convert.
-    SDL_RenderTextureRotated(renderer, tex, &srcrect, &dstrect,
-                             static_cast<double>(-transform.rotate),
-                             &center, flip);
+    // Fast path: no rotation or flip — use SDL_RenderTexture directly
+    if (transform.rotate == 0.0f && flip == SDL_FLIP_NONE) {
+        SDL_RenderTexture(renderer, tex, &srcrect, &dstrect);
+    } else {
+        // BGA spec uses counter-clockwise rotation (OpenGL convention).
+        // SDL uses clockwise. Negate to convert.
+        SDL_RenderTextureRotated(renderer, tex, &srcrect, &dstrect,
+                                 static_cast<double>(-transform.rotate),
+                                 &center, flip);
+    }
 }
 
 } // namespace openitup
