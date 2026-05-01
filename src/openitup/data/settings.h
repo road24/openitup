@@ -19,8 +19,12 @@ struct AudioSettings {
 };
 
 struct InputSettings {
-    // Placeholder for Phase 3 expansion
-    // Will contain key bindings map in future stories
+    // Keymap: SDL scancode name -> PadInput name
+    // e.g., {"SDL_SCANCODE_Q": "P1_UP_LEFT"}
+    std::map<std::string, std::string> keymap;
+
+    // Returns default QWEASDZXC keymap matching US-INP-022
+    static InputSettings make_default();
 };
 
 struct SettingsData {

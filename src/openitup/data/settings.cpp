@@ -10,6 +10,7 @@ SettingsData SettingsData::make_default() {
     defaults.audio.master_volume = 1.0f;
     defaults.audio.music_volume = 1.0f;
     defaults.audio.sfx_volume = 1.0f;
+    defaults.input = InputSettings::make_default();
     return defaults;
 }
 
@@ -39,15 +40,34 @@ void from_json(const nlohmann::json& j, AudioSettings& a) {
     a.sfx_volume = j.value("sfx_volume", 1.0f);
 }
 
+InputSettings InputSettings::make_default() {
+    InputSettings defaults;
+    defaults.keymap = {
+        {"SDL_SCANCODE_Q", "P1_UP_LEFT"},
+        {"SDL_SCANCODE_E", "P1_UP_RIGHT"},
+        {"SDL_SCANCODE_S", "P1_CENTER"},
+        {"SDL_SCANCODE_Z", "P1_DOWN_LEFT"},
+        {"SDL_SCANCODE_C", "P1_DOWN_RIGHT"},
+        {"SDL_SCANCODE_RETURN", "START"},
+        {"SDL_SCANCODE_ESCAPE", "BACK"},
+        {"SDL_SCANCODE_SPACE", "SELECT"},
+    };
+    return defaults;
+}
+
 void to_json(nlohmann::json& j, const InputSettings& i) {
-    // Placeholder - empty object for now
-    j = nlohmann::json::object();
+    j = nlohmann::json{
+        {"keymap", i.keymap}
+    };
 }
 
 void from_json(const nlohmann::json& j, InputSettings& i) {
-    // Placeholder - no fields to parse yet
-    (void)j;
-    (void)i;
+    if (j.contains("keymap") && j["keymap"].is_object()) {
+        i.keymap = j["keymap"].get<std::map<std::string, std::string>>();
+    } else {
+        // Use defaults if keymap is missing or malformed
+        i = InputSettings::make_default();
+    }
 }
 
 void to_json(nlohmann::json& j, const SettingsData& s) {

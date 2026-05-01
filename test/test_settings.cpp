@@ -157,3 +157,85 @@ TEST_F(SettingsTest, SerializesToPrettyJson) {
     EXPECT_TRUE(parsed.contains("audio"));
     EXPECT_TRUE(parsed.contains("input"));
 }
+
+TEST_F(SettingsTest, InputSettingsHasDefaultKeymap) {
+    auto input_settings = InputSettings::make_default();
+
+    // Should have the default QWEASDZXC keymap
+    EXPECT_EQ(input_settings.keymap.size(), 8);
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_Q"], "P1_UP_LEFT");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_E"], "P1_UP_RIGHT");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_S"], "P1_CENTER");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_Z"], "P1_DOWN_LEFT");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_C"], "P1_DOWN_RIGHT");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_RETURN"], "START");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_ESCAPE"], "BACK");
+    EXPECT_EQ(input_settings.keymap["SDL_SCANCODE_SPACE"], "SELECT");
+}
+
+TEST_F(SettingsTest, InputSettingsRoundTrip) {
+    auto original = InputSettings::make_default();
+
+    // Serialize to JSON
+    nlohmann::json j = original;
+
+    // Deserialize back
+    auto restored = j.get<InputSettings>();
+
+    EXPECT_EQ(restored.keymap.size(), original.keymap.size());
+    for (const auto& [key, value] : original.keymap) {
+        EXPECT_EQ(restored.keymap[key], value);
+    }
+}
+
+TEST_F(SettingsTest, InputSettingsWithCustomKeymap) {
+    nlohmann::json j = {
+        {"keymap", {
+            {"SDL_SCANCODE_A", "P1_UP_LEFT"},
+            {"SDL_SCANCODE_D", "P1_UP_RIGHT"},
+        }}
+    };
+
+    auto settings = j.get<InputSettings>();
+
+    EXPECT_EQ(settings.keymap.size(), 2);
+    EXPECT_EQ(settings.keymap["SDL_SCANCODE_A"], "P1_UP_LEFT");
+    EXPECT_EQ(settings.keymap["SDL_SCANCODE_D"], "P1_UP_RIGHT");
+}
+
+TEST_F(SettingsTest, InputSettingsMissingKeymapUsesDefaults) {
+    nlohmann::json j = nlohmann::json::object();  // Empty object
+
+    auto settings = j.get<InputSettings>();
+
+    // Should have default keymap
+    EXPECT_EQ(settings.keymap.size(), 8);
+    EXPECT_EQ(settings.keymap["SDL_SCANCODE_Q"], "P1_UP_LEFT");
+}
+
+TEST_F(SettingsTest, InputSettingsInvalidKeymapUsesDefaults) {
+    nlohmann::json j = {
+        {"keymap", "not an object"}  // Invalid type
+    };
+
+    auto settings = j.get<InputSettings>();
+
+    // Should fall back to default keymap
+    EXPECT_EQ(settings.keymap.size(), 8);
+    EXPECT_EQ(settings.keymap["SDL_SCANCODE_Q"], "P1_UP_LEFT");
+}
+
+TEST_F(SettingsTest, FullSettingsWithKeymapRoundTrip) {
+    auto original = SettingsData::make_default();
+
+    // Serialize to JSON
+    nlohmann::json j = original;
+
+    // Deserialize back
+    auto restored = j.get<SettingsData>();
+
+    // Check input keymap was preserved
+    EXPECT_EQ(restored.input.keymap.size(), 8);
+    EXPECT_EQ(restored.input.keymap["SDL_SCANCODE_Q"], "P1_UP_LEFT");
+    EXPECT_EQ(restored.input.keymap["SDL_SCANCODE_E"], "P1_UP_RIGHT");
+}
