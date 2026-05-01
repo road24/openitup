@@ -122,24 +122,45 @@ int Engine::run() {
     accumulator_ = 0.0;
     clock_->reset();
 
-    // Push BootScene if stack is empty (default flow)
+    // Push initial scene if stack is empty
     if (scene_stack_->empty()) {
-        // Find a test chart for gameplay (if data_dir is configured)
-        std::filesystem::path test_chart;
-        if (!config_.data_dir_path.empty()) {
-            // For Phase 2, use the chart_path from config if available
-            if (!config_.chart_path.empty()) {
-                test_chart = config_.chart_path;
+        if (config_.direct_chart_mode && !config_.chart_path.empty() && !config_.data_dir_path.empty()) {
+            // Direct chart mode: push MinimalGameplayScene directly (skip BootScene)
+            try {
+                scene_stack_->push(std::make_unique<MinimalGameplayScene>(
+                    config_.chart_path,
+                    config_.data_dir_path,
+                    audio_.get(),
+                    input_system_.get(),
+                    renderer_.get(),
+                    scene_stack_.get(),
+                    this,
+                    text_renderer_.get()
+                ));
+                spdlog::info("Started with MinimalGameplayScene in direct chart mode");
+            } catch (const std::exception& e) {
+                spdlog::error("Failed to start direct chart mode: {}", e.what());
+                return 1;
             }
+        } else {
+            // Normal flow: push BootScene
+            // Find a test chart for gameplay (if data_dir is configured)
+            std::filesystem::path test_chart;
+            if (!config_.data_dir_path.empty()) {
+                // For Phase 2, use the chart_path from config if available
+                if (!config_.chart_path.empty()) {
+                    test_chart = config_.chart_path;
+                }
+            }
+            scene_stack_->push(std::make_unique<BootScene>(
+                renderer_.get(),
+                text_renderer_.get(),
+                scene_stack_.get(),
+                this,
+                test_chart
+            ));
+            spdlog::info("Started with BootScene");
         }
-        scene_stack_->push(std::make_unique<BootScene>(
-            renderer_.get(),
-            text_renderer_.get(),
-            scene_stack_.get(),
-            this,
-            test_chart
-        ));
-        spdlog::info("Started with BootScene");
     }
 
     while (running_ && !scene_stack_->empty()) {
@@ -187,74 +208,6 @@ int Engine::run() {
 
     spdlog::info("scene stack empty or quit requested, exiting");
     return 0;
-}
-
-int Engine::run_gameplay(const std::filesystem::path& chart_path,
-                         const std::filesystem::path& data_dir) {
-    try {
-        auto scene = std::make_unique<MinimalGameplayScene>(
-            chart_path, data_dir,
-            audio_.get(),
-            input_system_ ? input_system_.get() : nullptr,
-            renderer_.get());
-
-        running_ = true;
-        clock_->reset();
-        accumulator_ = 0.0;
-        tick_count_ = 0;
-
-        while (running_ && !scene->is_complete()) {
-            process_events();
-
-            double delta = clock_->tick();
-            auto result = compute_fixed_steps(delta, accumulator_);
-            accumulator_ = result.new_accumulator;
-            render_alpha_ = result.alpha;
-
-            if (result.spiral_guard_triggered) {
-                spdlog::warn("Spiral-of-death guard triggered");
-            }
-
-            for (int i = 0; i < result.num_steps; i++) {
-                try {
-                    if (input_system_) input_system_->poll(tick_count_);
-                    scene->update(FIXED_STEP);
-                } catch (const std::exception& e) {
-                    spdlog::error("Exception in gameplay update: {}", e.what());
-                }
-                tick_count_++;
-            }
-
-            renderer_->begin_frame();
-            try {
-                scene->render(render_alpha_);
-            } catch (const std::exception& e) {
-                spdlog::error("Exception in gameplay render: {}", e.what());
-            }
-            renderer_->end_frame();
-        }
-
-        // Log final results
-        const auto& state = scene->gameplay_state();
-        spdlog::info("=== Results ===");
-        spdlog::info("Score: {}", state.score());
-        spdlog::info("Max combo: {}", state.max_combo());
-        spdlog::info("Perfect: {}, Great: {}, Good: {}, Bad: {}, Miss: {}",
-                     state.judgment_count(JudgmentTier::PERFECT),
-                     state.judgment_count(JudgmentTier::GREAT),
-                     state.judgment_count(JudgmentTier::GOOD),
-                     state.judgment_count(JudgmentTier::BAD),
-                     state.judgment_count(JudgmentTier::MISS));
-
-        return 0;
-
-    } catch (const ChartLoadException& e) {
-        spdlog::error("Failed to load chart: {}", e.what());
-        return 1;
-    } catch (const std::exception& e) {
-        spdlog::error("Gameplay error: {}", e.what());
-        return 1;
-    }
 }
 
 void Engine::process_events() {

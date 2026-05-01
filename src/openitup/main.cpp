@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     try {
         openitup::EngineConfig config;
 
-        // If --chart is provided, use direct gameplay mode (Phase 1 compatibility)
+        // If --chart is provided, use direct gameplay mode (skip BootScene, go straight to gameplay)
         if (!chart_arg.empty()) {
             // Resolve data directory
             auto data_dir = openitup::resolve_data_directory(data_dir_arg);
@@ -36,8 +36,13 @@ int main(int argc, char* argv[]) {
             spdlog::info("Chart: {}", chart_file.string());
             spdlog::info("Data dir: {}", data_dir->path().string());
 
+            config.data_dir_path = data_dir->path().string();
+            config.chart_path = chart_file.string();
+            config.direct_chart_mode = true;
+
+            spdlog::info("Starting in direct chart mode (gameplay → results → exit)");
             openitup::Engine engine(config);
-            return engine.run_gameplay(chart_file, data_dir->path());
+            return engine.run();
         }
 
         // Otherwise, use full scene flow starting with BootScene

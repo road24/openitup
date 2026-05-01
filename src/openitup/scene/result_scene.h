@@ -13,13 +13,15 @@ class Engine;
 
 // ResultScene: displays final score, grade, combo, and judgment breakdown after gameplay.
 // Automatically transitions to TitleScene after 5 seconds or on any input.
+// If exit_on_dismiss is true, pops itself instead (for direct chart mode).
 class ResultScene : public Scene {
 public:
     ResultScene(Renderer* renderer,
                 TextRenderer* text_renderer,
                 SceneStack* scene_stack,
                 Engine* engine,
-                const GameplayState& gameplay_state);
+                const GameplayState& gameplay_state,
+                bool exit_on_dismiss = false);
 
     void on_enter() override;
     void on_exit() override;
@@ -38,6 +40,7 @@ private:
     Engine* engine_;
     GameplayState gameplay_state_;
     double elapsed_ = 0.0;
+    bool exit_on_dismiss_;
     static constexpr double AUTO_TRANSITION_TIME = 5.0;
 };
 

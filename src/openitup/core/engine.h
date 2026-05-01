@@ -27,6 +27,7 @@ struct EngineConfig {
     std::string data_dir_path;
     std::string chart_path;
     std::filesystem::path user_data_path;  // Optional override for testing
+    bool direct_chart_mode = false;  // If true, skip BootScene and go straight to gameplay
 };
 
 class Engine {
@@ -40,8 +41,6 @@ public:
     Engine& operator=(const Engine&) = delete;
 
     int run();
-    int run_gameplay(const std::filesystem::path& chart_path,
-                     const std::filesystem::path& data_dir);
     void request_quit();
 
     Renderer* get_renderer() const { return renderer_.get(); }
@@ -54,6 +53,7 @@ public:
     data::SettingsManager* get_settings() const { return settings_manager_.get(); }
     const data::UserDataDir& get_user_data_dir() const { return user_data_dir_; }
     std::filesystem::path get_data_dir() const { return config_.data_dir_path; }
+    bool is_direct_chart_mode() const { return config_.direct_chart_mode; }
     uint64_t tick_count() const { return tick_count_; }
     double render_alpha() const { return render_alpha_; }
     bool is_running() const { return running_; }

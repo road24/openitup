@@ -220,8 +220,10 @@ void MinimalGameplayScene::update(double dt) {
             // Transition to ResultScene if scene_stack is available (Phase 3 flow)
             if (scene_stack_ && renderer_ && text_renderer_ && engine_) {
                 spdlog::info("Transitioning to ResultScene after completion");
+                // In direct chart mode, ResultScene should exit instead of transitioning to TitleScene
+                bool exit_on_dismiss = engine_->is_direct_chart_mode();
                 scene_stack_->replace(std::make_unique<ResultScene>(
-                    renderer_, text_renderer_, scene_stack_, engine_, gameplay_state_));
+                    renderer_, text_renderer_, scene_stack_, engine_, gameplay_state_, exit_on_dismiss));
             }
         }
     }

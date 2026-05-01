@@ -16,12 +16,14 @@ ResultScene::ResultScene(Renderer* renderer,
                          TextRenderer* text_renderer,
                          SceneStack* scene_stack,
                          Engine* engine,
-                         const GameplayState& gameplay_state)
+                         const GameplayState& gameplay_state,
+                         bool exit_on_dismiss)
     : renderer_(renderer),
       text_(text_renderer),
       stack_(scene_stack),
       engine_(engine),
-      gameplay_state_(gameplay_state)
+      gameplay_state_(gameplay_state),
+      exit_on_dismiss_(exit_on_dismiss)
 {
 }
 
@@ -42,21 +44,31 @@ void ResultScene::on_resume() {}
 void ResultScene::update(double dt) {
     elapsed_ += dt;
     if (elapsed_ >= AUTO_TRANSITION_TIME) {
-        spdlog::info("ResultScene: auto-transition timeout, returning to TitleScene");
-        // For Phase 3, we don't have the test_chart_path in ResultScene,
-        // so we'll transition to TitleScene with an empty path.
-        // TitleScene can handle this gracefully.
-        stack_->replace(std::make_unique<TitleScene>(
-            renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
+        if (exit_on_dismiss_) {
+            spdlog::info("ResultScene: auto-transition timeout, exiting (direct chart mode)");
+            stack_->pop();
+        } else {
+            spdlog::info("ResultScene: auto-transition timeout, returning to TitleScene");
+            // For Phase 3, we don't have the test_chart_path in ResultScene,
+            // so we'll transition to TitleScene with an empty path.
+            // TitleScene can handle this gracefully.
+            stack_->replace(std::make_unique<TitleScene>(
+                renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
+        }
     }
 }
 
 void ResultScene::handle_input(const InputSnapshot& input) {
-    // Any input transitions to TitleScene
+    // Any input triggers dismissal
     if (input.pressed_mask() != 0) {
-        spdlog::info("ResultScene: input detected, transitioning to TitleScene");
-        stack_->replace(std::make_unique<TitleScene>(
-            renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
+        if (exit_on_dismiss_) {
+            spdlog::info("ResultScene: input detected, exiting (direct chart mode)");
+            stack_->pop();
+        } else {
+            spdlog::info("ResultScene: input detected, transitioning to TitleScene");
+            stack_->replace(std::make_unique<TitleScene>(
+                renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
+        }
     }
 }
 
