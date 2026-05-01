@@ -93,6 +93,32 @@ void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, doubl
         next_beat = timing_data_.beat_at_time((song_position_ms + FIXED_STEP * 1000.0) / 1000.0);
     }
 
+    // Draw measure lines at every integer beat in visible range
+    {
+        float left_x = config_.column_x.front() - config_.note_width / 2.0f;
+        float right_x = config_.column_x.back() + config_.note_width / 2.0f;
+
+        int first_beat = static_cast<int>(std::floor(bottom_beat));
+        int last_beat = static_cast<int>(std::ceil(top_beat));
+
+        for (int b = first_beat; b <= last_beat; ++b) {
+            float y = beat_to_y(static_cast<double>(b), current_beat);
+            if (y < -1.0f || y > 481.0f) continue;
+
+            if (b % 4 == 0) {
+                // Strong line (downbeat of measure): white, 2px
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 160);
+                SDL_FRect rect{left_x, y - 1.0f, right_x - left_x, 2.0f};
+                SDL_RenderFillRect(renderer, &rect);
+            } else {
+                // Weak line (beat subdivision): gray, 1px
+                SDL_SetRenderDrawColor(renderer, 128, 128, 128, 100);
+                SDL_FRect rect{left_x, y - 0.5f, right_x - left_x, 1.0f};
+                SDL_RenderFillRect(renderer, &rect);
+            }
+        }
+    }
+
     // First pass: render hold bodies (behind everything)
     for (auto it = begin_it; it != end_it; ++it) {
         const auto& note = *it;
