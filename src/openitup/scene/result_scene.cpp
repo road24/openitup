@@ -47,7 +47,7 @@ void ResultScene::update(double dt) {
         // so we'll transition to TitleScene with an empty path.
         // TitleScene can handle this gracefully.
         stack_->replace(std::make_unique<TitleScene>(
-            renderer_, text_, stack_, engine_, std::filesystem::path()));
+            renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
     }
 }
 
@@ -56,7 +56,7 @@ void ResultScene::handle_input(const InputSnapshot& input) {
     if (input.pressed_mask() != 0) {
         spdlog::info("ResultScene: input detected, transitioning to TitleScene");
         stack_->replace(std::make_unique<TitleScene>(
-            renderer_, text_, stack_, engine_, std::filesystem::path()));
+            renderer_, text_, stack_, engine_, std::filesystem::path(), nullptr));
     }
 }
 
