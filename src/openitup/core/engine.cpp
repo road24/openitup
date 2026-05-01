@@ -19,10 +19,19 @@ Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock)
     : Engine(config, std::move(clock), nullptr) {}
 
 Engine::Engine(const EngineConfig& config, std::unique_ptr<Clock> clock, std::unique_ptr<AudioSystem> audio)
-    : config_(config), clock_(std::move(clock)), audio_(std::move(audio)) {
+    : config_(config),
+      clock_(std::move(clock)),
+      audio_(std::move(audio)),
+      user_data_dir_(config_.user_data_path.empty() ? data::UserDataDir() : data::UserDataDir(config_.user_data_path)) {
     if (config_.target_fps > 0.0) {
         target_frame_time_ = 1.0 / config_.target_fps;
     }
+
+    // Initialize user data directory and settings before SDL init
+    user_data_dir_.ensure_directories();
+    settings_manager_ = std::make_unique<data::SettingsManager>(user_data_dir_.settings_file());
+    settings_manager_->load();
+
     init_sdl();
     init_renderer(config_);
     init_audio();

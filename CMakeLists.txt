@@ -73,6 +73,8 @@ FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog)
 
 add_library(openitup_engine STATIC
     src/openitup/asset/data_directory.cpp
+    src/openitup/asset/data_dir_config.cpp
+    src/openitup/asset/song_scanner.cpp
     src/openitup/core/clock.cpp
     src/openitup/core/engine.cpp
     src/openitup/core/system_paths.cpp
@@ -117,6 +119,8 @@ add_library(openitup_engine STATIC
     src/openitup/scene/result_scene.cpp
     src/openitup/data/user_data_dir.cpp
     src/openitup/data/settings.cpp
+    src/openitup/data/atomic_write.cpp
+    src/openitup/data/settings_manager.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -138,6 +142,7 @@ set(AUDIO_SOURCES
     src/openitup/audio/mp3_decoder.cpp
     src/openitup/audio/sound_sample.cpp
     src/openitup/audio/sfx_player.cpp
+    src/openitup/audio/gameplay_sfx.cpp
 )
 
 if(OPENITUP_AUDIO_BACKEND STREQUAL "SDL3")
@@ -195,6 +200,7 @@ enable_testing()
 
 add_executable(openitup_tests
     test/test_data_directory.cpp
+    test/test_song_scanner.cpp
     test/test_keyframe_interp.cpp
     test/test_texture_cache.cpp
     test/test_texture_cache_pinning.cpp
@@ -211,6 +217,7 @@ add_executable(openitup_tests
     test/test_audio_decoder.cpp
     test/test_sfx.cpp
     test/test_sfx_player.cpp
+    test/test_gameplay_sfx.cpp
     test/test_null_audio_backend.cpp
     test/test_chart.cpp
     test/test_timing_data.cpp
@@ -232,6 +239,9 @@ add_executable(openitup_tests
     test/test_hold_body_rendering.cpp
     test/test_user_data_dir.cpp
     test/test_settings.cpp
+    test/test_atomic_write.cpp
+    test/test_settings_manager.cpp
+    test/test_keyboard_driver.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE

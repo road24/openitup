@@ -7,6 +7,8 @@
 #include <openitup/audio/audio_system.h>
 #include <openitup/core/clock.h>
 #include <openitup/core/system_asset_manager.h>
+#include <openitup/data/settings_manager.h>
+#include <openitup/data/user_data_dir.h>
 #include <openitup/gfx/renderer.h>
 #include <openitup/input/input_system.h>
 #include <openitup/render/text_renderer.h>
@@ -24,6 +26,7 @@ struct EngineConfig {
     double target_fps = 0.0;
     std::string data_dir_path;
     std::string chart_path;
+    std::filesystem::path user_data_path;  // Optional override for testing
 };
 
 class Engine {
@@ -48,6 +51,8 @@ public:
     SceneStack* get_scene_stack() const { return scene_stack_.get(); }
     TextRenderer* get_text_renderer() const { return text_renderer_.get(); }
     core::SystemAssetManager* get_system_assets() const { return system_asset_mgr_.get(); }
+    data::SettingsManager* get_settings() const { return settings_manager_.get(); }
+    const data::UserDataDir& get_user_data_dir() const { return user_data_dir_; }
     std::filesystem::path get_data_dir() const { return config_.data_dir_path; }
     uint64_t tick_count() const { return tick_count_; }
     double render_alpha() const { return render_alpha_; }
@@ -72,6 +77,8 @@ private:
     std::unique_ptr<SceneStack> scene_stack_;
     std::unique_ptr<TextRenderer> text_renderer_;
     std::unique_ptr<core::SystemAssetManager> system_asset_mgr_;
+    data::UserDataDir user_data_dir_;
+    std::unique_ptr<data::SettingsManager> settings_manager_;
 
     bool running_ = false;
     uint64_t tick_count_ = 0;
