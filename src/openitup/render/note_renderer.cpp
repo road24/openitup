@@ -33,13 +33,40 @@ NoteFieldConfig default_single_config() {
     config.column_x.resize(5);
 
     float center_x = 320.0f;
-    float spacing = 56.0f;  // pixels between column centers
+    float spacing = 64.0f;  // pixels between column centers
     float start_x = center_x - 2.0f * spacing;
 
     for (int i = 0; i < 5; i++) {
         config.column_x[i] = start_x + static_cast<float>(i) * spacing;
     }
-    // column_x = {208, 264, 320, 376, 432}
+    // column_x = {192, 256, 320, 384, 448}
+
+    return config;
+}
+
+NoteFieldConfig default_double_config() {
+    NoteFieldConfig config;
+    config.num_columns = 10;
+    config.column_x.resize(10);
+
+    // Double mode: 10 columns spanning full 640px width
+    // Left side (P1): columns 0-4
+    // Right side (P2): columns 5-9
+    float spacing = 58.0f;  // pixels between column centers
+    float left_center_x = 160.0f;   // Center of left 5 columns
+    float right_center_x = 480.0f;  // Center of right 5 columns
+
+    // P1 columns (left side)
+    float left_start_x = left_center_x - 2.0f * spacing;
+    for (int i = 0; i < 5; i++) {
+        config.column_x[i] = left_start_x + static_cast<float>(i) * spacing;
+    }
+
+    // P2 columns (right side)
+    float right_start_x = right_center_x - 2.0f * spacing;
+    for (int i = 0; i < 5; i++) {
+        config.column_x[i + 5] = right_start_x + static_cast<float>(i) * spacing;
+    }
 
     return config;
 }
@@ -54,8 +81,27 @@ NoteRenderer::NoteRenderer(const NoteData& note_data, const TimingData& timing_d
 
 float NoteRenderer::beat_to_y(double note_beat, double current_beat) const {
     double beat_delta = note_beat - current_beat;
+
+    float effective_scroll_speed = config_.scroll_speed;
+
+    if (config_.speed_mod_type == SpeedModType::C_MOD) {
+        // C-Mod: constant scroll speed in pixels/second
+        // Convert C-mod value (pixels/second) to effective multiplier
+        // Base formula: pixels_per_beat * scroll_speed gives pixels per beat
+        // For C-mod, we want: (pixels/second) / (beats/second) = pixels/beat
+        // Current BPM from timing data at current beat
+        double current_bpm = timing_data_.bpm_at_beat(current_beat);
+        double beats_per_second = current_bpm / 60.0;
+
+        // Effective scroll speed to achieve desired pixels/second
+        effective_scroll_speed = config_.speed_mod_value / (config_.pixels_per_beat * beats_per_second);
+    } else {
+        // M-Mod: multiply base scroll speed
+        effective_scroll_speed = config_.scroll_speed * config_.speed_mod_value;
+    }
+
     return config_.receptor_y
-         + static_cast<float>(beat_delta) * config_.pixels_per_beat * config_.scroll_speed;
+         + static_cast<float>(beat_delta) * config_.pixels_per_beat * effective_scroll_speed;
 }
 
 void NoteRenderer::render(SDL_Renderer* renderer, double song_position_ms, double global_time_ms, double render_alpha, const std::vector<bool>* judged_notes) const {

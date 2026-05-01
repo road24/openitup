@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(openitup VERSION 0.1.0 LANGUAGES CXX)
+project(openitup VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -56,6 +56,20 @@ FetchContent_Declare(
     GIT_SHALLOW    TRUE
 )
 
+FetchContent_Declare(
+    lua
+    GIT_REPOSITORY https://github.com/lua/lua.git
+    GIT_TAG        v5.4.7
+    GIT_SHALLOW    TRUE
+)
+
+FetchContent_Declare(
+    sol2
+    GIT_REPOSITORY https://github.com/ThePhD/sol2.git
+    GIT_TAG        v3.3.0
+    GIT_SHALLOW    TRUE
+)
+
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 set(SDL_TEST_LIBRARY OFF CACHE BOOL "" FORCE)
@@ -67,7 +81,53 @@ set(JSON_BuildTests OFF CACHE BOOL "" FORCE)
 # SDL3 must be made available before SDL3_image so its targets exist
 FetchContent_MakeAvailable(SDL3)
 FetchContent_MakeAvailable(SDL3_image)
-FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog)
+FetchContent_MakeAvailable(nlohmann_json googletest cli11 spdlog sol2)
+
+# --- Lua 5.4 (manual build) ---
+FetchContent_GetProperties(lua)
+if(NOT lua_POPULATED)
+    FetchContent_Populate(lua)
+    # Lua doesn't provide CMakeLists.txt, so we build it manually
+    add_library(lua_static STATIC
+        ${lua_SOURCE_DIR}/lapi.c
+        ${lua_SOURCE_DIR}/lcode.c
+        ${lua_SOURCE_DIR}/lctype.c
+        ${lua_SOURCE_DIR}/ldebug.c
+        ${lua_SOURCE_DIR}/ldo.c
+        ${lua_SOURCE_DIR}/ldump.c
+        ${lua_SOURCE_DIR}/lfunc.c
+        ${lua_SOURCE_DIR}/lgc.c
+        ${lua_SOURCE_DIR}/llex.c
+        ${lua_SOURCE_DIR}/lmem.c
+        ${lua_SOURCE_DIR}/lobject.c
+        ${lua_SOURCE_DIR}/lopcodes.c
+        ${lua_SOURCE_DIR}/lparser.c
+        ${lua_SOURCE_DIR}/lstate.c
+        ${lua_SOURCE_DIR}/lstring.c
+        ${lua_SOURCE_DIR}/ltable.c
+        ${lua_SOURCE_DIR}/ltm.c
+        ${lua_SOURCE_DIR}/lundump.c
+        ${lua_SOURCE_DIR}/lvm.c
+        ${lua_SOURCE_DIR}/lzio.c
+        ${lua_SOURCE_DIR}/lauxlib.c
+        ${lua_SOURCE_DIR}/lbaselib.c
+        ${lua_SOURCE_DIR}/lcorolib.c
+        ${lua_SOURCE_DIR}/ldblib.c
+        ${lua_SOURCE_DIR}/liolib.c
+        ${lua_SOURCE_DIR}/lmathlib.c
+        ${lua_SOURCE_DIR}/loadlib.c
+        ${lua_SOURCE_DIR}/loslib.c
+        ${lua_SOURCE_DIR}/lstrlib.c
+        ${lua_SOURCE_DIR}/ltablib.c
+        ${lua_SOURCE_DIR}/lutf8lib.c
+        ${lua_SOURCE_DIR}/linit.c
+    )
+    target_include_directories(lua_static PUBLIC ${lua_SOURCE_DIR})
+    if(UNIX)
+        target_compile_definitions(lua_static PUBLIC LUA_USE_POSIX)
+        target_link_libraries(lua_static PUBLIC m dl)
+    endif()
+endif()
 
 # --- zlib (for STX parser) ---
 find_package(ZLIB REQUIRED)
@@ -81,6 +141,7 @@ add_library(openitup_engine STATIC
     src/openitup/asset/song_database.cpp
     src/openitup/asset/cached_song_database.cpp
     src/openitup/asset/lazy_loader.cpp
+    src/openitup/asset/noteskin_manager.cpp
     src/openitup/core/clock.cpp
     src/openitup/core/engine.cpp
     src/openitup/core/system_paths.cpp
@@ -123,6 +184,8 @@ add_library(openitup_engine STATIC
     src/openitup/judge/judgment_event.cpp
     src/openitup/judge/judge.cpp
     src/openitup/judge/gameplay_state.cpp
+    src/openitup/judge/coop_judge.cpp
+    src/openitup/judge/coop_gameplay_state.cpp
     src/openitup/render/note_renderer.cpp
     src/openitup/render/judgment_display.cpp
     src/openitup/render/combo_display.cpp
@@ -137,11 +200,18 @@ add_library(openitup_engine STATIC
     src/openitup/scene/mode_select_scene.cpp
     src/openitup/scene/song_select_scene.cpp
     src/openitup/scene/result_scene.cpp
+    src/openitup/scene/name_entry_scene.cpp
+    src/openitup/scene/pause_overlay_scene.cpp
+    src/openitup/scene/transition_scene.cpp
+    src/openitup/scene/settings_scene.cpp
+    src/openitup/scene/profile_selection_scene.cpp
     src/openitup/data/user_data_dir.cpp
     src/openitup/data/settings.cpp
+    src/openitup/data/profile.cpp
     src/openitup/data/atomic_write.cpp
     src/openitup/data/settings_manager.cpp
     src/openitup/data/song_cache.cpp
+    src/openitup/lua/lua_engine.cpp
 )
 
 target_include_directories(openitup_engine PUBLIC
@@ -155,6 +225,8 @@ target_link_libraries(openitup_engine PUBLIC
     spdlog::spdlog
     openitup_audio
     ZLIB::ZLIB
+    lua_static
+    sol2::sol2
 )
 
 # --- Audio library (US-AUD-093: backend selection) ---
@@ -260,6 +332,9 @@ add_executable(openitup_tests
     test/test_timing_profile_loader.cpp
     test/test_gameplay_state.cpp
     test/test_judge_profiles.cpp
+    test/test_audio_seek_accuracy.cpp
+    test/test_global_audio_offset.cpp
+    test/test_coop_judge.cpp
     test/test_note_renderer.cpp
     test/test_note_renderer_perf.cpp
     test/test_minimal_gameplay_scene.cpp
@@ -281,6 +356,13 @@ add_executable(openitup_tests
     test/test_cached_song_database.cpp
     test/test_song_select_scene.cpp
     test/test_keyboard_driver.cpp
+    test/test_lua_engine.cpp
+    test/test_note_field_config.cpp
+    test/test_input_per_player.cpp
+    test/test_profile.cpp
+    test/test_noteskin_manager.cpp
+    test/test_chart_hash_integration.cpp
+    test/test_new_scenes.cpp
 )
 
 target_link_libraries(openitup_tests PRIVATE

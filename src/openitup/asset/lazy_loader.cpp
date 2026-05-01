@@ -4,6 +4,7 @@
 
 #include "openitup/chart/chart_builder.h"
 #include "openitup/chart/ksf_parser.h"
+#include "openitup/chart/chart_hasher.h"
 #include "openitup/bga/bga_loader.h"
 
 namespace openitup {
@@ -12,7 +13,7 @@ LazyLoader::LazyLoader() : ksf_parser_(std::make_unique<KsfParser>()) {}
 
 LazyLoader::~LazyLoader() = default;
 
-std::optional<Chart> LazyLoader::load_chart(const SongDatabaseEntry& entry,
+std::optional<Chart> LazyLoader::load_chart(SongDatabaseEntry& entry,
                                              std::size_t chart_index) const {
     // US-AST-017: Lazy-load full chart data on song selection
     if (chart_index >= entry.chart_paths.size()) {
@@ -31,6 +32,15 @@ std::optional<Chart> LazyLoader::load_chart(const SongDatabaseEntry& entry,
     try {
         spdlog::info("LazyLoader: loading chart from {}", chart_path.string());
         Chart chart = ksf_parser_->parse(chart_path);
+
+        // US-DAT-014: Compute chart hash on load
+        if (entry.chart_hash.empty()) {
+            std::string hash = compute_chart_hash(chart.note_data(), chart.timing_data());
+            entry.chart_hash = hash;
+            spdlog::debug("LazyLoader: computed chart hash for '{}': {}",
+                         entry.title, hash.substr(0, 16) + "...");
+        }
+
         return chart;
     } catch (const ChartLoadException& e) {
         spdlog::error("LazyLoader: failed to parse chart {}: {}", chart_path.string(), e.what());

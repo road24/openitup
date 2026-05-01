@@ -37,11 +37,21 @@ std::string KeyboardDriver::device_name() const {
 
 std::vector<KeyMapping> KeyboardDriver::default_keymap() {
     return {
+        // P1 bindings (left side of keyboard: QWEASDZXC layout)
         {SDL_SCANCODE_Q, PadInput::P1_UP_LEFT},
         {SDL_SCANCODE_E, PadInput::P1_UP_RIGHT},
         {SDL_SCANCODE_S, PadInput::P1_CENTER},
         {SDL_SCANCODE_Z, PadInput::P1_DOWN_LEFT},
         {SDL_SCANCODE_C, PadInput::P1_DOWN_RIGHT},
+
+        // P2 bindings (numpad: 7/9 = up, 4/6 = down, 5 = center)
+        {SDL_SCANCODE_KP_7, PadInput::P2_UP_LEFT},
+        {SDL_SCANCODE_KP_9, PadInput::P2_UP_RIGHT},
+        {SDL_SCANCODE_KP_5, PadInput::P2_CENTER},
+        {SDL_SCANCODE_KP_1, PadInput::P2_DOWN_LEFT},
+        {SDL_SCANCODE_KP_3, PadInput::P2_DOWN_RIGHT},
+
+        // Menu inputs (shared)
         {SDL_SCANCODE_RETURN, PadInput::START},
         {SDL_SCANCODE_ESCAPE, PadInput::BACK},
         {SDL_SCANCODE_SPACE, PadInput::SELECT},
@@ -124,6 +134,11 @@ SDL_Scancode KeyboardDriver::string_to_scancode(const std::string& name) {
         {"SDL_SCANCODE_DOWN", SDL_SCANCODE_DOWN},
         {"SDL_SCANCODE_LEFT", SDL_SCANCODE_LEFT},
         {"SDL_SCANCODE_RIGHT", SDL_SCANCODE_RIGHT},
+        {"SDL_SCANCODE_KP_1", SDL_SCANCODE_KP_1},
+        {"SDL_SCANCODE_KP_3", SDL_SCANCODE_KP_3},
+        {"SDL_SCANCODE_KP_5", SDL_SCANCODE_KP_5},
+        {"SDL_SCANCODE_KP_7", SDL_SCANCODE_KP_7},
+        {"SDL_SCANCODE_KP_9", SDL_SCANCODE_KP_9},
         // Support SDL_GetScancodeName casing variants
         {"SDL_SCANCODE_Return", SDL_SCANCODE_RETURN},
         {"SDL_SCANCODE_Escape", SDL_SCANCODE_ESCAPE},

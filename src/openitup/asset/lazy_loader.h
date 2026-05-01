@@ -23,8 +23,9 @@ public:
 
     // Load full chart data from a song entry.
     // US-AST-017: Lazy-load chart on song selection.
+    // US-DAT-014: Computes and caches chart hash on load.
     // Returns nullopt if chart file doesn't exist or parse fails.
-    std::optional<Chart> load_chart(const SongDatabaseEntry& entry, std::size_t chart_index = 0) const;
+    std::optional<Chart> load_chart(SongDatabaseEntry& entry, std::size_t chart_index = 0) const;
 
     // Load audio file path from a song entry.
     // US-AST-019: Lazy-load audio at gameplay start.

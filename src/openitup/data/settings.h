@@ -16,6 +16,7 @@ struct AudioSettings {
     float master_volume = 1.0f;  // [0.0, 1.0]
     float music_volume = 1.0f;   // [0.0, 1.0]
     float sfx_volume = 1.0f;     // [0.0, 1.0]
+    int global_audio_offset_ms = 0;  // [-500, +500] US-AUD-061
 };
 
 struct InputSettings {

@@ -30,7 +30,8 @@ void to_json(nlohmann::json& j, const AudioSettings& a) {
     j = nlohmann::json{
         {"master_volume", a.master_volume},
         {"music_volume", a.music_volume},
-        {"sfx_volume", a.sfx_volume}
+        {"sfx_volume", a.sfx_volume},
+        {"global_audio_offset_ms", a.global_audio_offset_ms}
     };
 }
 
@@ -38,6 +39,7 @@ void from_json(const nlohmann::json& j, AudioSettings& a) {
     a.master_volume = j.value("master_volume", 1.0f);
     a.music_volume = j.value("music_volume", 1.0f);
     a.sfx_volume = j.value("sfx_volume", 1.0f);
+    a.global_audio_offset_ms = j.value("global_audio_offset_ms", 0);
 }
 
 InputSettings InputSettings::make_default() {

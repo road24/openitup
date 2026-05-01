@@ -22,6 +22,10 @@ public:
     uint64_t tick_number() const { return tick_number_; }
     bool empty() const;
 
+    // Get per-player snapshot (0 = P1, 1 = P2)
+    // Filters the full snapshot to only include inputs for the specified player
+    InputSnapshot get_player_snapshot(int player) const;
+
 private:
     uint32_t held_ = 0;
     uint32_t pressed_ = 0;

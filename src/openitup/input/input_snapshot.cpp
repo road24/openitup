@@ -24,4 +24,30 @@ bool InputSnapshot::empty() const {
     return held_ == 0 && pressed_ == 0 && released_ == 0;
 }
 
+InputSnapshot InputSnapshot::get_player_snapshot(int player) const {
+    // P1 uses bits 0-4 (panels) + START/BACK/SELECT/COIN (bits 10-13)
+    // P2 uses bits 5-9 (panels) + START/BACK/SELECT/COIN (bits 10-13)
+    // Menu inputs (START, BACK, SELECT, COIN) are shared across both players
+
+    constexpr uint32_t P1_PANEL_MASK = 0x1F;        // Bits 0-4: P1 panels
+    constexpr uint32_t P2_PANEL_MASK = 0x3E0;       // Bits 5-9: P2 panels
+    constexpr uint32_t MENU_MASK = 0x3C00;          // Bits 10-13: START, BACK, SELECT, COIN
+
+    uint32_t mask;
+    if (player == 0) {
+        // P1: panels 0-4 + menu inputs
+        mask = P1_PANEL_MASK | MENU_MASK;
+    } else {
+        // P2: panels 5-9 + menu inputs
+        mask = P2_PANEL_MASK | MENU_MASK;
+    }
+
+    return InputSnapshot(
+        held_ & mask,
+        pressed_ & mask,
+        released_ & mask,
+        tick_number_
+    );
+}
+
 } // namespace openitup

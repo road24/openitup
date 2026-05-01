@@ -34,6 +34,10 @@ struct SongDatabaseEntry {
     std::filesystem::path banner_path;         // US-AST-015, US-AST-031
     std::filesystem::path bga_path;            // US-AST-016, US-AST-020
 
+    // US-DAT-014: Chart content hash (SHA-256 hex string, 64 chars)
+    // Computed when chart is fully loaded. Empty if not yet computed.
+    std::string chart_hash;
+
     // US-AST-030: Validation flag (true if song has both chart and audio)
     bool is_valid = false;
 };

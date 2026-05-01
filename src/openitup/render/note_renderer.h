@@ -20,6 +20,11 @@ struct HitEffect {
     JudgmentTier tier;
 };
 
+enum class SpeedModType {
+    M_MOD,  // Multiplier mode: scroll speed scales with BPM
+    C_MOD   // Constant mode: fixed pixels/second regardless of BPM
+};
+
 struct NoteFieldConfig {
     float receptor_y = 80.0f;
     float note_width = 48.0f;
@@ -29,6 +34,8 @@ struct NoteFieldConfig {
     float scroll_speed = 1.0f;
     int num_columns = 5;
     std::vector<float> column_x;
+    SpeedModType speed_mod_type = SpeedModType::M_MOD;
+    float speed_mod_value = 1.0f;  // M-mod multiplier or C-mod pixels/second
 };
 
 struct ColumnColor {
@@ -94,6 +101,9 @@ private:
 
 // Build a default single-mode config (5 columns centered in 640px).
 NoteFieldConfig default_single_config();
+
+// Build a default double-mode config (10 columns spanning full width).
+NoteFieldConfig default_double_config();
 
 // Per-column colors for placeholder rectangles (10 entries for double mode support).
 extern const ColumnColor COLUMN_COLORS[10];
