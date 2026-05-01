@@ -26,7 +26,8 @@ public:
     // This indirection allows testing without SDL3_image.
     using ImageLoaderFn = std::function<SDL_Surface*(const std::filesystem::path&)>;
 
-    explicit TextureCache(SDL_Renderer* renderer, ImageLoaderFn loader);
+    explicit TextureCache(SDL_Renderer* renderer, ImageLoaderFn loader,
+                         size_t memory_threshold_mb = 200);
     ~TextureCache();
 
     TextureCache(const TextureCache&) = delete;
@@ -66,10 +67,15 @@ private:
         int width;
         int height;
         bool pinned = false;
+        uint64_t last_access_tick = 0;
     };
 
     std::vector<Entry> entries_;
     std::unordered_map<std::string, uint16_t> path_to_index_;
+
+    uint64_t current_tick_ = 0;
+    size_t memory_threshold_bytes_;
+    size_t current_memory_usage_ = 0;
 };
 
 } // namespace openitup

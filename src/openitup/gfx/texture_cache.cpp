@@ -16,8 +16,10 @@ static std::string to_lower(const std::string& s) {
     return r;
 }
 
-TextureCache::TextureCache(SDL_Renderer* renderer, ImageLoaderFn loader)
-    : renderer_(renderer), loader_(std::move(loader)) {}
+TextureCache::TextureCache(SDL_Renderer* renderer, ImageLoaderFn loader,
+                           size_t memory_threshold_mb)
+    : renderer_(renderer), loader_(std::move(loader)),
+      memory_threshold_bytes_(memory_threshold_mb * 1024 * 1024) {}
 
 TextureCache::~TextureCache() {
     clear();
@@ -61,6 +63,7 @@ TextureCache::LoadResult TextureCache::load(const std::string& name,
     auto it = path_to_index_.find(canonical_key);
     if (it != path_to_index_.end()) {
         auto idx = it->second;
+        entries_[idx].last_access_tick = current_tick_++;
         spdlog::debug("texture cache hit: '{}' -> handle {}", name, idx);
         return {static_cast<TextureHandle>(idx),
                 entries_[idx].width, entries_[idx].height};
@@ -88,10 +91,23 @@ TextureCache::LoadResult TextureCache::load(const std::string& name,
     }
 
     auto idx = static_cast<uint16_t>(entries_.size());
-    entries_.push_back({texture, w, h});
+
+    // Estimate memory usage: assume RGBA format (4 bytes per pixel)
+    size_t texture_bytes = static_cast<size_t>(w) * h * 4;
+    current_memory_usage_ += texture_bytes;
+
+    Entry entry;
+    entry.texture = texture;
+    entry.width = w;
+    entry.height = h;
+    entry.pinned = false;
+    entry.last_access_tick = current_tick_++;
+
+    entries_.push_back(entry);
     path_to_index_[canonical_key] = idx;
 
-    spdlog::info("texture loaded: handle={}, {}x{}", idx, w, h);
+    spdlog::info("texture loaded: handle={}, {}x{}, memory={}MB",
+                 idx, w, h, current_memory_usage_ / (1024.0 * 1024.0));
     return {static_cast<TextureHandle>(idx), w, h};
 }
 
@@ -116,6 +132,8 @@ void TextureCache::clear() {
     }
     entries_.clear();
     path_to_index_.clear();
+    current_memory_usage_ = 0;
+    current_tick_ = 0;
 }
 
 void TextureCache::pin_texture(const std::string& canonical_path) {

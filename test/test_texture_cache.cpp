@@ -212,3 +212,58 @@ TEST_F(TextureCacheTest, ThrowsOnMissingFile) {
 
     EXPECT_THROW(cache.load("nonexistent.tga", tmp_dir_), std::runtime_error);
 }
+
+// --- LRU Tracking Tests ---
+
+TEST_F(TextureCacheTest, LastAccessTickIncrementsOnLoad) {
+    if (!has_renderer()) GTEST_SKIP() << "No SDL renderer available";
+
+    write_bmp("a.bmp", 16, 16);
+    write_bmp("b.bmp", 16, 16);
+    write_bmp("c.bmp", 16, 16);
+    fs::rename(tmp_dir_ / "a.bmp", tmp_dir_ / "a.tga");
+    fs::rename(tmp_dir_ / "b.bmp", tmp_dir_ / "b.tga");
+    fs::rename(tmp_dir_ / "c.bmp", tmp_dir_ / "c.tga");
+
+    auto loader = [](const fs::path& path) -> SDL_Surface* {
+        return SDL_LoadBMP(path.string().c_str());
+    };
+
+    TextureCache cache(renderer_, loader);
+
+    auto ra = cache.load("a.tga", tmp_dir_);
+    auto rb = cache.load("b.tga", tmp_dir_);
+    auto rc = cache.load("c.tga", tmp_dir_);
+
+    // Verify three distinct textures loaded
+    EXPECT_EQ(cache.size(), 3u);
+    EXPECT_NE(ra.handle, rb.handle);
+    EXPECT_NE(rb.handle, rc.handle);
+}
+
+TEST_F(TextureCacheTest, LastAccessTickUpdatesOnCacheHit) {
+    if (!has_renderer()) GTEST_SKIP() << "No SDL renderer available";
+
+    write_bmp("tex.bmp", 16, 16);
+    fs::rename(tmp_dir_ / "tex.bmp", tmp_dir_ / "tex.tga");
+
+    auto loader = [](const fs::path& path) -> SDL_Surface* {
+        return SDL_LoadBMP(path.string().c_str());
+    };
+
+    TextureCache cache(renderer_, loader);
+
+    // First load: should be tick 0
+    auto r1 = cache.load("tex.tga", tmp_dir_);
+
+    // Load another texture to increment global tick
+    write_bmp("other.bmp", 16, 16);
+    fs::rename(tmp_dir_ / "other.bmp", tmp_dir_ / "other.tga");
+    cache.load("other.tga", tmp_dir_);
+
+    // Second load of original: should update tick and return same handle
+    auto r2 = cache.load("tex.tga", tmp_dir_);
+
+    EXPECT_EQ(r1.handle, r2.handle);
+    EXPECT_EQ(cache.size(), 2u);
+}
