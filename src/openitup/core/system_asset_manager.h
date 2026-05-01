@@ -6,10 +6,13 @@
 #include <string>
 
 // Forward declarations
+struct SDL_Renderer;
+
 namespace openitup {
 class Sprite;
 class TextureCache;
 class BgaAnimation;
+class TextRenderer;
 }  // namespace openitup
 
 namespace openitup::core {
@@ -35,12 +38,20 @@ public:
     std::filesystem::path system_dir() const { return system_dir_; }
     bool has_sprite(const std::string& name) const;
 
+    // Text rendering
+    TextRenderer* get_text_renderer() { return text_renderer_.get(); }
+
     // Constructor for internal use (use create() instead)
-    SystemAssetManager(std::filesystem::path system_dir, TextureCache* texture_cache);
+    // sdl_renderer is needed for TextRenderer; can be nullptr if text rendering not needed
+    SystemAssetManager(std::filesystem::path system_dir, TextureCache* texture_cache, SDL_Renderer* sdl_renderer = nullptr);
+
+    // Destructor must be defined in .cpp because TextRenderer is forward-declared
+    ~SystemAssetManager();
 
 private:
     std::filesystem::path system_dir_;
     TextureCache* texture_cache_;  // borrowed reference
+    std::unique_ptr<TextRenderer> text_renderer_;
 
     std::map<std::string, std::shared_ptr<Sprite>> sprite_cache_;
     std::map<std::string, std::shared_ptr<BgaAnimation>> animation_cache_;

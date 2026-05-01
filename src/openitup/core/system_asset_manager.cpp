@@ -6,6 +6,7 @@
 #include <openitup/bga/animation.h>
 #include <openitup/bga/bga_loader.h>
 #include <openitup/gfx/texture_cache.h>
+#include <openitup/render/text_renderer.h>
 #include <spdlog/spdlog.h>
 
 namespace openitup::core {
@@ -29,8 +30,16 @@ std::unique_ptr<SystemAssetManager> SystemAssetManager::create(
 }
 
 SystemAssetManager::SystemAssetManager(std::filesystem::path system_dir,
-                                       TextureCache* texture_cache)
-    : system_dir_(std::move(system_dir)), texture_cache_(texture_cache) {}
+                                       TextureCache* texture_cache,
+                                       SDL_Renderer* sdl_renderer)
+    : system_dir_(std::move(system_dir)), texture_cache_(texture_cache) {
+    if (sdl_renderer) {
+        text_renderer_ = std::make_unique<TextRenderer>(sdl_renderer);
+        spdlog::debug("TextRenderer initialized in SystemAssetManager");
+    }
+}
+
+SystemAssetManager::~SystemAssetManager() = default;
 
 std::shared_ptr<Sprite> SystemAssetManager::get_sprite(const std::string& name) {
     // Check cache first

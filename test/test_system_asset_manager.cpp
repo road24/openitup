@@ -177,3 +177,17 @@ TEST_F(SystemAssetManagerTest, LoadWithoutTextureCacheReturnsNull) {
     auto sprite = mgr.get_sprite("test_sprite");
     EXPECT_EQ(sprite, nullptr);
 }
+
+TEST_F(SystemAssetManagerTest, TextRendererAvailableWhenRendererProvided) {
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get(), renderer_);
+
+    auto text_renderer = mgr.get_text_renderer();
+    EXPECT_NE(text_renderer, nullptr);
+}
+
+TEST_F(SystemAssetManagerTest, TextRendererNullWhenRendererNotProvided) {
+    auto mgr = SystemAssetManager(system_dir_, texture_cache_.get(), nullptr);
+
+    auto text_renderer = mgr.get_text_renderer();
+    EXPECT_EQ(text_renderer, nullptr);
+}
