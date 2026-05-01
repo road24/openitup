@@ -11,9 +11,10 @@ Generated: 2026-04-30
 | DONE (no phase) | 32 | 70+ (8 stories unpointed) |
 | DONE (Phase 1) | 48 | 134 |
 | DONE (Phase 2) | 17 | 76 |
+| DONE (Phase 3) | 7 | 25 |
 | Phase 1 | 0 | 0 |
 | Phase 2 | 0 | 0 |
-| Phase 3 | 45 | 121 |
+| Phase 3 | 38 | 96 |
 | Phase 4 | 17 | 89 |
 | Phase 5 | 52 | 154 |
 | Phase 6 | 9 | 31 |
@@ -145,7 +146,7 @@ Generated: 2026-04-30
 | US-AST-019 | Audio loaded at gameplay start | PLANNED | 3 | 2 | US-AST-017 |
 | US-AST-020 | BGA loaded on song selection | PLANNED | 3 | 2 | US-AST-016 |
 | US-INP-023 | Persist keymap to settings file | PLANNED | 3 | 3 | US-INP-022 |
-| US-AUD-031 | Load short audio samples to memory | PLANNED | 3 | 3 | US-AUD-001, US-AUD-002 |
+| US-AUD-031 | Load short audio samples to memory | DONE | 3 | 3 | US-AUD-001, US-AUD-002 |
 | US-AUD-032 | Play sound effects with low latency | PLANNED | 3 | 5 | US-AUD-031 |
 | US-AUD-033 | Independent SFX volume control | PLANNED | 3 | 2 | US-AUD-032 |
 | US-AUD-041 | Trigger key sounds on panel press | PLANNED | 3 | 2 | US-AUD-032 |
@@ -153,17 +154,17 @@ Generated: 2026-04-30
 | US-AUD-051 | Play judgment sounds based on timing | PLANNED | 3 | 2 | US-AUD-032 |
 | US-AUD-052 | Configurable judgment sound volume | PLANNED | 3 | 2 | US-AUD-051 |
 | US-AUD-093 | Select audio backend at compile time | PLANNED | 3 | 2 | US-AUD-092 |
-| US-CHT-018 | Store preview audio information | PLANNED | 3 | 2 | US-CHT-002 |
-| US-JDG-007 | Hold note head judgment | PLANNED | 3 | 4 | US-JDG-002 |
+| US-CHT-018 | Store preview audio information | DONE | 3 | 2 | US-CHT-002 |
+| US-JDG-007 | Hold note head judgment | DONE | 3 | 4 | US-JDG-002 |
 | US-JDG-008 | Hold body continuous scoring | PLANNED | 3 | 4 | US-JDG-007 |
 | US-JDG-009 | Hold grace window recovery | PLANNED | 3 | 4 | US-JDG-008, US-JDG-013 |
 | US-JDG-010 | Life gauge with HP drain | PLANNED | 3 | 2 | US-JDG-005, US-JDG-013 |
-| US-REN-025 | Hold note body rendering | PLANNED | 3 | 5 | US-REN-021 |
+| US-REN-025 | Hold note body rendering | DONE | 3 | 5 | US-REN-021 |
 | US-REN-026 | Hold note cap rendering | PLANNED | 3 | 2 | US-REN-025 |
-| US-REN-028 | Hit effects and receptor flash | PLANNED | 3 | 3 | US-REN-021 |
-| US-REN-029 | Life gauge visual rendering | PLANNED | 3 | 3 | None |
+| US-REN-028 | Hit effects and receptor flash | DONE | 3 | 3 | US-REN-021 |
+| US-REN-029 | Life gauge visual rendering | DONE | 3 | 3 | None |
 | US-SCN-006 | Song select scene with music wheel | PLANNED | 3 | 8 | US-SCN-001 |
-| US-SCN-008 | Result scene w/ grade & breakdown | PLANNED | 3 | 5 | US-SCN-001 |
+| US-SCN-008 | Result scene w/ grade & breakdown | DONE | 3 | 5 | US-SCN-001 |
 | US-DAT-001 | Platform-appropriate user data dir | PLANNED | 3 | 2 | None |
 | US-DAT-002 | Automatic user data dir creation | PLANNED | 3 | 2 | US-DAT-001 |
 | US-DAT-003 | Settings JSON file structure | PLANNED | 3 | 3 | US-DAT-002 |
