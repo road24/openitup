@@ -1,4 +1,4 @@
-"""Lockchip cipher implementation for Pump It Up Exceed data decryption."""
+"""Lockchip cipher implementation for ENC2/RESPACK format decryption."""
 
 CHIP_TRANSFORM = [0xF0, 0x78, 0xF9, 0xFD, 0x1C, 0x20, 0xC2, 0x02]
 

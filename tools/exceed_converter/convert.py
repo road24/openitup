@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""Convert Exceed arcade data into openitup engine format.
+"""Convert Exceed-era arcade data into openitup engine format.
 
 Usage:
-    python -m tools.exceed_converter.convert /path/to/EXCEED_DATA /path/to/output
+    python -m tools.exceed_converter.convert /path/to/DATA /path/to/output
 
-Input structure (Exceed arcade disc):
-    EXCEED_DATA/
-    ├── AUDIO/     A01.AUD (song), DA01.AUD (intro)
-    ├── BGA/       A01.DAT (RESPACK archives)
-    ├── STEP/      A01.STX (binary charts)
-    ├── TITLE/     A01.PNZ (encrypted PNG banners)
+Input structure:
+    DATA/
+    ├── AUDIO/     *.AUD (ENC2-encrypted audio)
+    ├── BGA/       *.DAT (RESPACK archives)
+    ├── STEP/      *.STX (binary charts)
+    ├── TITLE/     *.PNZ (ENC2-encrypted images)
     └── WAVE/      SFX files
 
 Output structure (openitup engine):

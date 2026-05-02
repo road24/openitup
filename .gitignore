@@ -39,5 +39,17 @@ build/
 .claude/projects/
 .claude/settings.local.json
 .claude/agent-memory/
+.claude/worktrees/
 .claude/logs/
 test/artifacts/*
+
+# Song data (user-provided, not distributed)
+song/
+
+# Windows junk
+Thumbs.db
+
+# Agent working directories
+system/
+data/system/noteskin/
+Testing/

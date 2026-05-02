@@ -2,9 +2,9 @@
 
 Execute IP-AST-018 step 1.
 
-Read the implementation plan at /home/jose/Documents/development/openitup/docs/implementation-plans/IP-AST-018.md.
+Read the implementation plan at docs/implementation-plans/IP-AST-018.md.
 
-Read /home/jose/Documents/development/openitup/CLAUDE.md for build and test commands.
+Read CLAUDE.md for build and test commands.
 
 Implement step 1: Add LRU tracking to TextureCache.
 

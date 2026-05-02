@@ -7,8 +7,8 @@ Usage:
 
 Example:
     python3 tools/sm2noteskin.py \
-        ~/stepmania/NoteSkins/pump/newextra \
-        noteskin/newextra
+        /path/to/source-noteskin \
+        noteskin/output
 """
 
 import argparse

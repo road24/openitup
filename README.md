@@ -1,10 +1,10 @@
 # openitup
 
-An open-source simulator aiming for a near-to-real Pump It Up experience.
+An open-source rhythm game engine compatible with 5-panel dance game formats.
 
-openitup is an attempt to bring to you that unique gameplay experience from the original Pump It Up arcade game.
+openitup is a community-driven engine built from scratch for 5-panel rhythm gameplay, with support for multiple chart formats and eras.
 
-This is not another put-all-to-the-graphics effort like any other stepmania based themes.
+This is not a theme or skin — it's a standalone engine with its own rendering pipeline, audio system, and judgment logic.
 
 > **Important: Want to contribute?**
 > Please read [Contributing](#contributing) and [Support This Project](#support-this-project) before starting any work. **Open a discussion first** — this project uses AI-driven development with a specific architecture, and uncoordinated PRs will likely be rejected.
@@ -145,7 +145,7 @@ The codebase has strong test coverage. New code should maintain this standard �
 
 ## Support This Project
 
-The initial effort behind openitup took about 8 months to materialize — most of that time went into reverse engineering the original game formats, understanding the rendering pipeline, and building up the knowledge needed to even start writing code. It has been a passion project in my free time, which left little room for actual development.
+The initial effort behind openitup took about 8 months to materialize — most of that time went into understanding the file formats, building the rendering pipeline, and designing the engine architecture. It has been a passion project in my free time, which left little room for actual development.
 
 That's why I jumped into this with an AI-driven development approach in mind. To make the most of my limited time, I've been using a per-token billing solution (no artificial subscription limits), which means I can get the best output per hour of work — but it also means this project has a real cost attached to it.
 
